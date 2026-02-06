@@ -7,10 +7,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/src/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/src/components/ui/tabs"
 import { Progress } from "@/src/components/ui/progress"
 import { Dumbbell, TrendingUp, LogOut, Apple, Activity } from "lucide-react"
+import { signOut } from "@/src/app/actions/auth"
 
 export default function ClientDashboard() {
-  const handleLogout = () => {
-    window.location.href = "/auth"
+  const handleLogout = async () => {
+    await signOut()
   }
 
   return (

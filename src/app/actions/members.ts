@@ -10,19 +10,21 @@ const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 /** Get the current user's gym_id (UUID) from profiles. Use this to pass a valid gymId to createMember. */
-export async function getCurrentUserGymId(): Promise<{ gymId: string | null; error?: string }> {
+export async function getMembersGymId(gymId: string): Promise<{ members: UserProfile[] | null; error?: string }> {
   const cookieStore = await cookies()
   const supabase = await createClient(cookieStore)
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return { gymId: null, error: "No autenticado" }
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("gym_id")
-    .eq("user_id", user.id)
-    .maybeSingle()
-  return { gymId: profile?.gym_id ?? null }
+  try {
+    const { data: members } = await supabase
+      .from("profiles")
+      .select("user_id, name, email, phone")
+      .eq("role", "member")
+      .eq("gym_id", gymId)
+      .order("created_at", { ascending: false });
+    return { members: members ?? null }
+  } catch (error) {
+    console.error(error)
+    return { members: null, error: error instanceof Error ? error.message : "Error desconocido al obtener miembros" }
+  }
 }
 
 export async function createMember(data: {

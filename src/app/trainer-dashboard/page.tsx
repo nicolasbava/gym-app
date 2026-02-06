@@ -31,18 +31,23 @@ import {
   Eye,
   Apple,
 } from "lucide-react"
-import CreateRoutineDialog from "./forms/createRoutine"
-import CreateExerciseDialog from "./forms/createExercise"
+import CreateRoutineDialog from "../../components/trainer-dashboard/forms/createRoutine"
+import CreateExerciseDialog from "../../components/trainer-dashboard/forms/createExercise"
+import CreateUserDialog from "../../components/trainer-dashboard/forms/createUser"
+import { signOut } from "@/src/app/actions/auth"
+import { useApp } from "@/src/contexts/AppContext"
 
 export default function TrainerDashboard() {
-  const [hasSubscription, setHasSubscription] = useState(false)
-  const [trialDaysLeft, setTrialDaysLeft] = useState(30) // Simular días de prueba restantes
-  const [isTrialActive, setIsTrialActive] = useState(true)
-  const [activePlan, setActivePlan] = useState("")
-  const [assignedPrograms, setAssignedPrograms] = useState<any[]>([])
-  const [open, setOpen] = useState(false)
-  const [gymId, setGymId] = useState("")
-  const [openExerciseForm, setOpenExerciseForm] = useState(false)
+  const { gymId } = useApp();
+  const [hasSubscription, setHasSubscription] = useState(false);
+  const [trialDaysLeft, setTrialDaysLeft] = useState(30); // Simular días de prueba restantes
+  const [isTrialActive, setIsTrialActive] = useState(true);
+  const [activePlan, setActivePlan] = useState("");
+  const [assignedPrograms, setAssignedPrograms] = useState<any[]>([]);
+  const [open, setOpen] = useState(false);
+  const [openExerciseForm, setOpenExerciseForm] = useState(false);
+  const [openCreateUser, setOpenCreateUser] = useState(false);
+
   useEffect(() => {
     // Check if user just subscribed
     const urlParams = new URLSearchParams(window.location.search)
@@ -73,8 +78,8 @@ export default function TrainerDashboard() {
     return () => clearInterval(interval)
   }, [isTrialActive, trialDaysLeft])
 
-  const handleLogout = () => {
-    window.location.href = "/auth"
+  const handleLogout = async () => {
+    await signOut()
   }
 
   const handleSubscribe = (plan: string) => {
@@ -140,16 +145,32 @@ export default function TrainerDashboard() {
               <Dialog open={open} onOpenChange={setOpen}>
                 <DialogTrigger asChild>
                   <Button className="bg-green-600 hover:bg-green-700">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Crear rutina
-                </Button>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Crear rutina
+                  </Button>
                 </DialogTrigger>
-                <CreateRoutineDialog gymId={gymId} onSuccess={() => {}} open={open} setOpen={setOpen} />
+                <CreateRoutineDialog gymId={gymId ?? ""} onSuccess={() => {}} open={open} setOpen={setOpen} />
+              </Dialog>
+            ) : null}
+            {(isTrialActive && trialDaysLeft > 0) || hasSubscription ? (
+              <Dialog open={openCreateUser} onOpenChange={setOpenCreateUser}>
+                <DialogTrigger asChild>
+                  <Button className="bg-blue-600 hover:bg-blue-700">
+                    <Users className="h-4 w-4 mr-2" />
+                    Nuevo miembro
+                  </Button>
+                </DialogTrigger>
+                <CreateUserDialog
+                  gymId={gymId ?? ""}
+                  onSuccess={() => {}}
+                  open={openCreateUser}
+                  setOpen={setOpenCreateUser}
+                />
               </Dialog>
             ) : null}
             {(isTrialActive && trialDaysLeft > 0) || hasSubscription ? (
               <Dialog open={openExerciseForm} onOpenChange={setOpenExerciseForm}>
-                <CreateExerciseDialog gymId={gymId} onSuccess={() => {}} />
+                <CreateExerciseDialog gymId={gymId ?? ""} onSuccess={() => {}} />
               </Dialog>
             ) : null}
 
@@ -263,13 +284,13 @@ export default function TrainerDashboard() {
         {trialExpired ? (
           // Trial Expired - Show subscription required
           <div className="max-w-4xl mx-auto text-center space-y-8">
-            <div>
+            {/* <div>
               <h2 className="text-4xl font-bold text-white mb-4">¡Tu Prueba Gratuita Ha Terminado! ⏰</h2>
               <p className="text-xl text-purple-200">
                 Has disfrutado de 30 días completos de Luxion. Para continuar entrenando profesionalmente, elige tu
                 plan.
               </p>
-            </div>
+            </div> */}
 
             <Card className="bg-black/40 border-red-800/30 backdrop-blur-sm">
               <CardContent className="p-8">

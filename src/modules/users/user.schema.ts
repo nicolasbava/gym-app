@@ -6,7 +6,7 @@ export const createUserSchema = z.object({
     password_hash: z.string().min(8, 'La contraseña debe tener al menos 8 caracteres'),
     created_at: z.date().optional(),
     updated_at: z.date().optional(),
-    avatar_url: z.string().optional(),
+    image_url: z.string().optional(),
     phone: z.string().optional(),
 });
 

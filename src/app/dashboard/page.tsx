@@ -8,9 +8,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/src/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/src/components/ui/tabs"
 import { Progress } from "@/src/components/ui/progress"
 import { Dumbbell, Calendar, Target, TrendingUp, Users, LogOut, Plus, Clock, Apple, Activity } from "lucide-react"
+import { signOut } from "@/src/app/actions/auth"
 
 export default function DashboardPage() {
   const [userType, setUserType] = useState<"client" | "trainer">("client") // Simular tipo de usuario
+
+  const handleLogout = async () => {
+    await signOut()
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -46,7 +51,7 @@ export default function DashboardPage() {
               <AvatarImage src="/placeholder.svg?height=32&width=32" />
               <AvatarFallback className="bg-purple-600">JD</AvatarFallback>
             </Avatar>
-            <Button variant="ghost" size="sm" className="text-purple-200 hover:text-white">
+            <Button onClick={handleLogout} variant="ghost" size="sm" className="text-purple-200 hover:text-white">
               <LogOut className="h-4 w-4" />
             </Button>
           </div>
