@@ -9,8 +9,11 @@ export class ExerciseService {
       .select('*')
       .eq('gym_id', gymId)
       .order('name', { ascending: true })
-
-    if (error) throw error
+    console.log('>>> data:', data)
+    if (error) {
+      console.log('>>> error:', error)
+      throw error
+    }
     return data
   }
 
@@ -18,7 +21,6 @@ export class ExerciseService {
     const { data, error } = await this.supabase
       .from('exercises2')
       .select('*')
-      .eq('is_global', true)
       .order('name', { ascending: true })
 
     if (error) throw error
@@ -31,7 +33,7 @@ export class ExerciseService {
       const { data, error } = await this.supabase
         .from('exercises2')
         .select('*')
-        .or(`gym_id.eq.${gymId},is_global.eq.true`)
+        .or(`gym_id.eq.${gymId}`)
         .order('name', { ascending: true })
 
       if (error) throw error

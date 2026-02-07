@@ -17,7 +17,7 @@ async function ProfileContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="space-y-8">
           <ProfileHeader profile={profile} />
@@ -48,10 +48,10 @@ export default function ProfilePage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-          <Card className="bg-black/40 border-purple-800/30 backdrop-blur-sm">
+        <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
+          <Card className="bg-card/40 border-yellow-500/20 backdrop-blur-sm">
             <CardContent className="pt-6">
-              <div className="text-white">Cargando perfil...</div>
+              <div className="text-foreground">Cargando perfil...</div>
             </CardContent>
           </Card>
         </div>

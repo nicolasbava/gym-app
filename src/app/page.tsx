@@ -3,13 +3,13 @@ import Link from "next/link"
 import { Button } from "@/src/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/src/components/ui/card"
 import { Badge } from "@/src/components/ui/badge"
-import { Dumbbell, Users, Calendar, Shield, CheckCircle } from "lucide-react"
+import { Dumbbell, Users, Calendar, Shield, CheckCircle } from "lucide-react";
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       {/* Header */}
-      <header className="border-b border-purple-800/20 bg-black/20 backdrop-blur-sm">
+      {/* <header className="border-b border-purple-800/20 bg-black/20 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="bg-black p-2 rounded-lg">
@@ -39,7 +39,7 @@ export default function HomePage() {
             </Link>
           </div>
         </div>
-      </header>
+      </header> */}
 
       {/* Hero Section */}
       <section className="py-20 px-4">

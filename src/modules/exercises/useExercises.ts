@@ -64,6 +64,17 @@ export function useExercises(gymId?: string) {
     }
   }
 
+  async function getExercisesGymId(gymId: string) {
+    try {
+      const data = await exerciseService.getExercisesByGym(gymId)
+      setExercises(data)
+      console.log('>>> data use:', data)
+    } catch (err) {
+      console.log('>>> err:', err)
+      setError(err as Error)
+    }
+  }
+
   return {
     exercises,
     loading,
@@ -71,6 +82,7 @@ export function useExercises(gymId?: string) {
     createExercise,
     // updateExercise,
     deleteExercise,
+    getExercisesGymId,
     refresh: fetchExercises,
   }
 }

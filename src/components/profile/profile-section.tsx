@@ -10,10 +10,10 @@ interface ProfileSectionProps {
 
 export function ProfileSection({ title, description, children, className }: ProfileSectionProps) {
   return (
-    <Card className={`bg-black/40 border-purple-800/30 backdrop-blur-sm ${className ?? ""}`}>
+    <Card className={`bg-card/40 border-yellow-500/20 backdrop-blur-sm ${className ?? ""}`}>
       <CardHeader>
-        <CardTitle className="text-white">{title}</CardTitle>
-        {description && <p className="text-sm text-purple-200 mt-1">{description}</p>}
+        <CardTitle className="text-foreground">{title}</CardTitle>
+        {description && <p className="text-sm text-muted-foreground mt-1">{description}</p>}
       </CardHeader>
       <CardContent>{children}</CardContent>
     </Card>

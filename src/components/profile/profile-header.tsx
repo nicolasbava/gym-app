@@ -38,19 +38,19 @@ export function ProfileHeader({ profile, className }: ProfileHeaderProps) {
     <div className={`flex flex-col items-center gap-4 sm:flex-row sm:items-start ${className ?? ""}`}>
       <Avatar className="size-24 sm:size-32">
         <AvatarImage src={profile.image_url ?? undefined} alt={profile.name} />
-        <AvatarFallback className="bg-purple-600 text-white text-2xl sm:text-3xl">
+        <AvatarFallback className="bg-primary text-primary-foreground text-2xl sm:text-3xl">
           {initials}
         </AvatarFallback>
       </Avatar>
       <div className="flex flex-col items-center gap-2 sm:items-start">
-        <h1 className="text-2xl font-bold text-white sm:text-3xl">{profile.name}</h1>
+        <h1 className="text-2xl font-bold text-foreground sm:text-3xl">{profile.name}</h1>
         {profile.role && (
           <Badge variant={getRoleVariant(profile.role)} className="w-fit">
             {getRoleLabel(profile.role)}
           </Badge>
         )}
         {profile.email && (
-          <p className="text-sm text-purple-200 sm:text-base">{profile.email}</p>
+          <p className="text-sm text-muted-foreground sm:text-base">{profile.email}</p>
         )}
       </div>
     </div>

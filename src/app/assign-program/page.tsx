@@ -788,7 +788,7 @@ export default function AssignProgramPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       {/* Header */}
-      <header className="border-b border-purple-800/20 bg-black/20 backdrop-blur-sm">
+      {/* <header className="border-b border-purple-800/20 bg-black/20 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="bg-black p-2 rounded-lg">
@@ -804,7 +804,7 @@ export default function AssignProgramPage() {
             </Button>
           </Link>
         </div>
-      </header>
+      </header> */}
 
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-7xl mx-auto space-y-8">

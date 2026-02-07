@@ -78,6 +78,38 @@ export async function createExercise(formData: CreateExercise) {
   }
 }
 
+export async function getExercisesGymId(gymId: string) {
+  // Validar datos del formulario
+  try {
+    const cookieStore = await cookies()
+    const supabase = await createClient(cookieStore)
+
+    const { data, error } = await supabase
+      .from('exercises2')
+      .select('*')
+      .eq('gym_id', gymId)
+      .order('name', { ascending: true })
+
+    if (error) {
+      return {
+        error: error.message,
+        success: false,
+        data: [],
+      }
+    }
+
+    return data
+  } catch (error) {
+    console.error('Error getting exercises:', error)
+    return {
+      error: error instanceof Error ? error.message : "Error desconocido al obtener ejercicios",
+      success: false,
+      data: [],
+    }
+  }
+
+}
+
 export async function getMuscleGroups() {
   // Lista de grupos musculares comunes
   return [
