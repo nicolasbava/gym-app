@@ -1,21 +1,27 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import { Button } from "@/src/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/src/components/ui/card"
-import { Badge } from "@/src/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/src/components/ui/avatar"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/src/components/ui/tabs"
-import { Progress } from "@/src/components/ui/progress"
-import { Dumbbell, Calendar, Target, TrendingUp, Users, LogOut, Plus, Clock, Apple, Activity } from "lucide-react"
-import { signOut } from "@/src/app/actions/auth"
+import { signOut } from '@/src/app/actions/auth';
+import { Avatar, AvatarFallback } from '@/src/components/ui/avatar';
+import { Badge } from '@/src/components/ui/badge';
+import { Button } from '@/src/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/src/components/ui/card';
+import { Progress } from '@/src/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs';
+import { Activity, Apple, Calendar, Clock, Plus, Target, TrendingUp, Users } from 'lucide-react';
+import { useState } from 'react';
 
 export default function DashboardPage() {
-  const [userType, setUserType] = useState<"client" | "trainer">("client") // Simular tipo de usuario
+  const [userType, setUserType] = useState<'client' | 'trainer'>('client'); // Simular tipo de usuario
 
   const handleLogout = async () => {
-    await signOut()
-  }
+    await signOut();
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -59,7 +65,7 @@ export default function DashboardPage() {
       </header> */}
 
       <div className="container mx-auto px-4 py-8">
-        {userType === "client" ? (
+        {userType === 'client' ? (
           // CLIENT DASHBOARD
           <div className="space-y-8">
             <div className="flex items-center justify-between">
@@ -137,7 +143,9 @@ export default function DashboardPage() {
                     <div className="flex items-center justify-between p-3 bg-purple-900/20 rounded-lg">
                       <div>
                         <h4 className="text-white font-medium">Press de banca inclinado</h4>
-                        <p className="text-sm text-purple-300">4 series x 8-10 reps | Descanso: 90s</p>
+                        <p className="text-sm text-purple-300">
+                          4 series x 8-10 reps | Descanso: 90s
+                        </p>
                       </div>
                       <Badge variant="outline" className="border-green-400 text-green-400">
                         Completado
@@ -146,7 +154,9 @@ export default function DashboardPage() {
                     <div className="flex items-center justify-between p-3 bg-purple-900/20 rounded-lg">
                       <div>
                         <h4 className="text-white font-medium">Dominadas asistidas</h4>
-                        <p className="text-sm text-purple-300">3 series x 6-8 reps | Descanso: 2min</p>
+                        <p className="text-sm text-purple-300">
+                          3 series x 6-8 reps | Descanso: 2min
+                        </p>
                       </div>
                       <Badge variant="outline" className="border-yellow-400 text-yellow-400">
                         En progreso
@@ -155,7 +165,9 @@ export default function DashboardPage() {
                     <div className="flex items-center justify-between p-3 bg-purple-900/20 rounded-lg">
                       <div>
                         <h4 className="text-white font-medium">Flexiones diamante</h4>
-                        <p className="text-sm text-purple-300">3 series x 12-15 reps | Descanso: 60s</p>
+                        <p className="text-sm text-purple-300">
+                          3 series x 12-15 reps | Descanso: 60s
+                        </p>
                       </div>
                       <Badge variant="outline" className="border-purple-400 text-purple-400">
                         Pendiente
@@ -164,7 +176,9 @@ export default function DashboardPage() {
                     <div className="flex items-center justify-between p-3 bg-purple-900/20 rounded-lg">
                       <div>
                         <h4 className="text-white font-medium">Remo con mancuernas</h4>
-                        <p className="text-sm text-purple-300">4 series x 10-12 reps | Descanso: 75s</p>
+                        <p className="text-sm text-purple-300">
+                          4 series x 10-12 reps | Descanso: 75s
+                        </p>
                       </div>
                       <Badge variant="outline" className="border-purple-400 text-purple-400">
                         Pendiente
@@ -173,7 +187,9 @@ export default function DashboardPage() {
                     <div className="flex items-center justify-between p-3 bg-purple-900/20 rounded-lg">
                       <div>
                         <h4 className="text-white font-medium">Fondos en paralelas</h4>
-                        <p className="text-sm text-purple-300">3 series x 8-10 reps | Descanso: 90s</p>
+                        <p className="text-sm text-purple-300">
+                          3 series x 8-10 reps | Descanso: 90s
+                        </p>
                       </div>
                       <Badge variant="outline" className="border-purple-400 text-purple-400">
                         Pendiente
@@ -360,18 +376,21 @@ export default function DashboardPage() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {[
-                      { name: "Ana García", plan: "Premium", progress: 85, status: "Activo" },
-                      { name: "Carlos López", plan: "Básico", progress: 62, status: "Activo" },
-                      { name: "María Rodríguez", plan: "Elite", progress: 91, status: "Activo" },
+                      { name: 'Ana García', plan: 'Premium', progress: 85, status: 'Activo' },
+                      { name: 'Carlos López', plan: 'Básico', progress: 62, status: 'Activo' },
+                      { name: 'María Rodríguez', plan: 'Elite', progress: 91, status: 'Activo' },
                     ].map((client, index) => (
-                      <div key={index} className="flex items-center justify-between p-4 bg-purple-900/20 rounded-lg">
+                      <div
+                        key={index}
+                        className="flex items-center justify-between p-4 bg-purple-900/20 rounded-lg"
+                      >
                         <div className="flex items-center space-x-3">
                           <Avatar>
                             <AvatarFallback className="bg-purple-600">
                               {client.name
-                                .split(" ")
+                                .split(' ')
                                 .map((n) => n[0])
-                                .join("")}
+                                .join('')}
                             </AvatarFallback>
                           </Avatar>
                           <div>
@@ -383,7 +402,9 @@ export default function DashboardPage() {
                           <p className="text-white">{client.progress}%</p>
                           <Progress value={client.progress} className="w-20 mt-1" />
                         </div>
-                        <Badge className="bg-green-600/20 text-green-400 border-green-400">{client.status}</Badge>
+                        <Badge className="bg-green-600/20 text-green-400 border-green-400">
+                          {client.status}
+                        </Badge>
                       </div>
                     ))}
                   </CardContent>
@@ -411,7 +432,9 @@ export default function DashboardPage() {
                       </div>
                       <div className="p-3 bg-purple-900/20 rounded-lg">
                         <h4 className="text-white font-medium">Tonificación Femenina</h4>
-                        <p className="text-sm text-purple-300">5 días/semana - 12 semanas | Glúteos, core, brazos</p>
+                        <p className="text-sm text-purple-300">
+                          5 días/semana - 12 semanas | Glúteos, core, brazos
+                        </p>
                       </div>
                       <div className="p-3 bg-purple-900/20 rounded-lg">
                         <h4 className="text-white font-medium">Funcional CrossFit</h4>
@@ -474,12 +497,15 @@ export default function DashboardPage() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {[
-                      { time: "09:00", client: "Ana García", type: "Entrenamiento Personal" },
-                      { time: "10:30", client: "Carlos López", type: "Evaluación Inicial" },
-                      { time: "14:00", client: "María Rodríguez", type: "Seguimiento" },
-                      { time: "16:00", client: "Luis Martín", type: "Entrenamiento Personal" },
+                      { time: '09:00', client: 'Ana García', type: 'Entrenamiento Personal' },
+                      { time: '10:30', client: 'Carlos López', type: 'Evaluación Inicial' },
+                      { time: '14:00', client: 'María Rodríguez', type: 'Seguimiento' },
+                      { time: '16:00', client: 'Luis Martín', type: 'Entrenamiento Personal' },
                     ].map((session, index) => (
-                      <div key={index} className="flex items-center justify-between p-4 bg-purple-900/20 rounded-lg">
+                      <div
+                        key={index}
+                        className="flex items-center justify-between p-4 bg-purple-900/20 rounded-lg"
+                      >
                         <div className="flex items-center space-x-3">
                           <div className="bg-purple-600 p-2 rounded-lg">
                             <Clock className="h-4 w-4 text-white" />
@@ -503,5 +529,5 @@ export default function DashboardPage() {
         )}
       </div>
     </div>
-  )
+  );
 }

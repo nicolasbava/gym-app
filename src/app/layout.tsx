@@ -1,26 +1,21 @@
-import type React from "react";
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import { AppProvider } from "@/src/contexts/AppContext";
-import "./globals.css";
-import Header from "../components/layout/header";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import App from "./app";
+import { AppProvider } from '@/src/contexts/AppContext';
+import { QueryClient } from '@tanstack/react-query';
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+import type React from 'react';
+import Header from '../components/layout/header';
+import App from './app';
+import './globals.css';
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: "Luxion - Fitness Profesional",
-  description:
-    "Plataforma profesional de fitness con entrenadores certificados",
-  generator: "v0.dev",
+  title: 'Luxion - Fitness Profesional',
+  description: 'Plataforma profesional de fitness con entrenadores certificados',
+  generator: 'v0.dev',
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   const queryClient = new QueryClient();
 
   return (

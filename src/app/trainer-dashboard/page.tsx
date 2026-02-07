@@ -1,323 +1,135 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
-import { Button } from "@/src/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/src/components/ui/card";
-import { Badge } from "@/src/components/ui/badge";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/src/components/ui/avatar";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/src/components/ui/tabs";
-import { Progress } from "@/src/components/ui/progress";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/src/components/ui/dialog";
-import {
-  Dumbbell,
-  Users,
-  LogOut,
-  Plus,
-  Clock,
-  Target,
-  Calendar,
-  Crown,
-  CreditCard,
-  CheckCircle,
-  Gift,
-  Eye,
-  Apple,
-} from "lucide-react";
-import CreateRoutineDialog from "../../components/trainer-dashboard/forms/create-routine";
-import CreateExerciseDialog from "../../components/trainer-dashboard/exercises/exercise-form";
-import CreateUserDialog from "../../components/trainer-dashboard/forms/create-user";
-import { signOut } from "@/src/app/actions/auth";
-import { useApp } from "@/src/contexts/AppContext";
-import { UserProfile } from "../actions/users";
-import ExercisesList from "@/src/components/trainer-dashboard/exercises-list";
-import ClientsList from "@/src/components/trainer-dashboard/members-list";
-import { useProfiles } from "@/src/modules/profiles/useProfiles";
-import ScheduleTodayList from "@/src/components/trainer-dashboard/schedule-today-list";
-import TrialExpired from "@/src/components/layout/trial-expired";
-import ExerciseDialog from "@/src/components/trainer-dashboard/exercises/exercise-dialog";
+import ExerciseDialog from '@/src/components/trainer-dashboard/exercises/exercise-dialog';
+import ExercisesList from '@/src/components/trainer-dashboard/exercises/exercises-list';
+import MembersDialog from '@/src/components/trainer-dashboard/members/members-dialog';
+import MembersList from '@/src/components/trainer-dashboard/members/members-list';
+import RoutinesDialog from '@/src/components/trainer-dashboard/routines/routines-dialog';
+import RoutinesList from '@/src/components/trainer-dashboard/routines/routines-list';
+import ScheduleTodayList from '@/src/components/trainer-dashboard/schedule-today-list';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/src/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs';
+import { useApp } from '@/src/contexts/AppContext';
+import { Calendar, Dumbbell, Target, Users } from 'lucide-react';
 
 export default function TrainerDashboard() {
-  const { gymId } = useApp();
-  const [hasSubscription, setHasSubscription] = useState(false);
-  const [trialDaysLeft, setTrialDaysLeft] = useState(30); // Simular días de prueba restantes
-  const [isTrialActive, setIsTrialActive] = useState(true);
-  const [activePlan, setActivePlan] = useState("");
-  const [assignedPrograms, setAssignedPrograms] = useState<any[]>([]);
-  const [open, setOpen] = useState(false);
-  const [openExerciseForm, setOpenExerciseForm] = useState(false);
-  const [openCreateUser, setOpenCreateUser] = useState(false);
+    // const [hasSubscription, setHasSubscription] = useState(false);
+    // const [trialDaysLeft, setTrialDaysLeft] = useState(30); // Simular días de prueba restantes
 
-  useEffect(() => {
-    // Check if user just subscribed
-    const urlParams = new URLSearchParams(window.location.search);
-    const subscribed = urlParams.get("subscribed");
-    const plan = urlParams.get("plan");
+    // const handleSubscribe = (plan: string) => {
+    //   window.location.href = `/trainer-payment?plan=${plan}`;
+    // };
 
-    if (subscribed === "true") {
-      setHasSubscription(true);
-      setIsTrialActive(false);
-      if (plan) {
-        setActivePlan(plan);
-      }
-      // Clean URL
-      window.history.replaceState({}, document.title, "/trainer-dashboard");
-    }
+    // const plans = {
+    //   basic: {
+    //     name: 'Básico',
+    //     price: 29,
+    //     features: ['Hasta 5 clientes', 'Rutinas básicas', 'Seguimiento', 'Email support'],
+    //   },
+    //   premium: {
+    //     name: 'Premium',
+    //     price: 59,
+    //     features: ['Hasta 25 clientes', 'Rutinas personalizadas', 'Planes nutricionales', 'Chat con clientes', 'Análisis detallado'],
+    //   },
+    //   elite: {
+    //     name: 'Elite',
+    //     price: 99,
+    //     features: ['Clientes ilimitados', 'Entrenador personal', 'Videollamadas 1:1', 'Ajustes semanales', 'Soporte 24/7'],
+    //   },
+    // };
 
-    // Cargar programas asignados desde localStorage
-    const loadAssignedPrograms = () => {
-      const programs = JSON.parse(
-        localStorage.getItem("assignedPrograms") || "[]"
-      );
-      setAssignedPrograms(programs);
-    };
+    // // Si el período de prueba ha expirado y no tiene suscripción
+    // const trialExpired = trialDaysLeft <= 0 && !hasSubscription;
 
-    loadAssignedPrograms();
+    const { userProfile } = useApp();
+    console.log('userProfile', userProfile);
+    const defaultTab = 'clients';
 
-    // Actualizar cada 5 segundos para mostrar nuevas asignaciones
-    const interval = setInterval(loadAssignedPrograms, 5000);
+    const tabsComponents = [
+        {
+            label: 'Mis Clientes',
+            value: 'clients',
+            icon: Users,
+            component: <MembersList />,
+        },
+        {
+            label: 'Rutinas',
+            value: 'routines',
+            icon: Dumbbell,
+            component: <h1>Rutinas</h1>,
+        },
+        {
+            label: 'Ejercicios',
+            value: 'exercises',
+            icon: Target,
+            component: <ExercisesList />,
+        },
+        {
+            label: 'Horarios',
+            value: 'schedule',
+            icon: Calendar,
+            component: <ScheduleTodayList />,
+        },
+    ];
 
-    return () => clearInterval(interval);
-  }, [isTrialActive, trialDaysLeft]);
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 pt-16">
+            <div className="container mx-auto px-4 py-8">
+                <div className="space-y-8">
+                    <Tabs defaultValue={defaultTab} className="space-y-6">
+                        <TabsList className="bg-purple-900/20">
+                            {tabsComponents.map((tab) => (
+                                <TabsTrigger key={tab.value} value={tab.value} className="data-[state=active]:bg-purple-600 cursor-pointer">
+                                    <tab.icon className="h-4 w-4 mr-2" />
+                                    {tab.label}
+                                </TabsTrigger>
+                            ))}
+                        </TabsList>
 
-  const handleLogout = async () => {
-    await signOut();
-  };
+                        <TabsContent value="clients" className="space-y-6">
+                            <Card className="bg-black/40 border-purple-800/30 backdrop-blur-sm">
+                                <CardHeader>
+                                    <div className="flex items-center gap-2 justify-between">
+                                        <div>
+                                            <CardTitle className="text-white">Clientes Activos</CardTitle>
+                                            <CardDescription className="text-purple-200">Gestiona y supervisa el progreso de tus clientes</CardDescription>
+                                        </div>
+                                        <MembersDialog />
+                                    </div>
+                                    <CardContent className="space-y-4">
+                                        <MembersList />
+                                    </CardContent>
+                                </CardHeader>
+                            </Card>
+                        </TabsContent>
 
-  const handleSubscribe = (plan: string) => {
-    window.location.href = `/trainer-payment?plan=${plan}`;
-  };
+                        <TabsContent value="routines" className="space-y-6">
+                            <Card className="bg-black/40 border-purple-800/30 backdrop-blur-sm">
+                                <CardHeader>
+                                    <div className="flex items-center gap-2 justify-between">
+                                        <div>
+                                            <CardTitle className="text-white">Rutinas</CardTitle>
+                                            <CardDescription className="text-purple-200">Gestiona y supervisa las rutinas de tus clientes</CardDescription>
+                                        </div>
+                                        {<RoutinesDialog />}
+                                    </div>
+                                    <CardContent className="space-y-4">{<RoutinesList />}</CardContent>
+                                </CardHeader>
+                            </Card>
+                        </TabsContent>
 
-  const plans = {
-    basic: {
-      name: "Básico",
-      price: 29,
-      features: [
-        "Hasta 5 clientes",
-        "Rutinas básicas",
-        "Seguimiento",
-        "Email support",
-      ],
-    },
-    premium: {
-      name: "Premium",
-      price: 59,
-      features: [
-        "Hasta 25 clientes",
-        "Rutinas personalizadas",
-        "Planes nutricionales",
-        "Chat con clientes",
-        "Análisis detallado",
-      ],
-    },
-    elite: {
-      name: "Elite",
-      price: 99,
-      features: [
-        "Clientes ilimitados",
-        "Entrenador personal",
-        "Videollamadas 1:1",
-        "Ajustes semanales",
-        "Soporte 24/7",
-      ],
-    },
-  };
-
-  // Si el período de prueba ha expirado y no tiene suscripción
-  const trialExpired = trialDaysLeft <= 0 && !hasSubscription;
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 pt-16">
-      <div className="container mx-auto px-4 py-8">
-        <div className="space-y-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-3xl font-bold text-white">
-                Panel de Entrenador 💪
-              </h2>
-              <p className="text-purple-200">
-                {isTrialActive && trialDaysLeft > 0
-                  ? `Disfruta tu prueba gratuita - ${trialDaysLeft} días restantes`
-                  : "Gestiona a tus clientes y programas"}
-              </p>
-            </div>
-            {hasSubscription ? (
-              <Badge className="bg-green-600/20 text-green-200 border-green-400">
-                Plan{" "}
-                {activePlan
-                  ? plans[activePlan as keyof typeof plans]?.name
-                  : "Activo"}
-              </Badge>
-            ) : (
-              <Badge className="bg-green-600/20 text-green-200 border-green-400">
-                <Gift className="h-4 w-4 mr-1" />
-                Prueba Gratuita
-              </Badge>
-            )}
-          </div>
-
-          {/* Trial Warning when less than 7 days */}
-          {isTrialActive && trialDaysLeft <= 7 && trialDaysLeft > 0 && (
-            <Card className="bg-yellow-900/20 border-yellow-600/30 backdrop-blur-sm">
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
-                  <Clock className="h-6 w-6 text-yellow-400" />
-                  <div className="flex-1">
-                    <h3 className="text-yellow-400 font-semibold">
-                      ¡Tu prueba gratuita termina pronto!
-                    </h3>
-                    <p className="text-yellow-200 text-sm">
-                      Te quedan {trialDaysLeft} días. Elige un plan para
-                      continuar sin interrupciones.
-                    </p>
-                  </div>
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="border-yellow-400 text-yellow-400 hover:bg-yellow-900/20 bg-transparent"
-                      >
-                        Ver Planes
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="bg-slate-900 border-purple-800/30 max-w-4xl">
-                      <DialogHeader>
-                        <DialogTitle className="text-white text-2xl">
-                          No Pierdas el Acceso
-                        </DialogTitle>
-                        <DialogDescription className="text-purple-200">
-                          Elige tu plan ahora y continúa entrenando sin
-                          interrupciones
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="grid md:grid-cols-3 gap-6 mt-6">
-                        {Object.entries(plans).map(([key, plan]) => (
-                          <Card
-                            key={key}
-                            className={`bg-black/40 backdrop-blur-sm ${
-                              key === "premium"
-                                ? "border-purple-400 relative"
-                                : "border-purple-800/30"
-                            }`}
-                          >
-                            {key === "premium" && (
-                              <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-purple-600">
-                                Más Popular
-                              </Badge>
-                            )}
-                            <CardHeader className="text-center">
-                              <CardTitle className="text-white text-2xl flex items-center justify-center">
-                                {key === "elite" && (
-                                  <Crown className="h-5 w-5 mr-2 text-yellow-400" />
-                                )}
-                                {plan.name}
-                              </CardTitle>
-                              <div className="text-4xl font-bold text-purple-400">
-                                €{plan.price}
-                              </div>
-                              <CardDescription className="text-purple-200">
-                                por mes
-                              </CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                              {plan.features.map((feature, index) => (
-                                <div
-                                  key={index}
-                                  className="flex items-center space-x-2"
-                                >
-                                  <CheckCircle className="h-5 w-5 text-green-400" />
-                                  <span className="text-purple-200">
-                                    {feature}
-                                  </span>
-                                </div>
-                              ))}
-                              <Button
-                                onClick={() => handleSubscribe(key)}
-                                className={`w-full mt-6 ${
-                                  key === "elite"
-                                    ? "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-                                    : "bg-purple-600 hover:bg-purple-700"
-                                }`}
-                              >
-                                Elegir Plan
-                              </Button>
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* <DataCards /> */}
-          <Tabs defaultValue="clients" className="space-y-6">
-            <TabsList className="bg-purple-900/20">
-              <TabsTrigger
-                value="clients"
-                className="data-[state=active]:bg-purple-600"
-              >
-                <Users className="h-4 w-4 mr-2" />
-                Mis Clientes
-              </TabsTrigger>
-              <TabsTrigger
-                value="exercises"
-                className="data-[state=active]:bg-purple-600"
-              >
-                <Target className="h-4 w-4 mr-2" />
-                Ejercicios
-              </TabsTrigger>
-              <TabsTrigger
-                value="schedule"
-                className="data-[state=active]:bg-purple-600"
-              >
-                <Calendar className="h-4 w-4 mr-2" />
-                Horarios
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="clients" className="space-y-6">
-              <ClientsList />
-            </TabsContent>
-
-            <TabsContent value="exercises" className="space-y-6">
-              <Card className="bg-black/40 border-purple-800/30 backdrop-blur-sm">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2 justify-between">
-                    Ejercicios Asignados Recientemente
-                    <ExerciseDialog />
-                  </CardTitle>
-                  <CardDescription className="text-purple-200">
-                    Revisa los programas que has asignado a tus clientes
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <ExercisesList />
-                  {assignedPrograms.length === 0 ? (
+                        <TabsContent value="exercises" className="space-y-6">
+                            <Card className="bg-black/40 border-purple-800/30 backdrop-blur-sm">
+                                <CardHeader>
+                                    <CardTitle className="text-white flex items-center gap-2 justify-between">
+                                        Ejercicios Asignados Recientemente
+                                        <ExerciseDialog />
+                                    </CardTitle>
+                                    <CardDescription className="text-purple-200">Revisa los programas que has asignado a tus clientes</CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <ExercisesList />
+                                    {/* {assignedPrograms.length === 0 ? (
                     <div className="text-center py-8">
                       <Target className="h-12 w-12 text-purple-400 mx-auto mb-4" />
                       <h3 className="text-white font-medium mb-2">
@@ -465,17 +277,17 @@ export default function TrainerDashboard() {
                           </div>
                         </div>
                       ))
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
+                  )} */}
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
 
-            <TabsContent value="schedule" className="space-y-6">
-              <ScheduleTodayList />
-            </TabsContent>
-          </Tabs>
+                        <TabsContent value="schedule" className="space-y-6">
+                            <ScheduleTodayList />
+                        </TabsContent>
+                    </Tabs>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  );
+    );
 }

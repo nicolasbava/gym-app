@@ -64,7 +64,7 @@
 //   }
 
 //   async assignRoutineToUser(data: {
-//     user_id: string
+//     id: string
 //     routine_id: string
 //     assigned_by: string
 //     start_date?: string
@@ -97,7 +97,7 @@
 //         ),
 //         assigned_by_user:users!assigned_by(name)
 //       `)
-//       .eq('user_id', userId)
+//       .eq('id', userId)
 //       .eq('status', 'active')
 
 //     if (error) throw error

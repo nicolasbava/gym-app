@@ -1,41 +1,15 @@
-"use client";
-import {
-  Dumbbell,
-  Badge,
-  Gift,
-  Users,
-  Plus,
-  LogOut,
-  CreditCard,
-  CheckCircle,
-  Crown,
-} from "lucide-react";
-import { Button } from "../ui/button";
-import { Avatar, AvatarImage, AvatarFallback } from "../ui/avatar";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "../ui/card";
-import { Badge as BadgeUI } from "../ui/badge";
-import { Dialog, DialogTrigger, Dialog as DialogUI } from "../ui/dialog";
-import { Button as ButtonUI } from "../ui/button";
-import { Avatar as AvatarUI } from "../ui/avatar";
-import { Card as CardUI } from "../ui/card";
-import { signOut } from "@/src/app/actions/auth";
-import { useEffect, useState } from "react";
-import CreateRoutineDialog from "../trainer-dashboard/forms/create-routine";
-import CreateUserDialog from "../trainer-dashboard/forms/create-user";
-import CreateExerciseDialog from "../trainer-dashboard/exercises/exercise-form";
-import { useApp } from "@/src/contexts/AppContext";
+'use client';
+import { signOut } from '@/src/app/actions/auth';
+import { Badge, Dumbbell, Gift, LogOut } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { Button } from '../ui/button';
 
 export default function Header() {
   // const { gymId } = useApp();
   const [hasSubscription, setHasSubscription] = useState(false);
   const [isTrialActive, setIsTrialActive] = useState(true);
-  const [activePlan, setActivePlan] = useState("");
+  const [activePlan, setActivePlan] = useState('');
   const [assignedPrograms, setAssignedPrograms] = useState<any[]>([]);
   const [open, setOpen] = useState(false);
   const [openExerciseForm, setOpenExerciseForm] = useState(false);
@@ -47,24 +21,22 @@ export default function Header() {
   useEffect(() => {
     // Check if user just subscribed
     const urlParams = new URLSearchParams(window.location.search);
-    const subscribed = urlParams.get("subscribed");
-    const plan = urlParams.get("plan");
+    const subscribed = urlParams.get('subscribed');
+    const plan = urlParams.get('plan');
 
-    if (subscribed === "true") {
+    if (subscribed === 'true') {
       setHasSubscription(true);
       setIsTrialActive(false);
       if (plan) {
         setActivePlan(plan);
       }
       // Clean URL
-      window.history.replaceState({}, document.title, "/trainer-dashboard");
+      window.history.replaceState({}, document.title, '/trainer-dashboard');
     }
 
     // Cargar programas asignados desde localStorage
     const loadAssignedPrograms = () => {
-      const programs = JSON.parse(
-        localStorage.getItem("assignedPrograms") || "[]"
-      );
+      const programs = JSON.parse(localStorage.getItem('assignedPrograms') || '[]');
       setAssignedPrograms(programs);
     };
 
@@ -88,9 +60,7 @@ export default function Header() {
             <Dumbbell className="h-6 w-6 text-white" />
           </div>
           <h1 className="text-xl font-bold text-white">Luxion</h1>
-          <Badge className="bg-orange-600/20 text-orange-200 border-orange-400">
-            Entrenador
-          </Badge>
+          <Badge className="bg-orange-600/20 text-orange-200 border-orange-400">Entrenador</Badge>
         </div>
         <div className="flex items-center space-x-4">
           {/* Trial Status */}
@@ -101,7 +71,6 @@ export default function Header() {
             </Badge>
           )}
 
-          
           {/* {!hasSubscription && (
               <Dialog>
                 <DialogTrigger asChild>
@@ -200,12 +169,7 @@ export default function Header() {
             <AvatarImage src="/placeholder.svg?height=32&width=32" />
             <AvatarFallback className="bg-purple-600">CM</AvatarFallback>
           </Avatar>
-          <Button
-            onClick={handleLogout}
-            variant="ghost"
-            size="sm"
-            className="text-purple-200 hover:text-white"
-          >
+          <Button onClick={handleLogout} variant="ghost" size="sm" className="text-purple-200 hover:text-white">
             <LogOut className="h-4 w-4 mr-2" />
             Cerrar Sesión
           </Button>
