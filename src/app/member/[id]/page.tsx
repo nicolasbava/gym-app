@@ -1,4 +1,5 @@
 'use client';
+import RoutinesProfile from '@/src/components/profile/profile-routines';
 import { Button } from '@/src/components/ui/button';
 import { Profile } from '@/src/modules/profiles/profiles.schema';
 import { useProfiles } from '@/src/modules/profiles/useProfiles';
@@ -18,6 +19,7 @@ export default function MemberPage() {
 
     useEffect(() => {
         getMembers();
+        console.log('memberDetails', memberDetails);
     }, [id]);
 
     return (
@@ -47,12 +49,13 @@ export default function MemberPage() {
                     </div>
 
                     <div className="my-4">
-                        <h1>lista de rutinas</h1>
-                        <h1>lista de rutinas</h1>
-                        <h1>lista de rutinas</h1>
-                        <h1>lista de rutinas</h1>
-                        <h1>lista de rutinas</h1>
-                        <h1>lista de rutinas</h1>
+                        {memberDetails && memberDetails.length > 0 ? (
+                            <RoutinesProfile profileId={memberDetails[0].id} />
+                        ) : (
+                            <div>
+                                <h1>No se encontró el cliente</h1>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

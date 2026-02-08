@@ -1,7 +1,6 @@
 'use client';
 
 import { signInWithGoogle } from '@/src/app/actions/auth';
-import { registerUser } from '@/src/app/actions/users';
 import { Button } from '@/src/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/src/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/src/components/ui/form';
@@ -33,11 +32,12 @@ export default function RegisterPage() {
         try {
             setError(null);
             setIsLoading(true);
-            const result = await registerUser(data);
+            // const result = await register(data);
+            return void
 
-            if (!result.success) {
-                setError(result.error || 'Error al registrar usuario');
-            }
+            // if (!result.success) {
+            //     setError(result.error || 'Error al registrar usuario');
+            // }
             // Si es exitoso, redirect se maneja en la server action
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Error desconocido');

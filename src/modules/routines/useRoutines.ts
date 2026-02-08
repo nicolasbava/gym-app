@@ -6,7 +6,7 @@ import { createClient } from '@/src/utils/supabase/client';
 import { useState } from 'react';
 
 export function useRoutines() {
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(!true);
     const [error, setError] = useState<Error | null>(null);
 
     const supabase = createClient();
@@ -34,11 +34,27 @@ export function useRoutines() {
         }
     }
 
+    async function getUserActiveRoutines(profileId: string) {
+        console.log('profileId getUserActiveRoutines', profileId);
+        try {
+            setLoading(true);
+            const data = await routineService.getUserActiveRoutines(profileId);
+            console.log('getUserActiveRoutines', data);
+            return data;
+        } catch (err) {
+            console.log('err', err);
+            setError(err as Error);
+        } finally {
+            setLoading(false);
+        }
+    }
+
     return {
-        getRoutinesByGym,
-        loading,
         error,
-        createRoutine,
+        loading,
+        getRoutinesByGym,
         refresh: getRoutinesByGym,
+        createRoutine,
+        getUserActiveRoutines,
     };
 }

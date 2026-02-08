@@ -99,6 +99,7 @@ export class RoutineService {
     }
 
     async getUserActiveRoutines(profileId: string) {
+        console.log('GET USER ACTIVE ROUTINES', profileId);
         const { data, error } = await this.supabase
             .from('profile_routines')
             .select(
@@ -114,10 +115,13 @@ export class RoutineService {
         assigned_by:profiles!assigned_by(name)
       `
             )
-            .eq('id', profileId)
-            .eq('status', 'active');
+            .eq('profile_id', profileId);
+        // .eq('status', 'active');
 
-        if (error) throw error;
+        if (error) {
+            console.log('error getUserActiveRoutines', error);
+            throw error;
+        }
         return data;
     }
 }
