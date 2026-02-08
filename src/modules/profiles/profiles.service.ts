@@ -23,7 +23,12 @@ export class ProfilesService {
     // }
 
     async getProfilesByGymId(gymId: string) {
-        const { data, error } = await this.supabase.from('profiles').select('*').eq('gym_id', gymId).eq('role', 'member').order('created_at', { ascending: false });
+        const { data, error } = await this.supabase
+            .from('profiles')
+            .select('*')
+            .eq('gym_id', gymId)
+            .eq('role', 'member')
+            .order('created_at', { ascending: false });
         if (error) {
             console.error(error);
             throw error;
@@ -34,7 +39,14 @@ export class ProfilesService {
 
     async getProfileById(id: string): Promise<Profile | null> {
         try {
-            const { data, error } = await this.supabase.from('profiles').select('*').eq('id', id).eq('role', 'member').order('created_at', { ascending: false });
+            const { data, error } = await this.supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', id)
+                .eq('role', 'member')
+                .order('created_at', { ascending: false })
+                .single();
+
             return data as Profile | null;
         } catch (error) {
             console.error('error getting profile by id:', error);
@@ -48,7 +60,12 @@ export class ProfilesService {
         const parsedData = profileSchema.safeParse(data);
         if (!parsedData.success) return console.error('data is invalid');
         try {
-            const { data, error } = await this.supabase.from('profiles').update(parsedData.data).eq('id', id).eq('role', 'member').order('created_at', { ascending: false });
+            const { data, error } = await this.supabase
+                .from('profiles')
+                .update(parsedData.data)
+                .eq('id', id)
+                .eq('role', 'member')
+                .order('created_at', { ascending: false });
             return data as Profile | null;
         } catch (error) {
             console.error('error updating profile:', error);

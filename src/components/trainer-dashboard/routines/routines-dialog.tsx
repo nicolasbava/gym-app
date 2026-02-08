@@ -12,7 +12,8 @@ export default function RoutinesDialog() {
     const [openCreateRoutine, setOpenCreateRoutine] = useState(false);
     const [openAssignRoutine, setOpenAssignRoutine] = useState(false);
     return (
-        <>
+        <div className="flex flex-end justify-end gap-2">
+            {/* CREATE ROUTINE DIALOG */}
             <Dialog open={openCreateRoutine} onOpenChange={setOpenCreateRoutine}>
                 <DialogTrigger asChild>
                     <Button className="bg-blue-600 hover:bg-blue-700">
@@ -26,11 +27,15 @@ export default function RoutinesDialog() {
                             <Dumbbell className="h-6 w-6 text-purple-400" />
                             Crear Nueva Rutina
                         </DialogTitle>
-                        <DialogDescription className="text-purple-200">Completa los datos para crear una nueva rutina de entrenamiento</DialogDescription>
+                        <DialogDescription className="text-purple-200">
+                            Completa los datos para crear una nueva rutina de entrenamiento
+                        </DialogDescription>
                     </DialogHeader>
                     <CreateRoutineForm gymId={gymId ?? ''} onSuccess={() => setOpenCreateRoutine(false)} />
                 </DialogContent>
             </Dialog>
+
+            {/* ASSIGN ROUTINE DIALOG */}
             <Dialog open={openAssignRoutine} onOpenChange={setOpenAssignRoutine}>
                 <DialogTrigger asChild>
                     <Button variant="outline" className="border-green-600 text-green-300 hover:bg-green-900/20">
@@ -49,6 +54,6 @@ export default function RoutinesDialog() {
                     <AssignRoutineForm gymId={gymId ?? ''} onSuccess={() => setOpenAssignRoutine(false)} />
                 </DialogContent>
             </Dialog>
-        </>
+        </div>
     );
 }

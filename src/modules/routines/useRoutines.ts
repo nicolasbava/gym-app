@@ -4,6 +4,7 @@
 import { RoutineService } from '@/src/modules/routines/routines.service';
 import { createClient } from '@/src/utils/supabase/client';
 import { useState } from 'react';
+import { AssignedRoutineWithDetails, RoutineWithExercises } from './routines.schema';
 
 export function useRoutines() {
     const [loading, setLoading] = useState(!true);
@@ -34,7 +35,7 @@ export function useRoutines() {
         }
     }
 
-    async function getUserActiveRoutines(profileId: string) {
+    async function getUserActiveRoutines(profileId: string): Promise<AssignedRoutineWithDetails[]> {
         console.log('profileId getUserActiveRoutines', profileId);
         try {
             setLoading(true);
@@ -44,11 +45,25 @@ export function useRoutines() {
         } catch (err) {
             console.log('err', err);
             setError(err as Error);
+            throw err;
         } finally {
             setLoading(false);
         }
     }
 
+    async function getRoutineById(id: string): Promise<RoutineWithExercises> {
+        try {
+            setLoading(true);
+            const data = await routineService.getRoutineById(id);
+            return data;
+        } catch (err) {
+            console.log('err', err);
+            setError(err as Error);
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }
     return {
         error,
         loading,
@@ -56,5 +71,6 @@ export function useRoutines() {
         refresh: getRoutinesByGym,
         createRoutine,
         getUserActiveRoutines,
+        getRoutineById,
     };
 }

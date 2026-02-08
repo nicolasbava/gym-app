@@ -19,7 +19,10 @@ export class RoutineService {
             .eq('gym_id', gymId)
             .order('created_at', { ascending: false });
 
-        if (error) throw error;
+        if (error) {
+            console.log('error getRoutinesByGym', error);
+            throw error;
+        }
         return data;
     }
 
@@ -46,8 +49,6 @@ export class RoutineService {
             notes?: string;
         }>;
     }) {
-        console.log('>>> routine:', routine);
-        // Crear rutina
         const { data: newRoutine, error: routineError } = await this.supabase
             .from('routines')
             .insert({
@@ -105,7 +106,7 @@ export class RoutineService {
             .select(
                 `
         *,
-        routine:routines(
+        exercises:routines(
           *,
           routine_exercises(
             *,
@@ -122,6 +123,29 @@ export class RoutineService {
             console.log('error getUserActiveRoutines', error);
             throw error;
         }
+        return data;
+    }
+
+    async getRoutineById(id: string) {
+        const { data, error } = await this.supabase
+            .from('routines')
+            .select(
+                `       
+        *,
+        created_by:profiles!created_by(name),
+        routine_exercises(
+          *,
+          exercise:exercises(*)
+        )
+      `
+            )
+            .eq('id', id)
+            .single();
+        if (error) {
+            console.log('error getRoutineById', error);
+            throw error;
+        }
+        console.log('data getRoutineById', data);
         return data;
     }
 }

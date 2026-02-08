@@ -1,4 +1,3 @@
-import { AppProvider } from '@/src/contexts/AppContext';
 import { QueryClient } from '@tanstack/react-query';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
@@ -10,24 +9,22 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Luxion - Fitness Profesional',
-  description: 'Plataforma profesional de fitness con entrenadores certificados',
-  generator: 'v0.dev',
+    title: 'Luxion - Fitness Profesional',
+    description: 'Plataforma profesional de fitness con entrenadores certificados',
+    generator: 'v0.dev',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const queryClient = new QueryClient();
+    const queryClient = new QueryClient();
 
-  return (
-    <>
-      <Header />
-      <html lang="es" className="dark">
-        <body className={inter.className}>
-          <App>
-            <AppProvider>{children}</AppProvider>
-          </App>
-        </body>
-      </html>
-    </>
-  );
+    return (
+        <>
+            <Header />
+            <html lang="es" className="light">
+                <body className={inter.className}>
+                    <App>{children}</App>
+                </body>
+            </html>
+        </>
+    );
 }

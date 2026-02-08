@@ -33,7 +33,8 @@ export default function RegisterPage() {
             setError(null);
             setIsLoading(true);
             // const result = await register(data);
-            return void
+            // TODO: Create profile in DB
+            return { success: true, data: data };
 
             // if (!result.success) {
             //     setError(result.error || 'Error al registrar usuario');

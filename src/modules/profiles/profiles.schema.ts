@@ -10,6 +10,10 @@ export const profileSchema = z.object({
     gym_id: z.string().optional(),
     created_at: z.date().optional(),
     updated_at: z.date().optional(),
+    birthdate: z.date().optional(),
+    weight: z.number().optional(),
+    height: z.number().optional(),
+    objective: z.string().optional(),
 });
 
 export type Profile = z.infer<typeof profileSchema>;

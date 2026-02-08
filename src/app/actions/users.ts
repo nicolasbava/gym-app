@@ -1,5 +1,6 @@
 'use server';
 
+import { Profile } from '@/src/modules/profiles/profiles.schema';
 import { supabaseAdmin } from '@/src/utils/supabase/admin';
 import { createClient } from '@/src/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
@@ -58,7 +59,12 @@ export async function createMember(data: { email: string; name: string; phone?: 
     }
 
     // maybeSingle() returns null when 0 rows instead of throwing PGRST116
-    const { data: coachProfile } = await supabase.from('profiles').select('role, gym_id').eq('id', currentUser.id).eq('gym_id', data.gymId).maybeSingle();
+    const { data: coachProfile } = await supabase
+        .from('profiles')
+        .select('role, gym_id')
+        .eq('id', currentUser.id)
+        .eq('gym_id', data.gymId)
+        .maybeSingle();
 
     if (!coachProfile || !['trainer', 'gym_admin'].includes(coachProfile.role)) {
         return { success: false, error: 'No tienes permisos' };
@@ -106,7 +112,7 @@ export interface UserProfile {
 }
 
 export async function getCurrentUserProfile(): Promise<{
-    profile: UserProfile | null;
+    profile: Profile | null;
     error?: string;
 }> {
     const cookieStore = await cookies();
@@ -120,7 +126,7 @@ export async function getCurrentUserProfile(): Promise<{
         return { profile: null, error: 'No autenticado' };
     }
 
-    const { data: profile, error } = await supabase.from('profiles').select('id, name, email, phone, image_url, role, gym_id').eq('id', user.id).maybeSingle();
+    const { data: profile, error } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
 
     if (error) {
         return { profile: null, error: error.message };
@@ -133,7 +139,11 @@ export async function getCurrentUserProfile(): Promise<{
     return { profile };
 }
 
-export async function updateUserProfile(data: { name?: string; phone?: string; image_url?: string }): Promise<{ success: boolean; error?: string; message?: string }> {
+export async function updateUserProfile(data: {
+    name?: string;
+    phone?: string;
+    image_url?: string;
+}): Promise<{ success: boolean; error?: string; message?: string }> {
     const cookieStore = await cookies();
     const supabase = await createClient(cookieStore);
 
@@ -157,6 +167,44 @@ export async function updateUserProfile(data: { name?: string; phone?: string; i
     }
 
     revalidatePath('/profile');
+
+    return { success: true, message: 'Perfil actualizado correctamente' };
+}
+
+/** Update a member's profile (trainer only, same gym). */
+export async function updateMemberProfile(
+    profileId: string,
+    data: { name?: string; phone?: string }
+): Promise<{ success: boolean; error?: string; message?: string }> {
+    const cookieStore = await cookies();
+    const supabase = await createClient(cookieStore);
+
+    const {
+        data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return { success: false, error: 'No autenticado' };
+
+    const { data: coachProfile } = await supabase.from('profiles').select('role, gym_id').eq('id', user.id).maybeSingle();
+    if (!coachProfile || !['trainer', 'gym_admin'].includes(coachProfile.role ?? '')) {
+        return { success: false, error: 'No tienes permisos para editar este perfil' };
+    }
+
+    const { data: memberProfile } = await supabase.from('profiles').select('gym_id').eq('id', profileId).eq('role', 'member').maybeSingle();
+    if (!memberProfile) return { success: false, error: 'Cliente no encontrado' };
+    if (memberProfile.gym_id !== coachProfile.gym_id) {
+        return { success: false, error: 'No tienes permisos para editar este perfil' };
+    }
+
+    const updates: Record<string, unknown> = {};
+    if (data.name !== undefined) updates.name = data.name;
+    if (data.phone !== undefined) updates.phone = data.phone ?? null;
+
+    const { error } = await supabase.from('profiles').update(updates).eq('id', profileId);
+
+    if (error) return { success: false, error: error.message };
+
+    revalidatePath('/trainer-dashboard');
+    revalidatePath(`/member/${profileId}`);
 
     return { success: true, message: 'Perfil actualizado correctamente' };
 }
