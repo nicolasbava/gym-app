@@ -4,30 +4,14 @@ import { Profile, profileSchema } from './profiles.schema';
 export class ProfilesService {
     constructor(private supabase: SupabaseClient) {}
 
-    // async getRoutinesByGym(gymId: string) {
-    //   const { data, error } = await this.supabase
-    //     .from('routines')
-    //     .select(`
-    //       *,
-    //       created_by_user:users!created_by(name),
-    //       routine_exercises(
-    //         *,
-    //         exercise:exercises(*)
-    //       )
-    //     `)
-    //     .eq('gym_id', gymId)
-    //     .order('created_at', { ascending: false })
-
-    //   if (error) throw error
-    //   return data
-    // }
-
     async getProfilesByGymId(gymId: string) {
+        // TODO : add routine name to the response
         const { data, error } = await this.supabase
             .from('profiles')
             .select('*')
             .eq('gym_id', gymId)
             .eq('role', 'member')
+            .is('deleted_at', null)
             .order('created_at', { ascending: false });
         if (error) {
             console.error(error);

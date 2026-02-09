@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/src/components/ui/textarea';
 import { createRoutineSchema, type CreateRoutine } from '@/src/modules/routines/routines.schema';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Plus, Trash2 } from 'lucide-react';
+import { GripVertical, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 
@@ -32,7 +32,6 @@ export default function CreateRoutineForm({ gymId, onSuccess }: CreateRoutineDia
     const [exercises, setExercises] = useState<Exercise[]>([]);
     const [loadingExercises, setLoadingExercises] = useState(true);
 
-    console.log('gymId', gymId);
     const form = useForm<CreateRoutine>({
         resolver: zodResolver(createRoutineSchema),
         defaultValues: {
@@ -135,25 +134,25 @@ export default function CreateRoutineForm({ gymId, onSuccess }: CreateRoutineDia
         //   </DialogTrigger>
 
         <>
-            {error && <div className="p-3 bg-red-500/20 border border-red-500/50 rounded-md text-red-200 text-sm">{error}</div>}
+            {error && <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
 
             <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <form onSubmit={form.handleSubmit(onSubmit)} className="p-6 space-y-6">
                     <FormField
                         control={form.control}
                         name="name"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel className="text-purple-200">Nombre de la Rutina</FormLabel>
+                                <FormLabel className="text-sm font-medium text-gray-700">Nombre de la Rutina</FormLabel>
                                 <FormControl>
                                     <Input
                                         {...field}
                                         placeholder="Ej: Rutina de Fuerza - Push"
-                                        className="bg-black/20 border-purple-800/50 text-white placeholder:text-purple-300"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         disabled={isLoading}
                                     />
                                 </FormControl>
-                                <FormMessage className="text-red-400" />
+                                <FormMessage className="text-red-600 text-sm" />
                             </FormItem>
                         )}
                     />
@@ -163,178 +162,193 @@ export default function CreateRoutineForm({ gymId, onSuccess }: CreateRoutineDia
                         name="description"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel className="text-purple-200">Descripción (opcional)</FormLabel>
+                                <FormLabel className="text-sm font-medium text-gray-700">Descripción</FormLabel>
                                 <FormControl>
                                     <Textarea
                                         {...field}
-                                        placeholder="Describe el objetivo y características de esta rutina..."
-                                        className="bg-black/20 border-purple-800/50 text-white placeholder:text-purple-300 min-h-[100px]"
+                                        rows={2}
+                                        placeholder="Ej: Rutina para el pecho, brazos y espalda"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         disabled={isLoading}
                                     />
                                 </FormControl>
-                                <FormMessage className="text-red-400" />
+                                <FormMessage className="text-red-600 text-sm" />
                             </FormItem>
                         )}
                     />
 
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                            <FormLabel className="text-purple-200 text-lg">Ejercicios</FormLabel>
-                            <Button
+                    <div>
+                        <div className="flex items-center justify-between mb-3">
+                            <FormLabel className="text-sm font-medium text-gray-700">Ejercicios</FormLabel>
+                            <button
                                 type="button"
                                 onClick={addExercise}
-                                variant="outline"
-                                size="sm"
-                                className="border-purple-600 text-purple-300 hover:bg-purple-900/20"
+                                className="text-sm text-blue-600 hover:text-blue-700 font-medium cursor-pointer"
                                 disabled={isLoading || loadingExercises}
                             >
-                                <Plus className="h-4 w-4 mr-2" />
-                                Agregar Ejercicio
-                            </Button>
+                                + Agregar Ejercicio
+                            </button>
                         </div>
 
-                        {fields.map((field, index) => (
-                            <div key={field.id} className="p-4 bg-black/20 border border-purple-800/30 rounded-lg space-y-4">
-                                <div className="flex items-center justify-between mb-2">
-                                    <span className="text-purple-300 font-semibold">Ejercicio {index + 1}</span>
-                                    {fields.length > 1 && (
-                                        <Button
+                        <div className="space-y-3  max-h-[200px] overflow-y-auto">
+                            {fields.map((field, index) => (
+                                <div key={field.id} className="bg-gray-50 p-4 rounded-lg space-y-3 border border-gray-200">
+                                    <div className="flex items-center gap-2">
+                                        <GripVertical className="w-5 h-5 text-gray-400 shrink-0" />
+                                        <FormField
+                                            control={form.control}
+                                            name={`exercises.${index}.exercise_id`}
+                                            render={({ field: selectField }) => (
+                                                <FormItem className="flex-1 space-y-0">
+                                                    <FormControl>
+                                                        <Select
+                                                            onValueChange={selectField.onChange}
+                                                            value={selectField.value}
+                                                            disabled={isLoading || loadingExercises}
+                                                        >
+                                                            <SelectTrigger className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white">
+                                                                <SelectValue placeholder="Selecciona un ejercicio">
+                                                                    {loadingExercises
+                                                                        ? 'Cargando ejercicios...'
+                                                                        : exercises.find((e) => e.id === selectField.value)?.name ||
+                                                                          'Selecciona un ejercicio'}
+                                                                </SelectValue>
+                                                            </SelectTrigger>
+                                                            <SelectContent className="max-h-[200px]">
+                                                                {exercises.map((exercise) => (
+                                                                    <SelectItem key={exercise.id} value={exercise.id}>
+                                                                        {exercise.name}
+                                                                        {exercise.muscle_group && (
+                                                                            <span className="text-gray-500 text-xs ml-2">
+                                                                                ({exercise.muscle_group})
+                                                                            </span>
+                                                                        )}
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </FormControl>
+                                                    <FormMessage className="text-red-600 text-sm" />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <button
                                             type="button"
                                             onClick={() => remove(index)}
-                                            variant="ghost"
-                                            size="sm"
-                                            className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg cursor-pointer"
                                             disabled={isLoading}
+                                            aria-label="Eliminar ejercicio"
                                         >
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                    )}
-                                </div>
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <FormField
-                                        control={form.control}
-                                        name={`exercises.${index}.exercise_id`}
-                                        render={({ field }) => (
-                                            <FormItem className="md:col-span-2">
-                                                <FormLabel className="text-purple-200">Ejercicio</FormLabel>
-                                                <Select onValueChange={field.onChange} value={field.value} disabled={isLoading || loadingExercises}>
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                        <FormField
+                                            control={form.control}
+                                            name={`exercises.${index}.sets`}
+                                            render={({ field: setsField }) => (
+                                                <FormItem>
+                                                    <FormLabel className="text-xs font-medium text-gray-600">Sets</FormLabel>
                                                     <FormControl>
-                                                        <SelectTrigger className="bg-black/20 border-purple-800/50 text-white">
-                                                            <SelectValue placeholder="Selecciona un ejercicio">
-                                                                {loadingExercises ? 'Cargando ejercicios...' : exercises.find((e) => e.id === field.value)?.name || 'Selecciona un ejercicio'}
-                                                            </SelectValue>
-                                                        </SelectTrigger>
+                                                        <Input
+                                                            {...setsField}
+                                                            type="number"
+                                                            min={1}
+                                                            onChange={(e) => setsField.onChange(parseInt(e.target.value) || 0)}
+                                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                            disabled={isLoading}
+                                                        />
                                                     </FormControl>
-                                                    <SelectContent className="bg-slate-800 border-purple-800/50 max-h-[200px]">
-                                                        {exercises.map((exercise) => (
-                                                            <SelectItem key={exercise.id} value={exercise.id} className="text-white">
-                                                                {exercise.name}
-                                                                {exercise.muscle_group && <span className="text-purple-400 text-xs ml-2">({exercise.muscle_group})</span>}
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                                <FormMessage className="text-red-400" />
-                                            </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={form.control}
-                                        name={`exercises.${index}.sets`}
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel className="text-purple-200">Series</FormLabel>
-                                                <FormControl>
-                                                    <Input
-                                                        {...field}
-                                                        type="number"
-                                                        min="1"
-                                                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                                                        className="bg-black/20 border-purple-800/50 text-white"
-                                                        disabled={isLoading}
-                                                    />
-                                                </FormControl>
-                                                <FormMessage className="text-red-400" />
-                                            </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={form.control}
-                                        name={`exercises.${index}.reps`}
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel className="text-purple-200">Repeticiones</FormLabel>
-                                                <FormControl>
-                                                    <Input
-                                                        {...field}
-                                                        placeholder="Ej: 8-12 o 10"
-                                                        className="bg-black/20 border-purple-800/50 text-white placeholder:text-purple-300"
-                                                        disabled={isLoading}
-                                                    />
-                                                </FormControl>
-                                                <FormMessage className="text-red-400" />
-                                            </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={form.control}
-                                        name={`exercises.${index}.rest_seconds`}
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel className="text-purple-200">Descanso (segundos)</FormLabel>
-                                                <FormControl>
-                                                    <Input
-                                                        {...field}
-                                                        type="number"
-                                                        min="0"
-                                                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                                                        className="bg-black/20 border-purple-800/50 text-white"
-                                                        disabled={isLoading}
-                                                    />
-                                                </FormControl>
-                                                <FormMessage className="text-red-400" />
-                                            </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={form.control}
-                                        name={`exercises.${index}.notes`}
-                                        render={({ field }) => (
-                                            <FormItem className="md:col-span-2">
-                                                <FormLabel className="text-purple-200">Notas (opcional)</FormLabel>
-                                                <FormControl>
-                                                    <Input
-                                                        {...field}
-                                                        placeholder="Técnica, variaciones, etc."
-                                                        className="bg-black/20 border-purple-800/50 text-white placeholder:text-purple-300"
-                                                        disabled={isLoading}
-                                                    />
-                                                </FormControl>
-                                                <FormMessage className="text-red-400" />
-                                            </FormItem>
-                                        )}
-                                    />
+                                                    <FormMessage className="text-red-600 text-xs" />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={form.control}
+                                            name={`exercises.${index}.reps`}
+                                            render={({ field: repsField }) => (
+                                                <FormItem>
+                                                    <FormLabel className="text-xs font-medium text-gray-600">Reps</FormLabel>
+                                                    <FormControl>
+                                                        <Input
+                                                            {...repsField}
+                                                            placeholder="8-12 o 10"
+                                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                            disabled={isLoading}
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage className="text-red-600 text-xs" />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={form.control}
+                                            name={`exercises.${index}.rest_seconds`}
+                                            render={({ field: restField }) => (
+                                                <FormItem>
+                                                    <FormLabel className="text-xs font-medium text-gray-600">Rest (sec)</FormLabel>
+                                                    <FormControl>
+                                                        <Input
+                                                            {...restField}
+                                                            type="number"
+                                                            min={0}
+                                                            step={15}
+                                                            onChange={(e) => restField.onChange(parseInt(e.target.value) || 0)}
+                                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                            disabled={isLoading}
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage className="text-red-600 text-xs" />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={form.control}
+                                            name={`exercises.${index}.notes`}
+                                            render={({ field: notesField }) => (
+                                                <FormItem>
+                                                    <FormLabel className="text-xs font-medium text-gray-600">Notas</FormLabel>
+                                                    <FormControl>
+                                                        <Input
+                                                            {...notesField}
+                                                            placeholder="Opcional"
+                                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                            disabled={isLoading}
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage className="text-red-600 text-xs" />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            ))}
+
+                            {fields.length === 0 && (
+                                <p className="text-gray-500 text-sm text-center py-8">
+                                    No hay ejercicios agregados todavía. Haz clic en &quot;Agregar Ejercicio&quot; para empezar.
+                                </p>
+                            )}
+                        </div>
                     </div>
 
-                    <div className="flex justify-end gap-3 pt-4">
-                        <Button type="button" variant="outline" onClick={() => {}} className="border-purple-800/50 text-purple-300 hover:bg-purple-900/20" disabled={isLoading}>
-                            Cancelar
-                        </Button>
+                    <div className="flex gap-3 pt-4">
                         <Button
-                            // type="submit"
-                            onClick={() => onSubmit(form.getValues())}
-                            className="bg-purple-600 hover:bg-purple-700"
+                            type="submit"
+                            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium cursor-pointer"
                             disabled={isLoading}
                         >
                             {isLoading ? 'Creando...' : 'Crear Rutina'}
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => form.reset()}
+                            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium cursor-pointer border-0"
+                            disabled={isLoading}
+                        >
+                            Cancelar
                         </Button>
                     </div>
                 </form>

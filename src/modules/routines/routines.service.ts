@@ -148,4 +148,23 @@ export class RoutineService {
         console.log('data getRoutineById', data);
         return data;
     }
+
+    async deleteRoutine(id: string) {
+        // soft deleting the routine
+        const { data, error } = await this.supabase.from('routines').update({ deleted_at: new Date().toISOString() }).eq('id', id);
+        if (error) {
+            console.log('error deleteRoutine', error);
+            throw error;
+        }
+        // soft deleting the routine_exercises item
+        const { error: routineExercisesError } = await this.supabase
+            .from('routine_exercises')
+            .update({ deleted_at: new Date().toISOString() })
+            .eq('routine_id', id);
+        if (routineExercisesError) {
+            console.log('error deleteRoutineExercises', routineExercisesError);
+            throw routineExercisesError;
+        }
+        return data;
+    }
 }

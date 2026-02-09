@@ -1,5 +1,7 @@
+'use client';
+import ExerciseDialog from '@/src/components/trainer-dashboard/exercises/exercise-dialog';
 import { Exercise, mockExercises } from '@/src/lib/mock-data';
-import { Edit2, Image as ImageIcon, Play, Plus, Trash2, X } from 'lucide-react';
+import { Edit2, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
 export default function ExercisesPage() {
@@ -84,13 +86,14 @@ export default function ExercisesPage() {
                     <h2 className="text-2xl font-semibold text-gray-900">Exercise Library</h2>
                     <p className="text-gray-600 mt-1">Manage all exercises for your gym</p>
                 </div>
-                <button
+                {/* <button
                     onClick={() => handleOpenModal()}
                     className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
+                    >
                     <Plus className="w-5 h-5" />
                     Add Exercise
-                </button>
+                    </button> */}
+                <ExerciseDialog />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -120,7 +123,7 @@ export default function ExercisesPage() {
             </div>
 
             {/* Modal */}
-            {isModalOpen && (
+            {/* {isModalOpen && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
                         <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
@@ -259,7 +262,7 @@ export default function ExercisesPage() {
                         </form>
                     </div>
                 </div>
-            )}
+            )} */}
         </div>
     );
 }

@@ -1,10 +1,22 @@
 'use server';
 
 import { Profile } from '@/src/modules/profiles/profiles.schema';
+import { CreateUser, memberRole } from '@/src/modules/users/user.schema';
 import { supabaseAdmin } from '@/src/utils/supabase/admin';
 import { createClient } from '@/src/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
+
+export interface UserProfile {
+    id: string;
+    name: string;
+    email: string;
+    phone?: string | null;
+    image_url?: string | null;
+    role?: string | null;
+    gym_id?: string | null;
+    deleted_at?: string | null;
+}
 
 // UUID v4 pattern for validation
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -20,6 +32,7 @@ export async function getProfilesByGym(gymId: string): Promise<{ success: boolea
             .select('id, name, email, phone, image_url, role, gym_id')
             .eq('gym_id', gymId)
             .eq('role', 'member')
+            .is('deleted_at', null)
             .order('created_at', { ascending: false });
         if (error) return { success: false, data: [], error: error.message };
         return { success: true, data: (data ?? []) as UserProfile[], error: undefined };
@@ -40,12 +53,12 @@ export async function getCurrentUserGymId(): Promise<{ gymId: string | null; err
     return { gymId: profile?.gym_id ?? null };
 }
 
-export async function createMember(data: { email: string; name: string; phone?: string; gymId: string; role?: 'member' | 'trainer' }) {
+export async function createMember(data: CreateUser) {
     const cookieStore = await cookies();
     const supabase = await createClient(cookieStore);
-
+    console.log('data', data);
     // gym_id in DB is UUID; reject invalid values to avoid "invalid input syntax for type uuid"
-    if (!data.gymId || !UUID_REGEX.test(data.gymId)) {
+    if (!data.gym_id || !UUID_REGEX.test(data.gym_id)) {
         return { success: false, error: 'Gimnasio no válido. Inicia sesión de nuevo.' };
     }
 
@@ -63,10 +76,10 @@ export async function createMember(data: { email: string; name: string; phone?: 
         .from('profiles')
         .select('role, gym_id')
         .eq('id', currentUser.id)
-        .eq('gym_id', data.gymId)
+        .eq('gym_id', data.gym_id)
         .maybeSingle();
 
-    if (!coachProfile || !['trainer', 'gym_admin'].includes(coachProfile.role)) {
+    if (!coachProfile || ![memberRole.COACH, memberRole.COACH_ADMIN].includes(coachProfile.role)) {
         return { success: false, error: 'No tienes permisos' };
     }
 
@@ -78,7 +91,7 @@ export async function createMember(data: { email: string; name: string; phone?: 
         data: {
             name: data.name,
             phone: data.phone,
-            gym_id: data.gymId,
+            gym_id: data.gym_id,
             email: data.email,
             role: data.role,
         },
@@ -99,16 +112,6 @@ export async function createMember(data: { email: string; name: string; phone?: 
         data: newUser,
         message: `Usuario ${data.name} creado. Se ha enviado un correo de invitación.`,
     };
-}
-
-export interface UserProfile {
-    id: string;
-    name: string;
-    email: string;
-    phone?: string | null;
-    image_url?: string | null;
-    role?: string | null;
-    gym_id?: string | null;
 }
 
 export async function getCurrentUserProfile(): Promise<{
@@ -139,53 +142,54 @@ export async function getCurrentUserProfile(): Promise<{
     return { profile };
 }
 
-export async function updateUserProfile(data: {
-    name?: string;
-    phone?: string;
-    image_url?: string;
-}): Promise<{ success: boolean; error?: string; message?: string }> {
-    const cookieStore = await cookies();
-    const supabase = await createClient(cookieStore);
+// export async function updateUserProfile(data: {
+//     name?: string;
+//     phone?: string;
+//     image_url?: string;
+// }): Promise<{ success: boolean; error?: string; message?: string }> {
+//     const cookieStore = await cookies();
+//     const supabase = await createClient(cookieStore);
 
-    const {
-        data: { user },
-    } = await supabase.auth.getUser();
+//     const {
+//         data: { user },
+//     } = await supabase.auth.getUser();
 
-    if (!user) {
-        return { success: false, error: 'No autenticado' };
-    }
+//     if (!user) {
+//         return { success: false, error: 'No autenticado' };
+//     }
 
-    const updates: Record<string, unknown> = {};
-    if (data.name !== undefined) updates.name = data.name;
-    if (data.phone !== undefined) updates.phone = data.phone || null;
-    if (data.image_url !== undefined) updates.image_url = data.image_url || null;
+//     const updates: Record<string, unknown> = {};
+//     if (data.name !== undefined) updates.name = data.name;
+//     if (data.phone !== undefined) updates.phone = data.phone || null;
+//     if (data.image_url !== undefined) updates.image_url = data.image_url || null;
 
-    const { error } = await supabase.from('profiles').update(updates).eq('id', user.id);
+//     const { error } = await supabase.from('profiles').update(updates).eq('id', user.id);
 
-    if (error) {
-        return { success: false, error: error.message };
-    }
+//     if (error) {
+//         console.log('error', error);
+//         return { success: false, error: error.message };
+//     }
 
-    revalidatePath('/profile');
+//     revalidatePath('/profile');
 
-    return { success: true, message: 'Perfil actualizado correctamente' };
-}
+//     return { success: true, message: 'Perfil actualizado correctamente' };
+// }
 
 /** Update a member's profile (trainer only, same gym). */
-export async function updateMemberProfile(
+export async function updateMember(
     profileId: string,
     data: { name?: string; phone?: string }
 ): Promise<{ success: boolean; error?: string; message?: string }> {
     const cookieStore = await cookies();
     const supabase = await createClient(cookieStore);
-
+    console.log('>>>>>>>>> SHOOT UPDATE');
     const {
         data: { user },
     } = await supabase.auth.getUser();
     if (!user) return { success: false, error: 'No autenticado' };
 
     const { data: coachProfile } = await supabase.from('profiles').select('role, gym_id').eq('id', user.id).maybeSingle();
-    if (!coachProfile || !['trainer', 'gym_admin'].includes(coachProfile.role ?? '')) {
+    if (!coachProfile || !['coach', 'coach_admin'].includes(coachProfile.role ?? '')) {
         return { success: false, error: 'No tienes permisos para editar este perfil' };
     }
 
@@ -201,10 +205,25 @@ export async function updateMemberProfile(
 
     const { error } = await supabase.from('profiles').update(updates).eq('id', profileId);
 
+    console.log('error', error);
     if (error) return { success: false, error: error.message };
 
     revalidatePath('/trainer-dashboard');
     revalidatePath(`/member/${profileId}`);
 
     return { success: true, message: 'Perfil actualizado correctamente' };
+}
+
+export async function deleteProfile(profileId: string): Promise<{ success: boolean; error?: string; message?: string }> {
+    const cookieStore = await cookies();
+    const supabase = await createClient(cookieStore);
+    // const { error } = await supabase.from('profiles').delete().eq('id', profileId);
+
+    console.log('>>>>>>>>> SHOOT DELETE');
+    const { error } = await supabase.from('profiles').update({ deleted_at: new Date().toISOString() }).eq('id', profileId);
+    console.log('error', error);
+    if (error) return { success: false, error: error.message };
+    revalidatePath('/trainer-dashboard');
+    revalidatePath(`/member/${profileId}`);
+    return { success: true, message: 'Perfil eliminado correctamente' };
 }

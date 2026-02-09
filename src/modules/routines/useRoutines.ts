@@ -64,6 +64,21 @@ export function useRoutines() {
             setLoading(false);
         }
     }
+
+    async function deleteRoutine(id: string) {
+        try {
+            setLoading(true);
+            const data = await routineService.deleteRoutine(id);
+            return data;
+        } catch (err) {
+            console.log('err', err);
+            setError(err as Error);
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }
+
     return {
         error,
         loading,
@@ -72,5 +87,6 @@ export function useRoutines() {
         createRoutine,
         getUserActiveRoutines,
         getRoutineById,
+        deleteRoutine,
     };
 }
