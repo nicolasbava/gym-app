@@ -35,6 +35,9 @@ function AuthForm() {
     }
   }
 
+
+  
+
   const handleLogin = () => {
     // Simular login y redirigir según el tipo de usuario
     if (userType === "client") {
