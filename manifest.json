@@ -1,0 +1,6 @@
+{
+    "name": "Luxion - Fitness Profesional",
+    "short_name": "Luxion",
+    "description": "Plataforma profesional de fitness con entrenadores certificados",
+    "start_url": "/auth"
+}
