@@ -1,5 +1,5 @@
 import { QueryClient } from '@tanstack/react-query';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import type React from 'react';
 import Header from '../components/layout/header';
@@ -14,12 +14,15 @@ export const metadata: Metadata = {
     description: 'Plataforma profesional de fitness con entrenadores certificados',
     generator: 'v0.dev',
     manifest: '/manifest.webmanifest',
-    themeColor: '#000000',
     appleWebApp: {
         capable: true,
         statusBarStyle: 'default',
         title: 'Luxion',
     },
+};
+
+export const viewport: Viewport = {
+    themeColor: '#000000',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
