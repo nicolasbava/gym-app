@@ -1,4 +1,3 @@
-import { QueryClient } from '@tanstack/react-query';
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import type React from 'react';
@@ -26,17 +25,13 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-    const queryClient = new QueryClient();
-
     return (
-        <>
-            <Header />
-            <html lang="es" className="light">
-                <body className={inter.className}>
-                    <App>{children}</App>
-                </body>
-            </html>
-            <Footer />
-        </>
+        <html lang="es" className="light">
+            <body className={inter.className}>
+                <Header />
+                <App>{children}</App>
+                <Footer />
+            </body>
+        </html>
     );
 }
