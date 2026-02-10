@@ -48,12 +48,14 @@ function AuthForm() {
 
     return (
         <Card className="bg-white border border-gray-200 shadow-sm">
+            
             <CardHeader className="text-center pb-2">
                 <CardTitle className="text-gray-900 text-2xl font-semibold">{isLogin ? 'Iniciar Sesión' : 'Crear Cuenta'}</CardTitle>
                 <CardDescription className="text-gray-600 text-sm">
                     {isLogin ? 'Accede a tu cuenta de Luxion' : 'Únete a la comunidad Luxion'}
                 </CardDescription>
             </CardHeader>
+
             <CardContent className="pt-4">
                 {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
                 <Tabs value={isLogin ? 'login' : 'register'} className="w-full">
