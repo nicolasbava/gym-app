@@ -44,33 +44,38 @@ function AuthForm() {
     }
   }
 
+  const inputClassName =
+    "w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+
   return (
-    <Card className="bg-black/40 border-purple-800/30 backdrop-blur-sm">
-      <CardHeader className="text-center">
-        <CardTitle className="text-white text-2xl">{isLogin ? "Iniciar Sesión" : "Crear Cuenta"}</CardTitle>
-        <CardDescription className="text-purple-200">
+    <Card className="bg-white border border-gray-200 shadow-sm">
+      <CardHeader className="text-center pb-2">
+        <CardTitle className="text-gray-900 text-2xl font-semibold">
+          {isLogin ? "Iniciar Sesión" : "Crear Cuenta"}
+        </CardTitle>
+        <CardDescription className="text-gray-600 text-sm">
           {isLogin ? "Accede a tu cuenta de Luxion" : "Únete a la comunidad Luxion"}
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-4">
         {error && (
-          <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-md text-red-200 text-sm">
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
             {error}
           </div>
         )}
         <Tabs value={isLogin ? "login" : "register"} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 bg-purple-900/20">
+          <TabsList className="grid w-full grid-cols-2 bg-gray-100 p-1 rounded-lg">
             <TabsTrigger
               value="login"
               onClick={() => setIsLogin(true)}
-              className="data-[state=active]:bg-purple-600"
+              className="data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-gray-900 rounded-md text-gray-600"
             >
               Iniciar Sesión
             </TabsTrigger>
             <TabsTrigger
               value="register"
               onClick={() => setIsLogin(false)}
-              className="data-[state=active]:bg-purple-600"
+              className="data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-gray-900 rounded-md text-gray-600"
             >
               Registrarse
             </TabsTrigger>
@@ -80,7 +85,7 @@ function AuthForm() {
             <Button
               onClick={handleGoogleSignIn}
               variant="outline"
-              className="w-full bg-white hover:bg-gray-100 text-gray-900 border-gray-300"
+              className="w-full bg-white hover:bg-gray-50 text-gray-900 border-gray-300 cursor-pointer"
             >
               <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
                 <path
@@ -104,28 +109,28 @@ function AuthForm() {
             </Button>
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <Separator className="w-full border-purple-800/50" />
+                <Separator className="w-full border-gray-200" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-black/40 px-2 text-purple-300">O continúa con</span>
+                <span className="bg-white px-2 text-gray-500">O continúa con</span>
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="userType" className="text-purple-200">
+              <Label htmlFor="userType" className="text-sm font-medium text-gray-700">
                 Tipo de Usuario
               </Label>
               <Select value={userType} onValueChange={(value: "client" | "trainer") => setUserType(value)}>
-                <SelectTrigger className="bg-black/20 border-purple-800/50 text-white">
+                <SelectTrigger className={inputClassName}>
                   <SelectValue placeholder="Selecciona tu perfil" />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-purple-800/50">
-                  <SelectItem value="client" className="text-white">
+                <SelectContent>
+                  <SelectItem value="client">
                     <div className="flex items-center space-x-2">
                       <User className="h-4 w-4" />
                       <span>Cliente</span>
                     </div>
                   </SelectItem>
-                  <SelectItem value="trainer" className="text-white">
+                  <SelectItem value="trainer">
                     <div className="flex items-center space-x-2">
                       <UserCheck className="h-4 w-4" />
                       <span>Entrenador</span>
@@ -135,28 +140,23 @@ function AuthForm() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-purple-200">
+              <Label htmlFor="email" className="text-sm font-medium text-gray-700">
                 Email
               </Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="tu@email.com"
-                className="bg-black/20 border-purple-800/50 text-white placeholder:text-purple-300"
-              />
+              <Input id="email" type="email" placeholder="tu@email.com" className={inputClassName} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-purple-200">
+              <Label htmlFor="password" className="text-sm font-medium text-gray-700">
                 Contraseña
               </Label>
-              <Input id="password" type="password" className="bg-black/20 border-purple-800/50 text-white" />
+              <Input id="password" type="password" className={inputClassName} />
             </div>
             <div className="flex items-center justify-between">
-              <Link href="#" className="text-sm text-purple-400 hover:text-purple-300">
+              <Link href="#" className="text-sm text-blue-600 hover:text-blue-700 cursor-pointer">
                 ¿Olvidaste tu contraseña?
               </Link>
             </div>
-            <Button onClick={handleLogin} className="w-full bg-purple-600 hover:bg-purple-700">
+            <Button onClick={handleLogin} className="w-full bg-blue-600 hover:bg-blue-700 text-white cursor-pointer">
               Iniciar Sesión
             </Button>
           </TabsContent>
@@ -165,7 +165,7 @@ function AuthForm() {
             <Button
               onClick={handleGoogleSignIn}
               variant="outline"
-              className="w-full bg-white hover:bg-gray-100 text-gray-900 border-gray-300"
+              className="w-full bg-white hover:bg-gray-50 text-gray-900 border-gray-300 cursor-pointer"
             >
               <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
                 <path
@@ -189,28 +189,28 @@ function AuthForm() {
             </Button>
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <Separator className="w-full border-purple-800/50" />
+                <Separator className="w-full border-gray-200" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-black/40 px-2 text-purple-300">O regístrate con</span>
+                <span className="bg-white px-2 text-gray-500">O regístrate con</span>
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="userType" className="text-purple-200">
+              <Label htmlFor="userType-reg" className="text-sm font-medium text-gray-700">
                 Tipo de Usuario
               </Label>
               <Select value={userType} onValueChange={(value: "client" | "trainer") => setUserType(value)}>
-                <SelectTrigger className="bg-black/20 border-purple-800/50 text-white">
+                <SelectTrigger className={inputClassName}>
                   <SelectValue placeholder="Selecciona tu perfil" />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-purple-800/50">
-                  <SelectItem value="client" className="text-white">
+                <SelectContent>
+                  <SelectItem value="client">
                     <div className="flex items-center space-x-2">
                       <User className="h-4 w-4" />
                       <span>Cliente</span>
                     </div>
                   </SelectItem>
-                  <SelectItem value="trainer" className="text-white">
+                  <SelectItem value="trainer">
                     <div className="flex items-center space-x-2">
                       <UserCheck className="h-4 w-4" />
                       <span>Entrenador</span>
@@ -221,57 +221,44 @@ function AuthForm() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="firstName" className="text-purple-200">
+                <Label htmlFor="firstName" className="text-sm font-medium text-gray-700">
                   Nombre
                 </Label>
-                <Input
-                  id="firstName"
-                  placeholder="Juan"
-                  className="bg-black/20 border-purple-800/50 text-white placeholder:text-purple-300"
-                />
+                <Input id="firstName" placeholder="Juan" className={inputClassName} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="lastName" className="text-purple-200">
+                <Label htmlFor="lastName" className="text-sm font-medium text-gray-700">
                   Apellido
                 </Label>
-                <Input
-                  id="lastName"
-                  placeholder="Pérez"
-                  className="bg-black/20 border-purple-800/50 text-white placeholder:text-purple-300"
-                />
+                <Input id="lastName" placeholder="Pérez" className={inputClassName} />
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-purple-200">
+              <Label htmlFor="email-reg" className="text-sm font-medium text-gray-700">
                 Email
               </Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="tu@email.com"
-                className="bg-black/20 border-purple-800/50 text-white placeholder:text-purple-300"
-              />
+              <Input id="email-reg" type="email" placeholder="tu@email.com" className={inputClassName} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-purple-200">
+              <Label htmlFor="password-reg" className="text-sm font-medium text-gray-700">
                 Contraseña
               </Label>
-              <Input id="password" type="password" className="bg-black/20 border-purple-800/50 text-white" />
+              <Input id="password-reg" type="password" className={inputClassName} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword" className="text-purple-200">
+              <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
                 Confirmar Contraseña
               </Label>
-              <Input id="confirmPassword" type="password" className="bg-black/20 border-purple-800/50 text-white" />
+              <Input id="confirmPassword" type="password" className={inputClassName} />
             </div>
-            <Button onClick={handleLogin} className="w-full bg-purple-600 hover:bg-purple-700">
+            <Button onClick={handleLogin} className="w-full bg-blue-600 hover:bg-blue-700 text-white cursor-pointer">
               Crear Cuenta
             </Button>
           </TabsContent>
         </Tabs>
 
         <div className="mt-6 text-center">
-          <Link href="/" className="text-sm text-purple-400 hover:text-purple-300">
+          <Link href="/" className="text-sm text-blue-600 hover:text-blue-700 cursor-pointer">
             ← Volver al inicio
           </Link>
         </div>
@@ -282,23 +269,25 @@ function AuthForm() {
 
 export default function AuthPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Logo */}
-        <div className="flex items-center justify-center space-x-3 mb-8">
-          <div className="bg-black p-3 rounded-lg">
+        <div className="flex items-center justify-center gap-3 mb-8">
+          <div className="bg-blue-600 p-3 rounded-lg">
             <Dumbbell className="h-8 w-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-white">Luxion</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Luxion</h1>
         </div>
 
-        <Suspense fallback={
-          <Card className="bg-black/40 border-purple-800/30 backdrop-blur-sm">
-            <CardContent className="p-6">
-              <div className="text-center text-purple-200">Cargando...</div>
-            </CardContent>
-          </Card>
-        }>
+        <Suspense
+          fallback={
+            <Card className="bg-white border border-gray-200 shadow-sm">
+              <CardContent className="p-6">
+                <div className="text-center text-gray-600">Cargando...</div>
+              </CardContent>
+            </Card>
+          }
+        >
           <AuthForm />
         </Suspense>
       </div>

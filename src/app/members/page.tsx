@@ -303,7 +303,7 @@ export default function MemberManager() {
             {/* UPDATE MEMBER MODAL */}
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
                 <DialogHeader>
-                    <DialogTitle>Edit Member</DialogTitle>
+                    <DialogTitle className="sr-only">Edit Member</DialogTitle>
                 </DialogHeader>
                 <DialogContent>
                     <MemberForm

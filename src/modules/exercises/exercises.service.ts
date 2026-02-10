@@ -96,7 +96,8 @@ export class ExerciseService {
     }
 
     async deleteExercise(exerciseId: string) {
-        const { error } = await this.supabase.from('exercises').delete().eq('id', exerciseId);
+        // soft deleting the exercise
+        const { error } = await this.supabase.from('exercises').update({ deleted_at: new Date().toISOString() }).eq('id', exerciseId);
 
         if (error) throw error;
     }

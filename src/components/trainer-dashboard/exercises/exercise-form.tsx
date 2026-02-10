@@ -1,135 +1,193 @@
 'use client';
 
 import { getUser } from '@/src/app/actions/auth';
-import { createExercise, getEquipmentTypes, getMuscleGroups } from '@/src/app/actions/exercises';
+import { createExercise, getEquipmentTypes, getMuscleGroups, updateExercise } from '@/src/app/actions/exercises';
 import { Button } from '@/src/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/src/components/ui/form';
 import { Input } from '@/src/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/src/components/ui/select';
 import { Textarea } from '@/src/components/ui/textarea';
-import { createExerciseSchema, type CreateExercise } from '@/src/modules/exercises/exercises.schema';
+import { createExerciseSchema, type CreateExercise, type UpdateExercise } from '@/src/modules/exercises/exercises.schema';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
+
+interface Exercise {
+    id: string;
+    name: string;
+    description?: string;
+    muscle_group?: string;
+    equipment?: string;
+}
 
 interface CreateExerciseFormProps {
     gymId: string;
+    exercise?: Exercise; // Si existe, es modo edición
     onSuccess?: () => void;
+    setOpen?: (open: boolean) => void; // Para cerrar el diálogo desde fuera
 }
 
-export default function CreateExerciseForm({ gymId, onSuccess }: CreateExerciseFormProps) {
-    const [open, setOpen] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
-    const [muscleGroups, setMuscleGroups] = useState<string[]>([]);
-    const [equipmentTypes, setEquipmentTypes] = useState<string[]>([]);
-    const [loadingOptions, setLoadingOptions] = useState(true);
+export default function CreateExerciseForm({ gymId, exercise, onSuccess, setOpen }: CreateExerciseFormProps) {
+    const queryClient = useQueryClient();
+    const isEditing = !!exercise;
+
+    // Preparar valores por defecto basados en si estamos editando o creando
+    const defaultValues = useMemo(() => {
+        if (exercise) {
+            // Modo edición: prellenar con datos del ejercicio
+            return {
+                name: exercise.name,
+                description: exercise.description || '',
+                muscle_group: exercise.muscle_group || '',
+                created_by: '',
+            };
+        }
+        // Modo creación: valores por defecto
+        return {
+            name: '',
+            description: '',
+            muscle_group: '',
+            created_by: '',
+        };
+    }, [exercise]);
 
     const form = useForm<CreateExercise>({
         resolver: zodResolver(createExerciseSchema),
-        defaultValues: {
-            // gym_id: undefined,
-            name: '',
-            description: undefined,
-            // video_url: undefined,
-            muscle_group: '',
-            // equipment_needed: "",
-            created_by: '',
-            // is_global: false,
-        },
+        defaultValues,
     });
 
+    // Load muscle groups and equipment types using React Query
+    const {
+        data: muscleGroups = [],
+        isLoading: loadingMuscleGroups,
+        error: muscleGroupsError,
+    } = useQuery({
+        queryKey: ['muscleGroups'],
+        queryFn: getMuscleGroups,
+    });
+
+    const {
+        data: equipmentTypes = [],
+        isLoading: loadingEquipmentTypes,
+        error: equipmentTypesError,
+    } = useQuery({
+        queryKey: ['equipmentTypes'],
+        queryFn: getEquipmentTypes,
+    });
+
+    // Load user and set created_by field
     useEffect(() => {
-        if (open) {
-            loadOptions();
-            loadUser();
-        }
-    }, [open]);
-
-    const loadOptions = async () => {
-        try {
-            setLoadingOptions(true);
-            const [muscleGroupsData, equipmentData] = await Promise.all([getMuscleGroups(), getEquipmentTypes()]);
-            setMuscleGroups(muscleGroupsData);
-            setEquipmentTypes(equipmentData);
-        } catch (err) {
-            console.error('Error loading options:', err);
-        } finally {
-            setLoadingOptions(false);
-        }
-    };
-
-    const loadUser = async () => {
-        try {
-            const user = await getUser();
-            console.log('user', user);
-            if (user) {
-                form.setValue('created_by', user.id);
+        const loadUser = async () => {
+            try {
+                const user = await getUser();
+                if (user) {
+                    form.setValue('created_by', user.id);
+                }
+            } catch (err) {
+                console.error('Error loading user:', err);
             }
-        } catch (err) {
-            console.error('Error loading user:', err);
+        };
+        loadUser();
+    }, [form]);
+
+    // Reset form when exercise prop changes
+    useEffect(() => {
+        if (exercise) {
+            form.reset(defaultValues);
         }
-    };
+    }, [exercise?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const onSubmit = async (data: CreateExercise) => {
-        try {
-            setError(null);
-            setIsLoading(true);
-
-            // Limpiar video_url si está vacío
-            const submitData = {
-                ...data,
-                // video_url: data.video_url?.trim() || undefined,
-                description: data.description?.trim() || undefined,
-            };
-
-            const result = await createExercise(submitData);
-
-            if (!result.success) {
-                setError(result.error || 'Error al crear el ejercicio');
-                return;
+    // Create or update exercise mutation
+    const exerciseMutation = useMutation({
+        mutationFn: async (data: CreateExercise) => {
+            if (isEditing && exercise) {
+                // Modo edición: actualizar ejercicio
+                const updateData: UpdateExercise = {
+                    name: data.name,
+                    description: data.description,
+                    muscle_group: data.muscle_group,
+                };
+                const result = await updateExercise(exercise.id, updateData);
+                if (!result.success) {
+                    throw new Error(result.error || 'Error al actualizar el ejercicio');
+                }
+                return result;
+            } else {
+                // Modo creación: crear nuevo ejercicio
+                const result = await createExercise(data);
+                if (!result.success) {
+                    throw new Error(result.error || 'Error al crear el ejercicio');
+                }
+                return result;
             }
-
-            // Resetear formulario
-            form.reset({
-                // gym_id: undefined,
-                name: '',
-                description: undefined,
-                // video_url: undefined,
-                // muscle_group: "",
-                // equipment_needed: "",
-                created_by: form.getValues('created_by'),
-                // is_global: false,
+        },
+        onSuccess: async () => {
+            // Invalidate and refetch exercises queries to ensure list is updated
+            await queryClient.invalidateQueries({
+                queryKey: ['exercises'],
+                exact: false,
             });
-            setOpen(false);
+            // Force refetch to ensure immediate update
+            await queryClient.refetchQueries({
+                queryKey: ['exercises'],
+                exact: false,
+            });
 
-            // Llamar callback si existe
+            if (!isEditing) {
+                // Solo resetear el formulario si estamos creando
+                form.reset({
+                    name: '',
+                    description: '',
+                    muscle_group: '',
+                    created_by: form.getValues('created_by'),
+                });
+            }
+
+            // Call success callback if provided
             if (onSuccess) {
                 onSuccess();
             }
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Error desconocido');
-        } finally {
-            setIsLoading(false);
-        }
+        },
+    });
+
+    const onSubmit = async (data: CreateExercise) => {
+        exerciseMutation.mutate(data);
     };
 
     return (
         <>
-            {error && <div className="p-3 bg-red-500/20 border border-red-500/50 rounded-md text-red-200 text-sm">{error}</div>}
+            {exerciseMutation.isError && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                    {exerciseMutation.error instanceof Error
+                        ? exerciseMutation.error.message
+                        : `Error al ${isEditing ? 'actualizar' : 'crear'} el ejercicio`}
+                </div>
+            )}
+
+            {(muscleGroupsError || equipmentTypesError) && (
+                <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-700 text-sm">
+                    Error al cargar opciones. Por favor, recarga la página.
+                </div>
+            )}
 
             <Form {...form}>
-                <form className="space-y-6">
+                <form onSubmit={form.handleSubmit(onSubmit)} className="p-6 space-y-6">
                     <FormField
                         control={form.control}
                         name="name"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel className="text-purple-200">Nombre del Ejercicio</FormLabel>
+                                <FormLabel className="text-sm font-medium text-gray-700">Nombre del Ejercicio</FormLabel>
                                 <FormControl>
-                                    <Input {...field} placeholder="Ej: Press de banca plano" className="bg-black/20 border-purple-800/50 text-white placeholder:text-purple-300" disabled={isLoading} />
+                                    <Input
+                                        {...field}
+                                        placeholder="Ej: Press de banca plano"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        disabled={exerciseMutation.isPending}
+                                    />
                                 </FormControl>
-                                <FormMessage className="text-red-400" />
+                                <FormMessage className="text-red-600 text-sm" />
                             </FormItem>
                         )}
                     />
@@ -139,16 +197,17 @@ export default function CreateExerciseForm({ gymId, onSuccess }: CreateExerciseF
                         name="description"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel className="text-purple-200">Descripción (opcional)</FormLabel>
+                                <FormLabel className="text-sm font-medium text-gray-700">Descripción (opcional)</FormLabel>
                                 <FormControl>
                                     <Textarea
                                         {...field}
+                                        rows={3}
                                         placeholder="Describe cómo realizar el ejercicio, técnica, músculos trabajados..."
-                                        className="bg-black/20 border-purple-800/50 text-white placeholder:text-purple-300 min-h-[100px]"
-                                        disabled={isLoading}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        disabled={exerciseMutation.isPending}
                                     />
                                 </FormControl>
-                                <FormMessage className="text-red-400" />
+                                <FormMessage className="text-red-600 text-sm" />
                             </FormItem>
                         )}
                     />
@@ -159,118 +218,74 @@ export default function CreateExerciseForm({ gymId, onSuccess }: CreateExerciseF
                             name="muscle_group"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className="text-purple-200">Grupo Muscular</FormLabel>
-                                    <Select onValueChange={field.onChange} value={field.value} disabled={isLoading || loadingOptions}>
+                                    <FormLabel className="text-sm font-medium text-gray-700">Grupo Muscular</FormLabel>
+                                    <Select
+                                        onValueChange={field.onChange}
+                                        value={field.value}
+                                        disabled={exerciseMutation.isPending || loadingMuscleGroups}
+                                    >
                                         <FormControl>
-                                            <SelectTrigger className="bg-black/20 border-purple-800/50 text-white">
-                                                <SelectValue placeholder="Selecciona grupo muscular" />
+                                            <SelectTrigger className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white">
+                                                <SelectValue placeholder="Selecciona grupo muscular">
+                                                    {loadingMuscleGroups
+                                                        ? 'Cargando grupos musculares...'
+                                                        : muscleGroups.find((g) => g === field.value) || 'Selecciona grupo muscular'}
+                                                </SelectValue>
                                             </SelectTrigger>
                                         </FormControl>
-                                        <SelectContent className="bg-slate-800 border-purple-800/50">
+                                        <SelectContent className="max-h-[200px]">
                                             {muscleGroups.map((group) => (
-                                                <SelectItem key={group} value={group} className="text-white">
+                                                <SelectItem key={group} value={group}>
                                                     {group}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    <FormMessage className="text-red-400" />
+                                    <FormMessage className="text-red-600 text-sm" />
                                 </FormItem>
                             )}
                         />
-
-                        {/* <FormField
-                control={form.control}
-                name="equipment_needed"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-purple-200">Equipo Necesario</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value}
-                      disabled={isLoading || loadingOptions}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="bg-black/20 border-purple-800/50 text-white">
-                          <SelectValue placeholder="Selecciona equipo" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent className="bg-slate-800 border-purple-800/50">
-                        {equipmentTypes.map((equipment) => (
-                          <SelectItem key={equipment} value={equipment} className="text-white">
-                            {equipment}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage className="text-red-400" />
-                  </FormItem>
-                )}
-              /> */}
                     </div>
 
-                    {/* <FormField
-              control={form.control}
-              name="video_url"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-purple-200 flex items-center gap-2">
-                    <Video className="h-4 w-4" />
-                    URL del Video (opcional)
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      type="url"
-                      placeholder="https://youtube.com/watch?v=..."
-                      className="bg-black/20 border-purple-800/50 text-white placeholder:text-purple-300"
-                      disabled={isLoading}
-                    />
-                  </FormControl>
-                  <FormDescription className="text-purple-300 text-xs">
-                    Enlace a un video tutorial del ejercicio
-                  </FormDescription>
-                  <FormMessage className="text-red-400" />
-                </FormItem>
-              )}
-            /> */}
-
-                    {/* <FormField
-              control={form.control}
-              name="is_global"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border border-purple-800/30 p-4 bg-black/20">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-purple-200 flex items-center gap-2">
-                      <Users className="h-4 w-4" />
-                      Ejercicio Global
-                    </FormLabel>
-                    <FormDescription className="text-purple-300 text-xs">
-                      Si está activado, el ejercicio estará disponible para todos los gimnasios
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      disabled={isLoading}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            /> */}
-
-                    <div className="flex justify-end gap-3 pt-4">
-                        <Button type="button" variant="outline" onClick={() => setOpen(false)} className="border-purple-800/50 text-purple-300 hover:bg-purple-900/20" disabled={isLoading}>
-                            Cancelar
+                    <div className="flex gap-3 pt-4">
+                        <Button
+                            type="submit"
+                            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium cursor-pointer"
+                            disabled={exerciseMutation.isPending}
+                        >
+                            {exerciseMutation.isPending
+                                ? isEditing
+                                    ? 'Actualizando...'
+                                    : 'Creando...'
+                                : isEditing
+                                ? 'Actualizar Ejercicio'
+                                : 'Crear Ejercicio'}
                         </Button>
                         <Button
-                            // type="submit"
-                            className="bg-purple-600 hover:bg-purple-700 cursor-pointer"
-                            onClick={() => onSubmit(form.getValues())}
-                            disabled={isLoading}
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                                if (setOpen) {
+                                    setOpen(false);
+                                } else if (isEditing && exercise) {
+                                    // Resetear a los valores originales del ejercicio
+                                    form.reset(defaultValues);
+                                } else {
+                                    form.reset({
+                                        name: '',
+                                        description: '',
+                                        muscle_group: '',
+                                        created_by: form.getValues('created_by'),
+                                    });
+                                }
+                                if (onSuccess) {
+                                    onSuccess();
+                                }
+                            }}
+                            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium cursor-pointer border-0"
+                            disabled={exerciseMutation.isPending}
                         >
-                            {isLoading ? 'Creando...' : 'Crear Ejercicio'}
+                            Cancelar
                         </Button>
                     </div>
                 </form>

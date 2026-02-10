@@ -3,7 +3,7 @@ import { useApp } from '@/src/contexts/AppContext';
 import { Profile } from '@/src/modules/profiles/profiles.schema';
 import { Calendar, Edit2, Mail, Phone, Save, User, X } from 'lucide-react';
 import { useState } from 'react';
-import { updateUserProfile } from '../actions/users';
+import { updateMember } from '../actions/users';
 
 export default function ProfilePage() {
     const { userProfile: profile } = useApp();
@@ -23,7 +23,7 @@ export default function ProfilePage() {
     const [editForm, setEditForm] = useState<Profile | null>(profile as Profile);
 
     const handleSave = async () => {
-        const { success, error } = await updateUserProfile(editForm as Profile);
+        const { success, error } = await updateMember(profile?.id ?? '', editForm as Profile);
         if (success) {
             setIsEditing(false);
         } else {

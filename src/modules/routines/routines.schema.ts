@@ -26,6 +26,12 @@ export const createRoutineSchema = z.object({
     exercises: z.array(routineExerciseSchema).min(1, 'Debe tener al menos un ejercicio').max(50, 'El máximo de ejercicios es 50 por rutina'),
 });
 
+export const updateRoutineSchema = z.object({
+    name: z.string().min(3, 'El nombre debe tener al menos 3 caracteres').max(100, 'El nombre no debe tener más de 100 caracteres'),
+    description: z.string().max(500, 'La descripción no debe tener más de 500 caracteres').optional(),
+    exercises: z.array(routineExerciseSchema).min(1, 'Debe tener al menos un ejercicio').max(50, 'El máximo de ejercicios es 50 por rutina'),
+});
+
 export const assignRoutineSchema = z.object({
     routine_id: z.string().min(1, 'La rutina es requerida'),
     profile_id: z.string().min(1, 'El perfil es requerido'),
@@ -85,6 +91,7 @@ export const assignedRoutineWithDetailsSchema = z.object({
 export type Routine = z.infer<typeof routineSchema>;
 export type RoutineExercise = z.infer<typeof routineExerciseSchema>;
 export type CreateRoutine = z.infer<typeof createRoutineSchema>;
+export type UpdateRoutine = z.infer<typeof updateRoutineSchema>;
 export type AssignRoutine = z.infer<typeof assignRoutineSchema>;
 export type AssignedRoutineWithDetails = z.infer<typeof assignedRoutineWithDetailsSchema>;
 export type RoutineWithExercises = z.infer<typeof routineWithExercisesSchema>;

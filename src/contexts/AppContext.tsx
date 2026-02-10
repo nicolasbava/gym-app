@@ -1,6 +1,6 @@
 'use client';
 
-import { getCurrentUserGymId, getCurrentUserProfile, UserProfile } from '@/src/app/actions/users';
+import { getCurrentUserGymId, getCurrentUserProfile } from '@/src/app/actions/users';
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import { Profile } from '../modules/profiles/profiles.schema';
 

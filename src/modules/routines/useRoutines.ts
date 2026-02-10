@@ -1,25 +1,35 @@
 // src/hooks/useRoutines.ts
 'use client';
 
-import { RoutineService } from '@/src/modules/routines/routines.service';
-import { createClient } from '@/src/utils/supabase/client';
+import {
+    createRoutine as createRoutineAction,
+    deleteRoutine as deleteRoutineAction,
+    getRoutineById as getRoutineByIdAction,
+    getRoutinesByGym as getRoutinesByGymAction,
+    getUserActiveRoutines as getUserActiveRoutinesAction,
+} from '@/src/app/actions/routines';
 import { useState } from 'react';
 import { AssignedRoutineWithDetails, RoutineWithExercises } from './routines.schema';
 
-export function useRoutines() {
-    const [loading, setLoading] = useState(!true);
-    const [error, setError] = useState<Error | null>(null);
+// user -> useRoutines -> actions/routines -> routines.service -> supabase
 
-    const supabase = createClient();
-    const routineService = new RoutineService(supabase);
+export function useRoutines() {
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<Error | null>(null);
 
     async function getRoutinesByGym(gymId: string) {
         try {
             setLoading(true);
-            const data = await routineService.getRoutinesByGym(gymId);
-            return data;
+            setError(null);
+            const result = await getRoutinesByGymAction(gymId);
+            if (!result.success) {
+                throw new Error(result.error || 'Error al obtener rutinas');
+            }
+            return result.data;
         } catch (err) {
-            setError(err as Error);
+            const error = err instanceof Error ? err : new Error('Error desconocido');
+            setError(error);
+            throw error;
         } finally {
             setLoading(false);
         }
@@ -27,25 +37,35 @@ export function useRoutines() {
 
     async function createRoutine(routineData: any) {
         try {
-            return await routineService.createRoutine(routineData);
+            setLoading(true);
+            setError(null);
+            const result = await createRoutineAction(routineData);
+            if (!result.success) {
+                throw new Error(result.error || 'Error al crear rutina');
+            }
+            return result.data;
         } catch (err) {
-            console.log('err', err);
-            setError(err as Error);
-            throw err;
+            const error = err instanceof Error ? err : new Error('Error desconocido');
+            setError(error);
+            throw error;
+        } finally {
+            setLoading(false);
         }
     }
 
     async function getUserActiveRoutines(profileId: string): Promise<AssignedRoutineWithDetails[]> {
-        console.log('profileId getUserActiveRoutines', profileId);
         try {
             setLoading(true);
-            const data = await routineService.getUserActiveRoutines(profileId);
-            console.log('getUserActiveRoutines', data);
-            return data;
+            setError(null);
+            const result = await getUserActiveRoutinesAction(profileId);
+            if (!result.success) {
+                throw new Error(result.error || 'Error al obtener rutinas activas');
+            }
+            return result.data as AssignedRoutineWithDetails[];
         } catch (err) {
-            console.log('err', err);
-            setError(err as Error);
-            throw err;
+            const error = err instanceof Error ? err : new Error('Error desconocido');
+            setError(error);
+            throw error;
         } finally {
             setLoading(false);
         }
@@ -54,12 +74,16 @@ export function useRoutines() {
     async function getRoutineById(id: string): Promise<RoutineWithExercises> {
         try {
             setLoading(true);
-            const data = await routineService.getRoutineById(id);
-            return data;
+            setError(null);
+            const result = await getRoutineByIdAction(id);
+            if (!result.success) {
+                throw new Error(result.error || 'Error al obtener rutina');
+            }
+            return result.data as RoutineWithExercises;
         } catch (err) {
-            console.log('err', err);
-            setError(err as Error);
-            throw err;
+            const error = err instanceof Error ? err : new Error('Error desconocido');
+            setError(error);
+            throw error;
         } finally {
             setLoading(false);
         }
@@ -68,12 +92,16 @@ export function useRoutines() {
     async function deleteRoutine(id: string) {
         try {
             setLoading(true);
-            const data = await routineService.deleteRoutine(id);
-            return data;
+            setError(null);
+            const result = await deleteRoutineAction(id);
+            if (!result.success) {
+                throw new Error(result.error || 'Error al eliminar rutina');
+            }
+            return result.data;
         } catch (err) {
-            console.log('err', err);
-            setError(err as Error);
-            throw err;
+            const error = err instanceof Error ? err : new Error('Error desconocido');
+            setError(error);
+            throw error;
         } finally {
             setLoading(false);
         }

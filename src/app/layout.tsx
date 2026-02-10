@@ -5,6 +5,7 @@ import type React from 'react';
 import Header from '../components/layout/header';
 import App from './app';
 import './globals.css';
+import Footer from '../components/layout/footer';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -12,6 +13,13 @@ export const metadata: Metadata = {
     title: 'Luxion - Fitness Profesional',
     description: 'Plataforma profesional de fitness con entrenadores certificados',
     generator: 'v0.dev',
+    manifest: '/manifest.webmanifest',
+    themeColor: '#000000',
+    appleWebApp: {
+        capable: true,
+        statusBarStyle: 'default',
+        title: 'Luxion',
+    },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -25,6 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     <App>{children}</App>
                 </body>
             </html>
+            <Footer />
         </>
     );
 }

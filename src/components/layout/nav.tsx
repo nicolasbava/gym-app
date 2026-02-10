@@ -38,7 +38,7 @@ const CoachNavBar = ({ setCoachView }: { setCoachView: (view: any) => void }) =>
                 }`}
             >
                 <Dumbbell className="w-5 h-5" />
-                Exercises
+                Ejercicios
             </button>
             <button
                 onClick={() => setCoachView('routines')}
@@ -47,7 +47,7 @@ const CoachNavBar = ({ setCoachView }: { setCoachView: (view: any) => void }) =>
                 }`}
             >
                 <ClipboardList className="w-5 h-5" />
-                Routines
+                Rutinas
             </button>
             <button
                 onClick={() => setCoachView('members')}
@@ -56,7 +56,7 @@ const CoachNavBar = ({ setCoachView }: { setCoachView: (view: any) => void }) =>
                 }`}
             >
                 <Users className="w-5 h-5" />
-                Members
+                Miembros
             </button>
         </nav>
     );
@@ -69,7 +69,7 @@ const MemberNavBar = ({ handleViewChange }: { handleViewChange: (view: any) => v
             <button
                 onClick={() => handleViewChange('home')}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-colors cursor-pointer ${
-                    pathname === '/home' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'
+                    pathname === '/routines' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'
                 }`}
             >
                 <Calendar className="w-5 h-5" />

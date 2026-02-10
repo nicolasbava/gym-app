@@ -1,16 +1,17 @@
 'use client';
 
 import { getUser } from '@/src/app/actions/auth';
-import { createRoutine, getExercises } from '@/src/app/actions/routines';
+import { createRoutine, getExercises, updateRoutine } from '@/src/app/actions/routines';
 import { Button } from '@/src/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/src/components/ui/form';
 import { Input } from '@/src/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/src/components/ui/select';
 import { Textarea } from '@/src/components/ui/textarea';
-import { createRoutineSchema, type CreateRoutine } from '@/src/modules/routines/routines.schema';
+import { createRoutineSchema, type CreateRoutine, type RoutineWithExercises, type UpdateRoutine } from '@/src/modules/routines/routines.schema';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { GripVertical, Trash2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 
 interface Exercise {
@@ -23,18 +24,47 @@ interface Exercise {
 
 interface CreateRoutineDialogProps {
     gymId: string;
+    routine?: RoutineWithExercises; // Si existe, es modo edición
     onSuccess?: () => void;
 }
 
-export default function CreateRoutineForm({ gymId, onSuccess }: CreateRoutineDialogProps) {
-    const [error, setError] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
-    const [exercises, setExercises] = useState<Exercise[]>([]);
-    const [loadingExercises, setLoadingExercises] = useState(true);
+export default function CreateRoutineForm({ gymId, routine, onSuccess }: CreateRoutineDialogProps) {
+    const queryClient = useQueryClient();
+    const isEditing = !!routine;
 
-    const form = useForm<CreateRoutine>({
-        resolver: zodResolver(createRoutineSchema),
-        defaultValues: {
+    // Preparar valores por defecto basados en si estamos editando o creando
+    const defaultValues = useMemo(() => {
+        if (routine) {
+            // Modo edición: prellenar con datos de la rutina
+            return {
+                gym_id: routine.gym_id,
+                name: routine.name,
+                description: routine.description || '',
+                created_by: routine.created_by,
+                exercises:
+                    routine.routine_exercises.length > 0
+                        ? routine.routine_exercises.map((ex, index) => ({
+                              exercise_id: ex.exercise_id,
+                              order_index: index,
+                              sets: parseInt(ex.sets) || 3,
+                              reps: ex.reps || '8-12',
+                              rest_seconds: parseInt(ex.rest_seconds) || 60,
+                              notes: ex.notes || '',
+                          }))
+                        : [
+                              {
+                                  exercise_id: '',
+                                  order_index: 0,
+                                  sets: 3,
+                                  reps: '8-12',
+                                  rest_seconds: 60,
+                                  notes: '',
+                              },
+                          ],
+            };
+        }
+        // Modo creación: valores por defecto
+        return {
             gym_id: gymId,
             name: '',
             description: '',
@@ -49,7 +79,12 @@ export default function CreateRoutineForm({ gymId, onSuccess }: CreateRoutineDia
                     notes: '',
                 },
             ],
-        },
+        };
+    }, [routine, gymId]);
+
+    const form = useForm<CreateRoutine>({
+        resolver: zodResolver(createRoutineSchema),
+        defaultValues,
     });
 
     const { fields, append, remove } = useFieldArray({
@@ -57,60 +92,111 @@ export default function CreateRoutineForm({ gymId, onSuccess }: CreateRoutineDia
         name: 'exercises',
     });
 
-    useEffect(() => {
-        loadExercises();
-        loadUser();
-    }, []);
-
-    const loadExercises = async () => {
-        try {
-            setLoadingExercises(true);
+    // Load exercises using React Query
+    const {
+        data: exercises = [],
+        isLoading: loadingExercises,
+        error: exercisesError,
+    } = useQuery({
+        queryKey: ['exercises'],
+        queryFn: async () => {
             const result = await getExercises();
-            if (result.success && result.data) {
-                setExercises(result.data as Exercise[]);
+            if (!result.success || !result.data) {
+                throw new Error(result.error || 'Error al cargar ejercicios');
             }
-        } catch (err) {
-            console.error('Error loading exercises:', err);
-        } finally {
-            setLoadingExercises(false);
+            return result.data as Exercise[];
+        },
+    });
+
+    // Load user and set created_by field
+    useEffect(() => {
+        const loadUser = async () => {
+            try {
+                const user = await getUser();
+                if (user) {
+                    form.setValue('created_by', user.id);
+                }
+            } catch (err) {
+                console.error('Error loading user:', err);
+            }
+        };
+        loadUser();
+    }, [form]);
+
+    // Reset form when routine prop changes
+    useEffect(() => {
+        if (routine) {
+            form.reset(defaultValues);
         }
-    };
+    }, [routine?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const loadUser = async () => {
-        try {
-            const user = await getUser();
-            if (user) {
-                form.setValue('created_by', user.id);
+    // Create or update routine mutation
+    const routineMutation = useMutation({
+        mutationFn: async (data: CreateRoutine) => {
+            if (isEditing && routine) {
+                // Modo edición: actualizar rutina
+                const updateData: UpdateRoutine = {
+                    name: data.name,
+                    description: data.description,
+                    exercises: data.exercises,
+                };
+                console.log('updateData', updateData);
+                const result = await updateRoutine(routine.id, updateData);
+                if (!result.success) {
+                    throw new Error(result.error || 'Error al actualizar la rutina');
+                }
+                return result;
+            } else {
+                // Modo creación: crear nueva rutina
+                const result = await createRoutine(data);
+                if (!result.success) {
+                    throw new Error(result.error || 'Error al crear la rutina');
+                }
+                return result;
             }
-        } catch (err) {
-            console.error('Error loading user:', err);
-        }
-    };
+        },
+        onSuccess: async () => {
+            // Invalidate and refetch routines queries to ensure list is updated
+            // Invalidar todas las queries de rutinas (con y sin gym_id)
+            await queryClient.invalidateQueries({
+                queryKey: ['routines'],
+                exact: false,
+            });
+            // Force refetch to ensure immediate update
+            await queryClient.refetchQueries({
+                queryKey: ['routines'],
+                exact: false,
+            });
 
-    const onSubmit = async (data: CreateRoutine) => {
-        try {
-            setError(null);
-            setIsLoading(true);
-
-            const result = await createRoutine(data);
-
-            if (!result.success) {
-                setError(result.error || 'Error al crear la rutina');
-                return;
+            if (!isEditing) {
+                // Solo resetear el formulario si estamos creando
+                form.reset({
+                    gym_id: gymId,
+                    name: '',
+                    description: '',
+                    created_by: form.getValues('created_by'),
+                    exercises: [
+                        {
+                            exercise_id: '',
+                            order_index: 0,
+                            sets: 3,
+                            reps: '8-12',
+                            rest_seconds: 60,
+                            notes: '',
+                        },
+                    ],
+                });
             }
 
-            // Resetear formulario
-            form.reset();
-
-            // Llamar callback si existe
+            // Call success callback if provided
             if (onSuccess) {
                 onSuccess();
             }
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Error desconocido');
-        } finally {
-            setIsLoading(false);
-        }
+        },
+    });
+
+    const onSubmit = async (data: CreateRoutine) => {
+        routineMutation.mutate(data);
     };
 
     const addExercise = () => {
@@ -134,7 +220,19 @@ export default function CreateRoutineForm({ gymId, onSuccess }: CreateRoutineDia
         //   </DialogTrigger>
 
         <>
-            {error && <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
+            {routineMutation.isError && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                    {routineMutation.error instanceof Error
+                        ? routineMutation.error.message
+                        : `Error al ${isEditing ? 'actualizar' : 'crear'} la rutina`}
+                </div>
+            )}
+
+            {exercisesError && (
+                <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-700 text-sm">
+                    Error al cargar ejercicios. Por favor, recarga la página.
+                </div>
+            )}
 
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="p-6 space-y-6">
@@ -149,7 +247,7 @@ export default function CreateRoutineForm({ gymId, onSuccess }: CreateRoutineDia
                                         {...field}
                                         placeholder="Ej: Rutina de Fuerza - Push"
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        disabled={isLoading}
+                                        disabled={routineMutation.isPending}
                                     />
                                 </FormControl>
                                 <FormMessage className="text-red-600 text-sm" />
@@ -169,7 +267,7 @@ export default function CreateRoutineForm({ gymId, onSuccess }: CreateRoutineDia
                                         rows={2}
                                         placeholder="Ej: Rutina para el pecho, brazos y espalda"
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        disabled={isLoading}
+                                        disabled={routineMutation.isPending}
                                     />
                                 </FormControl>
                                 <FormMessage className="text-red-600 text-sm" />
@@ -184,7 +282,7 @@ export default function CreateRoutineForm({ gymId, onSuccess }: CreateRoutineDia
                                 type="button"
                                 onClick={addExercise}
                                 className="text-sm text-blue-600 hover:text-blue-700 font-medium cursor-pointer"
-                                disabled={isLoading || loadingExercises}
+                                disabled={routineMutation.isPending || loadingExercises}
                             >
                                 + Agregar Ejercicio
                             </button>
@@ -204,7 +302,7 @@ export default function CreateRoutineForm({ gymId, onSuccess }: CreateRoutineDia
                                                         <Select
                                                             onValueChange={selectField.onChange}
                                                             value={selectField.value}
-                                                            disabled={isLoading || loadingExercises}
+                                                            disabled={routineMutation.isPending || loadingExercises}
                                                         >
                                                             <SelectTrigger className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white">
                                                                 <SelectValue placeholder="Selecciona un ejercicio">
@@ -236,7 +334,7 @@ export default function CreateRoutineForm({ gymId, onSuccess }: CreateRoutineDia
                                             type="button"
                                             onClick={() => remove(index)}
                                             className="p-2 text-red-600 hover:bg-red-50 rounded-lg cursor-pointer"
-                                            disabled={isLoading}
+                                            disabled={routineMutation.isPending}
                                             aria-label="Eliminar ejercicio"
                                         >
                                             <Trash2 className="w-4 h-4" />
@@ -257,7 +355,7 @@ export default function CreateRoutineForm({ gymId, onSuccess }: CreateRoutineDia
                                                             min={1}
                                                             onChange={(e) => setsField.onChange(parseInt(e.target.value) || 0)}
                                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                                            disabled={isLoading}
+                                                            disabled={routineMutation.isPending}
                                                         />
                                                     </FormControl>
                                                     <FormMessage className="text-red-600 text-xs" />
@@ -275,13 +373,31 @@ export default function CreateRoutineForm({ gymId, onSuccess }: CreateRoutineDia
                                                             {...repsField}
                                                             placeholder="8-12 o 10"
                                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                                            disabled={isLoading}
+                                                            disabled={routineMutation.isPending}
                                                         />
                                                     </FormControl>
                                                     <FormMessage className="text-red-600 text-xs" />
                                                 </FormItem>
                                             )}
                                         />
+                                        {/* <FormField
+                                            control={form.control}
+                                            name={`exercises.${index}.weight`}
+                                            render={({ field: weightField }) => (
+                                                <FormItem>
+                                                    <FormLabel className="text-xs font-medium text-gray-600">Weight</FormLabel>
+                                                    <FormControl>
+                                                        <Input
+                                                            {...weightField}
+                                                            placeholder="100"
+                                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                            disabled={routineMutation.isPending}
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage className="text-red-600 text-xs" />
+                                                </FormItem>
+                                            )}
+                                        /> */}
                                         <FormField
                                             control={form.control}
                                             name={`exercises.${index}.rest_seconds`}
@@ -296,7 +412,7 @@ export default function CreateRoutineForm({ gymId, onSuccess }: CreateRoutineDia
                                                             step={15}
                                                             onChange={(e) => restField.onChange(parseInt(e.target.value) || 0)}
                                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                                            disabled={isLoading}
+                                                            disabled={routineMutation.isPending}
                                                         />
                                                     </FormControl>
                                                     <FormMessage className="text-red-600 text-xs" />
@@ -314,7 +430,7 @@ export default function CreateRoutineForm({ gymId, onSuccess }: CreateRoutineDia
                                                             {...notesField}
                                                             placeholder="Opcional"
                                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                                            disabled={isLoading}
+                                                            disabled={routineMutation.isPending}
                                                         />
                                                     </FormControl>
                                                     <FormMessage className="text-red-600 text-xs" />
@@ -337,16 +453,29 @@ export default function CreateRoutineForm({ gymId, onSuccess }: CreateRoutineDia
                         <Button
                             type="submit"
                             className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium cursor-pointer"
-                            disabled={isLoading}
+                            disabled={routineMutation.isPending}
                         >
-                            {isLoading ? 'Creando...' : 'Crear Rutina'}
+                            {routineMutation.isPending
+                                ? isEditing
+                                    ? 'Actualizando...'
+                                    : 'Creando...'
+                                : isEditing
+                                ? 'Actualizar Rutina'
+                                : 'Crear Rutina'}
                         </Button>
                         <Button
                             type="button"
                             variant="outline"
-                            onClick={() => form.reset()}
+                            onClick={() => {
+                                if (isEditing && routine) {
+                                    // Resetear a los valores originales de la rutina
+                                    form.reset(defaultValues);
+                                } else {
+                                    form.reset();
+                                }
+                            }}
                             className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium cursor-pointer border-0"
-                            disabled={isLoading}
+                            disabled={routineMutation.isPending}
                         >
                             Cancelar
                         </Button>

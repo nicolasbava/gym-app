@@ -1,19 +1,45 @@
 'use client';
+import ConfirmAction from '@/src/components/common/confirm-action';
+import CreateRoutineForm from '@/src/components/trainer-dashboard/routines/routine-form';
 import RoutinesDialog from '@/src/components/trainer-dashboard/routines/routines-dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/src/components/ui/dialog';
 import { useApp } from '@/src/contexts/AppContext';
 import { mockExercises, Routine, RoutineExercise } from '@/src/lib/mock-data';
-import { RoutineExerciseWithExercise } from '@/src/modules/routines/routines.schema';
+import { RoutineExerciseWithExercise, RoutineWithExercises } from '@/src/modules/routines/routines.schema';
 import { useRoutines } from '@/src/modules/routines/useRoutines';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { Edit2, Trash2 } from 'lucide-react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Dumbbell, Edit2, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
 export default function RoutinesPage() {
     const { userProfile } = useApp();
+    const queryClient = useQueryClient();
     const { getRoutinesByGym, deleteRoutine } = useRoutines();
     const [loading, setLoading] = useState(false);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [editingRoutine, setEditingRoutine] = useState<Routine | null>(null);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [routineToDelete, setRoutineToDelete] = useState<string | null>(null);
+    const [editingRoutine, setEditingRoutine] = useState<RoutineWithExercises | null>(null);
+    
+    const deleteRoutineMutation = useMutation({
+        mutationFn: (id: string) => deleteRoutine(id),
+        onSuccess: async () => {
+            // Invalidate and refetch routines queries to ensure list is updated
+            await queryClient.invalidateQueries({
+                queryKey: ['routines'],
+                exact: false,
+            });
+            // Force refetch to ensure immediate update
+            await queryClient.refetchQueries({
+                queryKey: ['routines'],
+                exact: false,
+            });
+            setRoutineToDelete(null);
+        },
+        onError: (error) => {
+            console.log('error delete routine', error);
+            setRoutineToDelete(null);
+        },
+    });
     const [formData, setFormData] = useState<Partial<Routine>>({
         name: '',
         description: '',
@@ -30,87 +56,24 @@ export default function RoutinesPage() {
         enabled: !!userProfile?.gym_id,
     });
 
-    const handleOpenModal = (routine?: Routine) => {
-        if (routine) {
-            setEditingRoutine(routine);
-            setFormData(routine);
-        } else {
-            setEditingRoutine(null);
-            setFormData({
-                name: '',
-                description: '',
-                exercises: [],
-            });
-        }
-        setIsModalOpen(true);
+    const handleOpenEditModal = (routine: RoutineWithExercises) => {
+        setEditingRoutine(routine);
+        setIsEditModalOpen(true);
     };
 
-    const handleCloseModal = () => {
-        setIsModalOpen(false);
+    const handleCloseEditModal = () => {
+        setIsEditModalOpen(false);
         setEditingRoutine(null);
     };
 
-    // const handleSubmit = (e: React.FormEvent) => {
-    //     e.preventDefault();
-
-    //     if (editingRoutine) {
-    //         setRoutines(routines.map((r) => (r.id === editingRoutine.id ? ({ ...formData, id: r.id, createdAt: r.createdAt } as Routine) : r)));
-    //     } else {
-    //         const newRoutine: Routine = {
-    //             ...formData,
-    //             id: `r${Date.now()}`,
-    //             createdAt: new Date().toISOString().split('T')[0],
-    //         } as Routine;
-    //         setRoutines([...routines, newRoutine]);
-    //     }
-
-    //     handleCloseModal();
-    // };
-
-    const handleDelete = (id: string) => {
-        setLoading(true);
-        const { mutate } = useMutation({
-            mutationFn: () => deleteRoutine(id),
-            onSuccess: () => {
-                console.log('routine deleted');
-            },
-            onError: (error) => {
-                console.log('error', error);
-            },
-        });
-        mutate();
-        setLoading(false);
+    const handleDelete = () => {
+        if (routineToDelete) {
+            deleteRoutineMutation.mutate(routineToDelete);
+        }
     };
 
-    const addExerciseToRoutine = () => {
-        const newExercise: RoutineExercise = {
-            exerciseId: mockExercises[0].id,
-            sets: 3,
-            reps: 10,
-            weight: 0,
-            restTime: 60,
-        };
-        setFormData({
-            ...formData,
-            exercises: [...(formData.exercises || []), newExercise],
-        });
-    };
-
-    const updateExerciseInRoutine = (index: number, updates: Partial<RoutineExercise>) => {
-        const newExercises = [...(formData.exercises || [])];
-        newExercises[index] = { ...newExercises[index], ...updates };
-        setFormData({ ...formData, exercises: newExercises });
-    };
-
-    const removeExerciseFromRoutine = (index: number) => {
-        setFormData({
-            ...formData,
-            exercises: (formData.exercises || []).filter((_, i) => i !== index),
-        });
-    };
-
-    const getExerciseName = (exerciseId: string) => {
-        return mockExercises.find((ex) => ex.id === exerciseId)?.name || 'Unknown';
+    const handleOpenDeleteDialog = (id: string) => {
+        setRoutineToDelete(id);
     };
 
     if (!routines) return <div>No routines found</div>;
@@ -138,10 +101,13 @@ export default function RoutinesPage() {
                                     <p className="text-gray-600 text-sm">{routine.description}</p>
                                 </div>
                                 <div className="flex gap-2">
-                                    <button onClick={() => handleOpenModal(routine)} className="p-2 hover:bg-gray-100 rounded-lg">
+                                    <button onClick={() => handleOpenEditModal(routine)} className="cursor-pointer p-2 hover:bg-gray-100 rounded-lg">
                                         <Edit2 className="w-4 h-4 text-gray-700" />
                                     </button>
-                                    <button onClick={() => handleDelete(routine.id)} className="p-2 hover:bg-red-50 rounded-lg">
+                                    <button
+                                        onClick={() => handleOpenDeleteDialog(routine.id)}
+                                        className="cursor-pointer   p-2 hover:bg-red-50 rounded-lg"
+                                    >
                                         <Trash2 className="w-4 h-4 text-red-600" />
                                     </button>
                                 </div>
@@ -160,9 +126,46 @@ export default function RoutinesPage() {
                                     </div>
                                 ))}
                             </div>
+
+                            <ConfirmAction
+                                open={routineToDelete === routine.id}
+                                onOpenChange={(open) => {
+                                    if (!open) {
+                                        setRoutineToDelete(null);
+                                    }
+                                }}
+                                onConfirm={handleDelete}
+                                onCancel={() => setRoutineToDelete(null)}
+                                title="Eliminar rutina"
+                                description="¿Estás seguro de querer eliminar esta rutina?"
+                                variant="destructive"
+                            />
                         </div>
                     ))}
             </div>
+
+            {/* Edit Routine Dialog */}
+            <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+                <DialogContent className="bg-white border border-gray-200 rounded-lg max-w-3xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                            <Dumbbell className="h-6 w-6 text-blue-600" />
+                            Editar Rutina
+                        </DialogTitle>
+                        <DialogDescription className="text-sm text-gray-600">Modifica los datos de la rutina de entrenamiento</DialogDescription>
+                    </DialogHeader>
+                    {editingRoutine && (
+                        <CreateRoutineForm
+                            gymId={userProfile?.gym_id ?? ''}
+                            routine={editingRoutine}
+                            onSuccess={() => {
+                                handleCloseEditModal();
+                                // La invalidación y refetch ya se hacen en el formulario
+                            }}
+                        />
+                    )}
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

@@ -1,5 +1,6 @@
 'use client';
 import { mockExercises } from '@/src/lib/mock-data';
+import { navigationHelpers } from '@/src/lib/navigation';
 import { Timer } from '@/src/lib/timer';
 import { useRoutines } from '@/src/modules/routines/useRoutines';
 import { useQuery } from '@tanstack/react-query';
@@ -25,7 +26,7 @@ export default function WorkoutPage() {
     if (!id || typeof id !== 'string') return <div>Routine not found</div>;
 
     const onEndWorkout = () => {
-        router.push('/home');
+        router.push(navigationHelpers.redirectAfterLogin());
     };
 
     const {
@@ -167,8 +168,8 @@ export default function WorkoutPage() {
                                                 isSetCompleted(currentExerciseIndex, idx + 1)
                                                     ? 'bg-green-500'
                                                     : idx + 1 === currentSet
-                                                    ? 'bg-blue-500'
-                                                    : 'bg-gray-200'
+                                                      ? 'bg-blue-500'
+                                                      : 'bg-gray-200'
                                             }`}
                                         />
                                     ))}
