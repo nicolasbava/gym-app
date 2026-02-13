@@ -1,5 +1,7 @@
 'use client';
+import { deleteExercise, getExercisesGymIdName } from '@/src/app/actions/exercises';
 import ConfirmAction from '@/src/components/common/confirm-action';
+import SearchBar from '@/src/components/common/SearchBar';
 import ExerciseDialog from '@/src/components/trainer-dashboard/exercises/exercise-dialog';
 import CreateExerciseForm from '@/src/components/trainer-dashboard/exercises/exercise-form';
 import { Dialog, DialogContent, DialogHeader } from '@/src/components/ui/dialog';
@@ -7,8 +9,7 @@ import { useApp } from '@/src/contexts/AppContext';
 import { DialogTitle } from '@radix-ui/react-dialog';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Edit2, Trash2 } from 'lucide-react';
-import { useState } from 'react';
-import { deleteExercise, getExercisesGymId } from '../actions/exercises';
+import { useCallback, useState } from 'react';
 import ExercisesLoading from './loading';
 
 interface ExerciseData {
@@ -25,6 +26,8 @@ export default function ExercisesPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingExercise, setEditingExercise] = useState<ExerciseData | null>(null);
     const [exerciseToDelete, setExerciseToDelete] = useState<string | null>(null);
+
+    const [nameExercise, setNameExercise] = useState('');
 
     const deleteExerciseMutation = useMutation({
         mutationFn: (id: string) => deleteExercise(id),
@@ -57,13 +60,25 @@ export default function ExercisesPage() {
         setExerciseToDelete(id);
     };
 
+    // Fetch exercises by gym id and name
+    const onSearch = useCallback(
+        (query: string) => {
+            setNameExercise(query);
+        },
+        [nameExercise.length],
+    );
+
+    const clearSearch = useCallback(() => {
+        setNameExercise('');
+    }, []);
+
     const {
         data: exercisesData,
         error,
         isLoading,
     } = useQuery({
-        queryKey: ['exercises'],
-        queryFn: () => getExercisesGymId(userProfile?.gym_id ?? ''),
+        queryKey: ['exercises', userProfile?.gym_id, nameExercise],
+        queryFn: () => getExercisesGymIdName(userProfile?.gym_id ?? '', nameExercise),
         enabled: !!userProfile?.gym_id,
     });
 
@@ -81,16 +96,14 @@ export default function ExercisesPage() {
         setEditingExercise(null);
     };
 
-    if (isLoading) return <ExercisesLoading />;
-    if (!exercisesData) return <div>No data found</div>;
-    if (error) return <div>Error: {error.message}</div>;
-
     return (
         <div>
             <div className="flex items-center justify-between mb-6">
                 <div>
-                    <h2 className="text-2xl font-semibold text-gray-900">Libreria de Ejercicios</h2>
-                    <p className="text-gray-600 mt-1">Gestiona todos los ejercicios de tu gimnasio</p>
+                    <h2 className="text-2xl font-semibold text-gray-900">Librería de Ejercicios</h2>
+                    <p className="text-gray-600 mt-1">
+                        Gestiona todos los ejercicios de tu gimnasio
+                    </p>
                 </div>
                 {/* <button
                     onClick={() => handleOpenModal()}
@@ -99,44 +112,72 @@ export default function ExercisesPage() {
                     <Plus className="w-5 h-5" />
                     Add Exercise
                     </button> */}
-                <ExerciseDialog />
+                <div className="flex items-center gap-2">
+                    <SearchBar
+                        fetchFunction={onSearch}
+                        query={nameExercise}
+                        clearSearch={clearSearch}
+                    />
+                    <ExerciseDialog />
+                </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {exercisesData?.data.map((exercise) => (
-                    <div key={exercise.id} className="bg-white rounded-lg shadow-sm border overflow-hidden hover:shadow-md transition-shadow">
-                        <div className="relative bg-gray-200">
-                            <div className="absolute top-2 right-2 flex gap-2">
-                                <button
-                                    onClick={() => handleOpenModal(exercise)}
-                                    className="p-2 cursor-pointer bg-white rounded-lg shadow hover:bg-gray-50"
-                                >
-                                    <Edit2 className="w-4 h-4 text-gray-700" />
-                                </button>
-                                <button
-                                    onClick={() => handleOpenDeleteDialog(exercise.id)}
-                                    disabled={deleteExerciseMutation.isPending}
-                                    className="p-2 cursor-pointer bg-white rounded-lg shadow hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    <Trash2 className="w-4 h-4 text-red-600" />
-                                </button>
+            {isLoading ? (
+                <ExercisesLoading />
+            ) : exercisesData?.data.length === 0 ? (
+                <div className="text-center text-gray-600">No se encontraron ejercicios</div>
+            ) : error ? (
+                <div className="text-center text-gray-600">Error: {error.message}</div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {exercisesData?.data.map((exercise) => (
+                        <div
+                            key={exercise.id}
+                            className="bg-white rounded-lg shadow-sm border overflow-hidden hover:shadow-md transition-shadow"
+                        >
+                            <div className="relative bg-gray-200">
+                                <div className="absolute top-2 right-2 flex gap-2">
+                                    <button
+                                        onClick={() => handleOpenModal(exercise)}
+                                        className="p-2 cursor-pointer bg-white rounded-lg shadow hover:bg-gray-50"
+                                    >
+                                        <Edit2 className="w-4 h-4 text-gray-700" />
+                                    </button>
+                                    <button
+                                        onClick={() => handleOpenDeleteDialog(exercise.id)}
+                                        disabled={deleteExerciseMutation.isPending}
+                                        className="p-2 cursor-pointer bg-white rounded-lg shadow hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        <Trash2 className="w-4 h-4 text-red-600" />
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="p-4">
+                                <h3 className="font-semibold text-lg text-gray-900 mb-1">
+                                    {exercise.name}
+                                </h3>
+                                <div className="flex gap-2 mb-2">
+                                    {exercise.muscle_group && (
+                                        <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
+                                            {exercise.muscle_group}
+                                        </span>
+                                    )}
+                                    {exercise.equipment && (
+                                        <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
+                                            {exercise.equipment}
+                                        </span>
+                                    )}
+                                </div>
+                                {exercise.description && (
+                                    <p className="text-gray-600 text-sm line-clamp-2">
+                                        {exercise.description}
+                                    </p>
+                                )}
                             </div>
                         </div>
-                        <div className="p-4">
-                            <h3 className="font-semibold text-lg text-gray-900 mb-1">{exercise.name}</h3>
-                            <div className="flex gap-2 mb-2">
-                                {exercise.muscle_group && (
-                                    <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">{exercise.muscle_group}</span>
-                                )}
-                                {exercise.equipment && (
-                                    <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">{exercise.equipment}</span>
-                                )}
-                            </div>
-                            {exercise.description && <p className="text-gray-600 text-sm line-clamp-2">{exercise.description}</p>}
-                        </div>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
+            )}
 
             <ConfirmAction
                 open={!!exerciseToDelete}

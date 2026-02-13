@@ -1,10 +1,11 @@
 'use client';
 import ConfirmAction from '@/src/components/common/confirm-action';
+import SearchBar from '@/src/components/common/SearchBar';
 import CreateRoutineForm from '@/src/components/trainer-dashboard/routines/routine-form';
 import RoutinesDialog from '@/src/components/trainer-dashboard/routines/routines-dialog';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/src/components/ui/dialog';
 import { useApp } from '@/src/contexts/AppContext';
-import { mockExercises, Routine, RoutineExercise } from '@/src/lib/mock-data';
+import { Routine } from '@/src/lib/mock-data';
 import { RoutineExerciseWithExercise, RoutineWithExercises } from '@/src/modules/routines/routines.schema';
 import { useRoutines } from '@/src/modules/routines/useRoutines';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -19,7 +20,7 @@ export default function RoutinesPage() {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [routineToDelete, setRoutineToDelete] = useState<string | null>(null);
     const [editingRoutine, setEditingRoutine] = useState<RoutineWithExercises | null>(null);
-    
+
     const deleteRoutineMutation = useMutation({
         mutationFn: (id: string) => deleteRoutine(id),
         onSuccess: async () => {
@@ -88,7 +89,10 @@ export default function RoutinesPage() {
                     <h2 className="text-2xl font-semibold text-gray-900">Rutinas</h2>
                     <p className="text-gray-600 mt-1">Crear y gestionar programas de entrenamiento</p>
                 </div>
-                <RoutinesDialog />
+                <>
+                    <SearchBar fetchFunction={(_query: string) => Promise.resolve()} />
+                    <RoutinesDialog />
+                </>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

@@ -1,6 +1,11 @@
 'use server';
 
-import { createExerciseSchema, updateExerciseSchema, type CreateExercise, type UpdateExercise } from '@/src/modules/exercises/exercises.schema';
+import {
+    createExerciseSchema,
+    updateExerciseSchema,
+    type CreateExercise,
+    type UpdateExercise,
+} from '@/src/modules/exercises/exercises.schema';
 import { ExerciseService } from '@/src/modules/exercises/exercises.service';
 import { createClient } from '@/src/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
@@ -81,13 +86,27 @@ export async function createExercise(formData: CreateExercise) {
     }
 }
 
-export async function getExercisesGymId(gymId: string) {
-    // Validar datos del formulario
+export async function getExercisesGymIdName(gymId: string, name: string = '') {
+    // TODO : Validate data from the form zod schema
     try {
         const cookieStore = await cookies();
         const supabase = await createClient(cookieStore);
 
-        const { data, error } = await supabase.from('exercises').select('*').is('deleted_at', null).order('name', { ascending: true });
+        let query = supabase
+            .from('exercises')
+            .select('*')
+            .is('deleted_at', null)
+            .order('name', { ascending: true })
+            .limit(20);
+        // .eq('gym_id', gymId) // TODO: add gym_id to the query
+
+        // If name is provided, add the filter to the query
+        if (name && name.trim().length > 0) {
+            query = query.ilike('name', `%${name}%`);
+        }
+
+        const { data, error } = await query;
+
         if (error) {
             console.log('>>> error:', error);
             return {
@@ -105,7 +124,8 @@ export async function getExercisesGymId(gymId: string) {
     } catch (error) {
         console.error('Error getting exercises:', error);
         return {
-            error: error instanceof Error ? error.message : 'Error desconocido al obtener ejercicios',
+            error:
+                error instanceof Error ? error.message : 'Error desconocido al obtener ejercicios',
             success: false,
             data: [],
         };
@@ -114,7 +134,17 @@ export async function getExercisesGymId(gymId: string) {
 
 export async function getMuscleGroups() {
     // Lista de grupos musculares comunes
-    return ['Pecho', 'Espalda', 'Hombros', 'Brazos', 'Piernas', 'Glúteos', 'Abdominales', 'Cardio', 'Full Body'];
+    return [
+        'Pecho',
+        'Espalda',
+        'Hombros',
+        'Brazos',
+        'Piernas',
+        'Glúteos',
+        'Abdominales',
+        'Cardio',
+        'Full Body',
+    ];
 }
 
 export async function getEquipmentTypes() {
@@ -184,7 +214,10 @@ export async function updateExercise(exerciseId: string, formData: UpdateExercis
     } catch (error) {
         console.error('Error updating exercise:', error);
         return {
-            error: error instanceof Error ? error.message : 'Error desconocido al actualizar ejercicio',
+            error:
+                error instanceof Error
+                    ? error.message
+                    : 'Error desconocido al actualizar ejercicio',
             success: false,
             data: null,
         };
@@ -200,7 +233,8 @@ export async function deleteExercise(exerciseId: string) {
     } catch (error) {
         console.error('Error deleting exercise:', error);
         return {
-            error: error instanceof Error ? error.message : 'Error desconocido al eliminar ejercicio',
+            error:
+                error instanceof Error ? error.message : 'Error desconocido al eliminar ejercicio',
             success: false,
             data: null,
         };

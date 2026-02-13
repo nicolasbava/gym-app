@@ -45,9 +45,11 @@ export async function getProfilesByGym(gymId: string): Promise<{ success: boolea
 export async function getCurrentUserGymId(): Promise<{ gymId: string | null; error?: string }> {
     const cookieStore = await cookies();
     const supabase = await createClient(cookieStore);
+
     const {
         data: { user },
     } = await supabase.auth.getUser();
+
     if (!user) return { gymId: null, error: 'No autenticado' };
     const { data: profile } = await supabase.from('profiles').select('gym_id').eq('id', user.id).maybeSingle();
     return { gymId: profile?.gym_id ?? null };
@@ -178,7 +180,7 @@ export async function getCurrentUserProfile(): Promise<{
 /** Update a member's profile (trainer only, same gym). */
 export async function updateMember(
     profileId: string,
-    data: { name?: string; phone?: string }
+    data: { name?: string; phone?: string },
 ): Promise<{ success: boolean; error?: string; message?: string }> {
     const cookieStore = await cookies();
     const supabase = await createClient(cookieStore);
