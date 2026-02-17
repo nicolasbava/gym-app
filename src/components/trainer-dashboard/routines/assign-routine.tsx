@@ -1,12 +1,29 @@
 'use client';
 
-import { assignRoutine, getRoutinesByGym } from '@/src/app/actions/routines';
+import { assignRoutine, getRoutinesByGymNameAction } from '@/src/app/actions/routines';
 import type { UserProfile } from '@/src/app/actions/users';
 import { getProfilesByGym } from '@/src/app/actions/users';
 import { Button } from '@/src/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/src/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/src/components/ui/select';
-import { AssignRoutine, assignRoutineSchema, type Routine } from '@/src/modules/routines/routines.schema';
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from '@/src/components/ui/form';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/src/components/ui/select';
+import {
+    AssignRoutine,
+    assignRoutineSchema,
+    type Routine,
+} from '@/src/modules/routines/routines.schema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -36,9 +53,10 @@ export default function AssignRoutineForm({ gymId, onSuccess }: AssignRoutineFor
         if (!gymId) return;
         let cancelled = false;
         setLoadingRoutines(true);
-        getRoutinesByGym(gymId)
+        getRoutinesByGymNameAction(gymId)
             .then((result) => {
-                if (!cancelled && result.success && result.data) setRoutines(result.data as Routine[]);
+                if (!cancelled && result.success && result.data)
+                    setRoutines(result.data as Routine[]);
             })
             .finally(() => {
                 if (!cancelled) setLoadingRoutines(false);
@@ -86,7 +104,11 @@ export default function AssignRoutineForm({ gymId, onSuccess }: AssignRoutineFor
 
     return (
         <>
-            {error && <div className="p-3 bg-red-500/20 border border-red-500/50 rounded-md text-red-200 text-sm">{error}</div>}
+            {error && (
+                <div className="p-3 bg-red-500/20 border border-red-500/50 rounded-md text-red-200 text-sm">
+                    {error}
+                </div>
+            )}
 
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -96,17 +118,34 @@ export default function AssignRoutineForm({ gymId, onSuccess }: AssignRoutineFor
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel className="text-purple-200">Rutina</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value} disabled={isLoading || loading}>
+                                <Select
+                                    onValueChange={field.onChange}
+                                    value={field.value}
+                                    disabled={isLoading || loading}
+                                >
                                     <FormControl>
                                         <SelectTrigger className="bg-black/20 border-purple-800/50 text-white">
-                                            <SelectValue placeholder={loadingRoutines ? 'Cargando rutinas...' : 'Selecciona una rutina'}>
-                                                {loadingRoutines ? 'Cargando rutinas...' : routines.find((r) => r.id === field.value)?.name ?? 'Selecciona una rutina'}
+                                            <SelectValue
+                                                placeholder={
+                                                    loadingRoutines
+                                                        ? 'Cargando rutinas...'
+                                                        : 'Selecciona una rutina'
+                                                }
+                                            >
+                                                {loadingRoutines
+                                                    ? 'Cargando rutinas...'
+                                                    : (routines.find((r) => r.id === field.value)
+                                                          ?.name ?? 'Selecciona una rutina')}
                                             </SelectValue>
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent className="bg-slate-800 border-purple-800/50 max-h-[200px]">
                                         {routines.map((routine) => (
-                                            <SelectItem key={routine.id} value={routine.id} className="text-white">
+                                            <SelectItem
+                                                key={routine.id}
+                                                value={routine.id}
+                                                className="text-white"
+                                            >
                                                 {routine.name}
                                             </SelectItem>
                                         ))}
@@ -123,19 +162,40 @@ export default function AssignRoutineForm({ gymId, onSuccess }: AssignRoutineFor
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel className="text-purple-200">Cliente</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value} disabled={isLoading || loading}>
+                                <Select
+                                    onValueChange={field.onChange}
+                                    value={field.value}
+                                    disabled={isLoading || loading}
+                                >
                                     <FormControl>
                                         <SelectTrigger className="bg-black/20 border-purple-800/50 text-white">
-                                            <SelectValue placeholder={loadingMembers ? 'Cargando clientes...' : 'Selecciona un cliente'}>
-                                                {loadingMembers ? 'Cargando clientes...' : members.find((m) => m.id === field.value)?.name ?? 'Selecciona un cliente'}
+                                            <SelectValue
+                                                placeholder={
+                                                    loadingMembers
+                                                        ? 'Cargando clientes...'
+                                                        : 'Selecciona un cliente'
+                                                }
+                                            >
+                                                {loadingMembers
+                                                    ? 'Cargando clientes...'
+                                                    : (members.find((m) => m.id === field.value)
+                                                          ?.name ?? 'Selecciona un cliente')}
                                             </SelectValue>
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent className="bg-slate-800 border-purple-800/50 max-h-[200px]">
                                         {members.map((member) => (
-                                            <SelectItem key={member.id} value={member.id} className="text-white">
+                                            <SelectItem
+                                                key={member.id}
+                                                value={member.id}
+                                                className="text-white"
+                                            >
                                                 {member.name}
-                                                {member.email && <span className="text-purple-400 text-xs ml-2">({member.email})</span>}
+                                                {member.email && (
+                                                    <span className="text-purple-400 text-xs ml-2">
+                                                        ({member.email})
+                                                    </span>
+                                                )}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -146,10 +206,20 @@ export default function AssignRoutineForm({ gymId, onSuccess }: AssignRoutineFor
                     />
 
                     <div className="flex justify-end gap-3 pt-4">
-                        <Button type="button" variant="outline" onClick={() => form.reset()} className="border-purple-800/50 text-purple-300 hover:bg-purple-900/20" disabled={isLoading}>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => form.reset()}
+                            className="border-purple-800/50 text-purple-300 hover:bg-purple-900/20"
+                            disabled={isLoading}
+                        >
                             Limpiar
                         </Button>
-                        <Button type="submit" className="bg-purple-600 hover:bg-purple-700" disabled={isLoading || loading}>
+                        <Button
+                            type="submit"
+                            className="bg-purple-600 hover:bg-purple-700"
+                            disabled={isLoading || loading}
+                        >
                             {isLoading ? 'Asignando...' : 'Asignar rutina'}
                         </Button>
                     </div>

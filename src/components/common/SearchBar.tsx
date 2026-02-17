@@ -23,6 +23,11 @@ export default function SearchBar({ fetchFunction, query, clearSearch }: SearchB
         onSearch();
     }, [onSearch]);
 
+    const handleClearSearch = useCallback(() => {
+        setSearchTerm('');
+        clearSearch();
+    }, [clearSearch]);
+
     return (
         <div className="relative">
             <Input
@@ -33,7 +38,7 @@ export default function SearchBar({ fetchFunction, query, clearSearch }: SearchB
             />
             <XIcon
                 className="w-4 h-4 absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer"
-                onClick={clearSearch}
+                onClick={handleClearSearch}
             />
         </div>
     );

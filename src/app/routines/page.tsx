@@ -3,23 +3,34 @@ import ConfirmAction from '@/src/components/common/confirm-action';
 import SearchBar from '@/src/components/common/SearchBar';
 import CreateRoutineForm from '@/src/components/trainer-dashboard/routines/routine-form';
 import RoutinesDialog from '@/src/components/trainer-dashboard/routines/routines-dialog';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/src/components/ui/dialog';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from '@/src/components/ui/dialog';
 import { useApp } from '@/src/contexts/AppContext';
 import { Routine } from '@/src/lib/mock-data';
-import { RoutineExerciseWithExercise, RoutineWithExercises } from '@/src/modules/routines/routines.schema';
+import {
+    RoutineExerciseWithExercise,
+    RoutineWithExercises,
+} from '@/src/modules/routines/routines.schema';
 import { useRoutines } from '@/src/modules/routines/useRoutines';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Dumbbell, Edit2, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 
 export default function RoutinesPage() {
     const { userProfile } = useApp();
     const queryClient = useQueryClient();
-    const { getRoutinesByGym, deleteRoutine } = useRoutines();
+    const { getRoutinesByGymName, deleteRoutine } = useRoutines();
     const [loading, setLoading] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [routineToDelete, setRoutineToDelete] = useState<string | null>(null);
     const [editingRoutine, setEditingRoutine] = useState<RoutineWithExercises | null>(null);
+    // Routines search
+    const [nameRoutine, setNameRoutine] = useState('');
 
     const deleteRoutineMutation = useMutation({
         mutationFn: (id: string) => deleteRoutine(id),
@@ -52,10 +63,12 @@ export default function RoutinesPage() {
         error,
         isLoading,
     } = useQuery({
-        queryKey: ['routines', userProfile?.gym_id],
-        queryFn: () => getRoutinesByGym(userProfile?.gym_id ?? ''),
+        queryKey: ['routines', userProfile?.gym_id, nameRoutine],
+        queryFn: () => getRoutinesByGymName(userProfile?.gym_id ?? '', nameRoutine),
         enabled: !!userProfile?.gym_id,
     });
+
+    console.log('routines', routines);
 
     const handleOpenEditModal = (routine: RoutineWithExercises) => {
         setEditingRoutine(routine);
@@ -77,6 +90,28 @@ export default function RoutinesPage() {
         setRoutineToDelete(id);
     };
 
+    // Routines search
+    const onSearch = useCallback(
+        (query: string) => {
+            setNameRoutine(query);
+        },
+        [nameRoutine.length],
+    );
+
+    const clearSearch = useCallback(() => {
+        setNameRoutine('');
+    }, []);
+
+    // const {
+    //     data: exercisesData,
+    //     error,
+    //     isLoading,
+    // } = useQuery({
+    //     queryKey: ['exercises', userProfile?.gym_id, nameExercise],
+    //     queryFn: () => getExercisesGymIdName(userProfile?.gym_id ?? '', nameExercise),
+    //     enabled: !!userProfile?.gym_id,
+    // });
+
     if (!routines) return <div>No routines found</div>;
     if (error) return <div>Error: {error.message}</div>;
     if (isLoading) return <div>Loading...</div>;
@@ -87,10 +122,16 @@ export default function RoutinesPage() {
             <div className="flex items-center justify-between mb-6">
                 <div>
                     <h2 className="text-2xl font-semibold text-gray-900">Rutinas</h2>
-                    <p className="text-gray-600 mt-1">Crear y gestionar programas de entrenamiento</p>
+                    <p className="text-gray-600 mt-1">
+                        Crear y gestionar programas de entrenamiento
+                    </p>
                 </div>
                 <>
-                    <SearchBar fetchFunction={(_query: string) => Promise.resolve()} />
+                    <SearchBar
+                        fetchFunction={onSearch}
+                        query={nameRoutine}
+                        clearSearch={clearSearch}
+                    />
                     <RoutinesDialog />
                 </>
             </div>
@@ -98,14 +139,22 @@ export default function RoutinesPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {routines &&
                     routines.map((routine) => (
-                        <div key={routine.id} className="bg-white rounded-lg shadow-sm border p-6 hover:shadow-md transition-shadow">
+                        <div
+                            key={routine.id}
+                            className="bg-white rounded-lg shadow-sm border p-6 hover:shadow-md transition-shadow"
+                        >
                             <div className="flex items-start justify-between mb-4">
                                 <div className="flex-1">
-                                    <h3 className="font-semibold text-lg text-gray-900 mb-1">{routine.name}</h3>
+                                    <h3 className="font-semibold text-lg text-gray-900 mb-1">
+                                        {routine.name}
+                                    </h3>
                                     <p className="text-gray-600 text-sm">{routine.description}</p>
                                 </div>
                                 <div className="flex gap-2">
-                                    <button onClick={() => handleOpenEditModal(routine)} className="cursor-pointer p-2 hover:bg-gray-100 rounded-lg">
+                                    <button
+                                        onClick={() => handleOpenEditModal(routine)}
+                                        className="cursor-pointer p-2 hover:bg-gray-100 rounded-lg"
+                                    >
                                         <Edit2 className="w-4 h-4 text-gray-700" />
                                     </button>
                                     <button
@@ -119,16 +168,25 @@ export default function RoutinesPage() {
 
                             <div className="space-y-2">
                                 <p className="text-sm font-medium text-gray-700 mb-2">
-                                    {routine.routine_exercises.length} Ejercicio{routine.routine_exercises.length !== 1 ? 's' : ''}
+                                    {routine.routine_exercises.length} Ejercicio
+                                    {routine.routine_exercises.length !== 1 ? 's' : ''}
                                 </p>
-                                {routine.routine_exercises.map((ex: RoutineExerciseWithExercise, index: number) => (
-                                    <div key={index} className="flex items-center justify-between text-sm bg-gray-50 p-3 rounded-lg">
-                                        <span className="font-medium text-gray-900">{ex.exercise.name}</span>
-                                        <span className="text-gray-600">
-                                            {ex.sets} × {ex.reps} {ex.weight && +ex.weight > 0 && `@ ${ex.weight}kg`}
-                                        </span>
-                                    </div>
-                                ))}
+                                {routine.routine_exercises.map(
+                                    (ex: RoutineExerciseWithExercise, index: number) => (
+                                        <div
+                                            key={index}
+                                            className="flex items-center justify-between text-sm bg-gray-50 p-3 rounded-lg"
+                                        >
+                                            <span className="font-medium text-gray-900">
+                                                {ex.exercise.name}
+                                            </span>
+                                            <span className="text-gray-600">
+                                                {ex.sets} × {ex.reps}{' '}
+                                                {ex.weight && +ex.weight > 0 && `@ ${ex.weight}kg`}
+                                            </span>
+                                        </div>
+                                    ),
+                                )}
                             </div>
 
                             <ConfirmAction
@@ -156,7 +214,9 @@ export default function RoutinesPage() {
                             <Dumbbell className="h-6 w-6 text-blue-600" />
                             Editar Rutina
                         </DialogTitle>
-                        <DialogDescription className="text-sm text-gray-600">Modifica los datos de la rutina de entrenamiento</DialogDescription>
+                        <DialogDescription className="text-sm text-gray-600">
+                            Modifica los datos de la rutina de entrenamiento
+                        </DialogDescription>
                     </DialogHeader>
                     {editingRoutine && (
                         <CreateRoutineForm

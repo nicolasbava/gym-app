@@ -3,36 +3,45 @@ import { SupabaseClient } from '@supabase/supabase-js';
 export class RoutineService {
     constructor(private supabase: SupabaseClient) {}
 
-    async getRoutinesByGym(gymId: string) {
-        const { data, error } = await this.supabase
+    async getRoutinesByGym(gymId: string, name: string) {
+        let query = this.supabase
             .from('routines')
             .select(
                 `
-        *,
-        created_by:profiles!created_by(name),
-        routine_exercises(
-          *,
-          exercise:exercises(*)
-        )
-      `
+                *,
+                created_by:profiles!created_by(name),
+                routine_exercises(
+                *,
+                exercise:exercises(*)
+                )
+            `,
             )
             .eq('gym_id', gymId)
             .is('deleted_at', null)
             .order('created_at', { ascending: false });
+
+        const { data, error } = await query;
+
+        if (name) {
+            console.log('name', name);
+            query = query.ilike('name', `%${name}%`);
+        }
 
         if (error) {
             console.log('error getRoutinesByGym', error);
             throw error;
         }
 
-        // Filter out deleted exercises from the results
-        if (data) {
-            data.forEach((routine: any) => {
-                if (routine.routine_exercises) {
-                    routine.routine_exercises = routine.routine_exercises.filter((ex: any) => ex.deleted_at === null);
-                }
-            });
-        }
+        // // Filter out deleted exercises from the results
+        // if (data) {
+        //     data.forEach((routine: any) => {
+        //         if (routine.routine_exercises) {
+        //             routine.routine_exercises = routine.routine_exercises.filter(
+        //                 (ex: any) => ex.deleted_at === null,
+        //             );
+        //         }
+        //     });
+        // }
 
         return data;
     }
@@ -82,7 +91,9 @@ export class RoutineService {
             ...ex,
         }));
 
-        const { error: exercisesError } = await this.supabase.from('routine_exercises').insert(exercisesToInsert);
+        const { error: exercisesError } = await this.supabase
+            .from('routine_exercises')
+            .insert(exercisesToInsert);
 
         if (exercisesError) {
             console.log('exercisesError', exercisesError);
@@ -92,7 +103,13 @@ export class RoutineService {
         return newRoutine;
     }
 
-    async assignRoutineToUser(data: { profile_id: string; routine_id: string; assigned_by: string; start_date?: string; end_date?: string }) {
+    async assignRoutineToUser(data: {
+        profile_id: string;
+        routine_id: string;
+        assigned_by: string;
+        start_date?: string;
+        end_date?: string;
+    }) {
         const { data: assignment, error } = await this.supabase
             .from('profile_routines')
             .insert({
@@ -125,7 +142,7 @@ export class RoutineService {
           )
         ),
         assigned_by:profiles!assigned_by(name)
-      `
+      `,
             )
             .eq('profile_id', profileId);
         // .eq('status', 'active');
@@ -139,7 +156,10 @@ export class RoutineService {
         if (data) {
             data.forEach((assignment: any) => {
                 if (assignment.exercises && assignment.exercises.routine_exercises) {
-                    assignment.exercises.routine_exercises = assignment.exercises.routine_exercises.filter((ex: any) => ex.deleted_at === null);
+                    assignment.exercises.routine_exercises =
+                        assignment.exercises.routine_exercises.filter(
+                            (ex: any) => ex.deleted_at === null,
+                        );
                 }
             });
         }
@@ -158,7 +178,7 @@ export class RoutineService {
           *,
           exercise:exercises(*)
         )
-      `
+      `,
             )
             .eq('id', id)
             .single();
@@ -169,7 +189,9 @@ export class RoutineService {
 
         // Filter out deleted exercises from the results
         if (data && data.routine_exercises) {
-            data.routine_exercises = data.routine_exercises.filter((ex: any) => ex.deleted_at === null);
+            data.routine_exercises = data.routine_exercises.filter(
+                (ex: any) => ex.deleted_at === null,
+            );
         }
 
         console.log('data getRoutineById', data);
@@ -248,7 +270,7 @@ export class RoutineService {
                 rest_seconds?: number;
                 notes?: string;
             }>;
-        }
+        },
     ) {
         // Update routine basic info
         const { data: updatedRoutine, error: routineError } = await this.supabase
@@ -292,7 +314,10 @@ export class RoutineService {
             order_index: ex.order_index,
             sets: typeof ex.sets === 'string' ? parseInt(ex.sets) || 0 : ex.sets || 0,
             reps: ex.reps || '',
-            rest_seconds: typeof ex.rest_seconds === 'string' ? parseInt(ex.rest_seconds) || 0 : ex.rest_seconds || 0,
+            rest_seconds:
+                typeof ex.rest_seconds === 'string'
+                    ? parseInt(ex.rest_seconds) || 0
+                    : ex.rest_seconds || 0,
             notes: ex.notes || '',
         });
 
@@ -354,7 +379,9 @@ export class RoutineService {
                 }));
 
                 console.log('Inserting exercises:', exercisesToInsert.length);
-                const { error: exercisesError } = await this.supabase.from('routine_exercises').insert(exercisesToInsert);
+                const { error: exercisesError } = await this.supabase
+                    .from('routine_exercises')
+                    .insert(exercisesToInsert);
 
                 if (exercisesError) {
                     console.log('exercisesError', exercisesError);
@@ -371,7 +398,10 @@ export class RoutineService {
     async deleteRoutine(id: string) {
         // soft deleting the routine
         console.log('>>> SHOOT DELETE ROUTINE', id);
-        const { data, error } = await this.supabase.from('routines').update({ deleted_at: new Date().toISOString() }).eq('id', id);
+        const { data, error } = await this.supabase
+            .from('routines')
+            .update({ deleted_at: new Date().toISOString() })
+            .eq('id', id);
         if (error) {
             console.log('error deleteRoutine', error);
             throw error;

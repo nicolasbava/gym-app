@@ -1,8 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import type React from 'react';
-import Footer from '../components/layout/footer';
-import Header from '../components/layout/header';
 import { Toaster } from '../components/ui/sonner';
 import App from './app';
 import './globals.css';
@@ -29,9 +27,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     return (
         <html lang="es" className="light">
             <body className={inter.className}>
-                <Header />
-                <App>{children}</App>
-                <Footer />
+                <App>
+                    {children}
+
+                </App>
                 <Toaster position="top-right" richColors />
             </body>
         </html>

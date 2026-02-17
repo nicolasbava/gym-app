@@ -1,6 +1,7 @@
 import { createClient } from '@/src/utils/supabase/proxy';
 import { NextResponse, type NextRequest } from 'next/server';
-import { ROUTES } from './src/config/routes';
+import { ROUTES, getRouteConfig, isPublicRoute, requiresAuth, isAuthOnlyRoute, hasRequiredRole } from './src/config/routes';
+import type { UserRole } from './src/config/routes';
 
 export async function middleware(request: NextRequest) {
     const { supabase, response } = createClient(request);
@@ -12,21 +13,51 @@ export async function middleware(request: NextRequest) {
 
     const pathname = request.nextUrl.pathname;
 
-    // Public routes that don't require authentication
-    const publicRoutes = ['/', '/auth'];
-    const isPublicRoute = publicRoutes.includes(pathname) || pathname.startsWith('/auth');
+    // Get route configuration
+    const routeConfig = getRouteConfig(pathname);
 
-    // Protect routes that require authentication
-    if (!user && !isPublicRoute) {
-        const redirectUrl = request.nextUrl.clone();
-        redirectUrl.pathname = '/auth';
-        redirectUrl.searchParams.set('redirectTo', pathname);
-        return NextResponse.redirect(redirectUrl);
+    // If route is public, allow access
+    if (isPublicRoute(pathname)) {
+        return response;
     }
 
-    // Redirect authenticated users away from auth pages (except callback)
-    if (user && pathname.startsWith('/auth') && !pathname.startsWith('/auth/callback')) {
-        return NextResponse.redirect(new URL(ROUTES.AFTER_LOGIN, request.url));
+    // Handle auth-only routes (redirect authenticated users away)
+    if (isAuthOnlyRoute(pathname)) {
+        if (user) {
+            const redirectTo = routeConfig?.redirectTo || ROUTES.AFTER_LOGIN;
+            return NextResponse.redirect(new URL(redirectTo, request.url));
+        }
+        return response;
+    }
+
+    // Handle protected routes
+    if (requiresAuth(pathname)) {
+        // Check if user is authenticated
+        if (!user) {
+            const redirectUrl = request.nextUrl.clone();
+            redirectUrl.pathname = ROUTES.LOGIN;
+            redirectUrl.searchParams.set('redirectTo', pathname);
+            return NextResponse.redirect(redirectUrl);
+        }
+
+        // Check role-based access if route has role requirements
+        if (routeConfig?.allowedRoles && routeConfig.allowedRoles.length > 0) {
+            // Fetch user profile to check role
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', user.id)
+                .maybeSingle();
+
+            const userRole = profile?.role as UserRole | undefined;
+
+            // Check if user has required role
+            if (!hasRequiredRole(userRole, pathname)) {
+                // User doesn't have required role, redirect to appropriate page
+                const redirectUrl = new URL(ROUTES.AFTER_LOGIN, request.url);
+                return NextResponse.redirect(redirectUrl);
+            }
+        }
     }
 
     return response;

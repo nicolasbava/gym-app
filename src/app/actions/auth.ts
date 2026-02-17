@@ -78,3 +78,59 @@ export async function getUser() {
 
     return user;
 }
+
+/**
+ * Refresh session if expired
+ */
+export async function refreshSession() {
+    const cookieStore = await cookies();
+    const supabase = await createClient(cookieStore);
+
+    const {
+        data: { session },
+        error,
+    } = await supabase.auth.refreshSession();
+
+    if (error) {
+        console.error('Error refreshing session:', error);
+        return null;
+    }
+
+    return session;
+}
+
+/**
+ * Get user with profile data
+ */
+export async function getUserWithProfile() {
+    const cookieStore = await cookies();
+    const supabase = await createClient(cookieStore);
+
+    const {
+        data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+        return null;
+    }
+
+    const {
+        data: { session },
+    } = await supabase.auth.getSession();
+
+    const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle();
+
+    if (error) {
+        console.error('Error fetching profile:', error);
+    }
+
+    return {
+        user,
+        profile,
+        session,
+    };
+}

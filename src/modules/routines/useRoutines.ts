@@ -5,7 +5,7 @@ import {
     createRoutine as createRoutineAction,
     deleteRoutine as deleteRoutineAction,
     getRoutineById as getRoutineByIdAction,
-    getRoutinesByGym as getRoutinesByGymAction,
+    getRoutinesByGymNameAction,
     getUserActiveRoutines as getUserActiveRoutinesAction,
 } from '@/src/app/actions/routines';
 import { useState } from 'react';
@@ -17,11 +17,11 @@ export function useRoutines() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<Error | null>(null);
 
-    async function getRoutinesByGym(gymId: string) {
+    async function getRoutinesByGymName(gymId: string, name: string) {
         try {
             setLoading(true);
             setError(null);
-            const result = await getRoutinesByGymAction(gymId);
+            const result = await getRoutinesByGymNameAction(gymId, name);
             if (!result.success) {
                 throw new Error(result.error || 'Error al obtener rutinas');
             }
@@ -110,8 +110,8 @@ export function useRoutines() {
     return {
         error,
         loading,
-        getRoutinesByGym,
-        refresh: getRoutinesByGym,
+        getRoutinesByGymName,
+        refresh: getRoutinesByGymName,
         createRoutine,
         getUserActiveRoutines,
         getRoutineById,

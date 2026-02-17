@@ -101,8 +101,6 @@ export async function updateRoutine(routineId: string, formData: UpdateRoutine) 
 
         const routineService = new RoutineService(supabase);
 
-        
-
         // Actualizar rutina usando el servicio
         const updatedRoutine = await routineService.updateRoutine(routineId, {
             name: validationResult.data.name,
@@ -128,7 +126,8 @@ export async function updateRoutine(routineId: string, formData: UpdateRoutine) 
     } catch (error) {
         console.log('Error updating routine:', error);
         return {
-            error: error instanceof Error ? error.message : 'Error desconocido al actualizar rutina',
+            error:
+                error instanceof Error ? error.message : 'Error desconocido al actualizar rutina',
             success: false,
             data: null,
         };
@@ -138,14 +137,22 @@ export async function updateRoutine(routineId: string, formData: UpdateRoutine) 
 export async function assignRoutine(formData: AssignRoutine) {
     const validationResult = assignRoutineSchema.safeParse(formData);
     if (!validationResult.success) {
-        return { success: false, error: validationResult.error.message ?? 'Error de validación', data: null };
+        return {
+            success: false,
+            error: validationResult.error.message ?? 'Error de validación',
+            data: null,
+        };
     }
     try {
         const { profile } = await getCurrentUserProfile();
         const cookieStore = await cookies();
         const supabase = await createClient(cookieStore);
         if (!profile) {
-            return { success: false, error: 'No se pudo obtener el perfil del usuario', data: null };
+            return {
+                success: false,
+                error: 'No se pudo obtener el perfil del usuario',
+                data: null,
+            };
         }
         const routineService = new RoutineService(supabase);
         await routineService.assignRoutineToUser({
@@ -165,13 +172,13 @@ export async function assignRoutine(formData: AssignRoutine) {
     }
 }
 
-export async function getRoutinesByGym(gymId: string) {
+export async function getRoutinesByGymNameAction(gymId: string, name: string = '') {
     if (!gymId) return { success: false, data: [], error: 'Gimnasio requerido' };
     try {
         const cookieStore = await cookies();
         const supabase = await createClient(cookieStore);
         const routineService = new RoutineService(supabase);
-        const data = await routineService.getRoutinesByGym(gymId);
+        const data = await routineService.getRoutinesByGym(gymId, name);
         return { success: true, data: data ?? [], error: null };
     } catch (error) {
         console.log('Error getting routines:', error);
@@ -188,7 +195,10 @@ export async function getExercises() {
         const cookieStore = await cookies();
         const supabase = await createClient(cookieStore);
 
-        const { data, error } = await supabase.from('exercises').select('id, name, description').order('name', { ascending: true });
+        const { data, error } = await supabase
+            .from('exercises')
+            .select('id, name, description')
+            .order('name', { ascending: true });
 
         if (error) {
             return {
@@ -205,7 +215,8 @@ export async function getExercises() {
         };
     } catch (error) {
         return {
-            error: error instanceof Error ? error.message : 'Error desconocido al obtener ejercicios',
+            error:
+                error instanceof Error ? error.message : 'Error desconocido al obtener ejercicios',
             success: false,
             data: [],
         };
@@ -272,7 +283,10 @@ export async function getUserActiveRoutines(profileId: string) {
         return {
             success: false,
             data: [],
-            error: error instanceof Error ? error.message : 'Error al obtener rutinas activas del usuario',
+            error:
+                error instanceof Error
+                    ? error.message
+                    : 'Error al obtener rutinas activas del usuario',
         };
     }
 }
