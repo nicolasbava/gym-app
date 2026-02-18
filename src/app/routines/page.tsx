@@ -68,7 +68,6 @@ export default function RoutinesPage() {
         enabled: !!userProfile?.gym_id,
     });
 
-    console.log('routines', routines);
 
     const handleOpenEditModal = (routine: RoutineWithExercises) => {
         setEditingRoutine(routine);

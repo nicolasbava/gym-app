@@ -58,7 +58,6 @@ export async function getCurrentUserGymId(): Promise<{ gymId: string | null; err
 export async function createMember(data: CreateUser) {
     const cookieStore = await cookies();
     const supabase = await createClient(cookieStore);
-    console.log('data', data);
     // gym_id in DB is UUID; reject invalid values to avoid "invalid input syntax for type uuid"
     if (!data.gym_id || !UUID_REGEX.test(data.gym_id)) {
         return { success: false, error: 'Gimnasio no válido. Inicia sesión de nuevo.' };
@@ -144,38 +143,6 @@ export async function getCurrentUserProfile(): Promise<{
     return { profile };
 }
 
-// export async function updateUserProfile(data: {
-//     name?: string;
-//     phone?: string;
-//     image_url?: string;
-// }): Promise<{ success: boolean; error?: string; message?: string }> {
-//     const cookieStore = await cookies();
-//     const supabase = await createClient(cookieStore);
-
-//     const {
-//         data: { user },
-//     } = await supabase.auth.getUser();
-
-//     if (!user) {
-//         return { success: false, error: 'No autenticado' };
-//     }
-
-//     const updates: Record<string, unknown> = {};
-//     if (data.name !== undefined) updates.name = data.name;
-//     if (data.phone !== undefined) updates.phone = data.phone || null;
-//     if (data.image_url !== undefined) updates.image_url = data.image_url || null;
-
-//     const { error } = await supabase.from('profiles').update(updates).eq('id', user.id);
-
-//     if (error) {
-//         console.log('error', error);
-//         return { success: false, error: error.message };
-//     }
-
-//     revalidatePath('/profile');
-
-//     return { success: true, message: 'Perfil actualizado correctamente' };
-// }
 
 /** Update a member's profile (trainer only, same gym). */
 export async function updateMember(
@@ -184,7 +151,6 @@ export async function updateMember(
 ): Promise<{ success: boolean; error?: string; message?: string }> {
     const cookieStore = await cookies();
     const supabase = await createClient(cookieStore);
-    console.log('>>>>>>>>> SHOOT UPDATE');
     const {
         data: { user },
     } = await supabase.auth.getUser();
@@ -207,7 +173,6 @@ export async function updateMember(
 
     const { error } = await supabase.from('profiles').update(updates).eq('id', profileId);
 
-    console.log('error', error);
     if (error) return { success: false, error: error.message };
 
     revalidatePath('/trainer-dashboard');
@@ -221,9 +186,7 @@ export async function deleteProfile(profileId: string): Promise<{ success: boole
     const supabase = await createClient(cookieStore);
     // const { error } = await supabase.from('profiles').delete().eq('id', profileId);
 
-    console.log('>>>>>>>>> SHOOT DELETE');
     const { error } = await supabase.from('profiles').update({ deleted_at: new Date().toISOString() }).eq('id', profileId);
-    console.log('error', error);
     if (error) return { success: false, error: error.message };
     revalidatePath('/trainer-dashboard');
     revalidatePath(`/member/${profileId}`);

@@ -132,11 +132,16 @@ export default function MemberManager() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {membersData &&
                     membersData.map((member) => (
-                        <div key={member.id} className="bg-white rounded-lg shadow-sm border p-6 hover:shadow-md transition-shadow">
+                        <div
+                            key={member.id}
+                            className="bg-white rounded-lg shadow-sm border p-6 hover:shadow-md transition-shadow"
+                        >
                             <div className="flex items-start gap-4 mb-4">
                                 {/* <img src={member.profileImagze} alt={member.name} className="w-16 h-16 rounded-full object-cover" /> */}
                                 <div className="flex-1 min-w-0">
-                                    <h3 className="font-semibold text-lg text-gray-900 mb-1 truncate">{member.name}</h3>
+                                    <h3 className="font-semibold text-lg text-gray-900 mb-1 truncate">
+                                        {member.name}
+                                    </h3>
                                     <div className="space-y-1">
                                         <div className="flex items-center gap-2 text-sm text-gray-600">
                                             <Mail className="w-4 h-4" />
@@ -155,7 +160,9 @@ export default function MemberManager() {
                             </div>
 
                             <div className="mb-4">
-                                <p className="text-sm font-medium text-gray-700 mb-2">Rutinas asignadas:</p>
+                                <p className="text-sm font-medium text-gray-700 mb-2">
+                                    Rutinas asignadas:
+                                </p>
                                 {/* <div className="flex flex-wrap gap-2">
                                     {member.assignedRoutines.map((routineId) => (
                                         <span key={routineId} className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">

@@ -1,12 +1,20 @@
 'use client';
 
-import { getCurrentUserGymId, getCurrentUserProfile } from '@/src/app/actions/users';
 import { getSession, getUser } from '@/src/app/actions/auth';
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
-import { Profile } from '../modules/profiles/profiles.schema';
-import { UserRole } from '../config/routes';
-import { hasRequiredRole, hasRole, hasAnyRole, isCoach, isCoachAdmin, isMember, getUserRole } from '../lib/auth/permissions';
+import { getCurrentUserGymId, getCurrentUserProfile } from '@/src/app/actions/users';
 import type { Session, User } from '@supabase/supabase-js';
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
+import { UserRole } from '../config/routes';
+import {
+    getUserRole,
+    hasAnyRole,
+    hasRequiredRole,
+    hasRole,
+    isCoach,
+    isCoachAdmin,
+    isMember,
+} from '../lib/auth/permissions';
+import { Profile } from '../modules/profiles/profiles.schema';
 
 type AppContextValue = {
     /** Current user's gym_id (UUID) from profiles. Null if not loaded or not a trainer. */
@@ -53,6 +61,8 @@ type AppContextValue = {
     isMember: boolean;
     /** Check if user has required role for a route. */
     canAccess: (allowedRoles?: UserRole[]) => boolean;
+    /** Clear the app context. */
+    clear: () => void;
 };
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -153,6 +163,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
         isCoachAdmin: isCoachAdminValue,
         isMember: isMemberValue,
         canAccess: (allowedRoles?: UserRole[]) => hasRequiredRole(userRole, allowedRoles),
+        clear: () => {
+            setGymId(null);
+            setGymIdLoading(true);
+            setGymIdError(null);
+            setUserProfile(null);
+            setUserProfileLoading(true);
+            setUserProfileError(null);
+            setSession(null);
+            setSessionLoading(true);
+            setUser(null);
+            setUserLoading(true);
+        },
     };
 
     return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

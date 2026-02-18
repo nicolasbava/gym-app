@@ -11,12 +11,11 @@ export default function RoutinesList() {
     const { gymId } = useApp();
     console.log('gymId', gymId);
     const [routines, setRoutines] = useState<Routine[]>([]);
-    const { getRoutinesByGym, loading, error } = useRoutines();
+    const { getRoutinesByGymName, loading, error } = useRoutines();
 
     const getRoutines = useCallback(async () => {
         if (!gymId) return console.error('Gym ID is required');
-        const data = await getRoutinesByGym(gymId);
-        console.log('routines data', data);
+        const data = await getRoutinesByGymName(gymId, '');
         setRoutines(data as Routine[]);
     }, [gymId]);
 
@@ -34,7 +33,10 @@ export default function RoutinesList() {
     return (
         <>
             {routines.map((routine, index) => (
-                <div key={index} className="flex items-center justify-between p-4 bg-purple-900/20 rounded-lg cursor-pointer">
+                <div
+                    key={index}
+                    className="flex items-center justify-between p-4 bg-purple-900/20 rounded-lg cursor-pointer"
+                >
                     <div className="flex items-center space-x-3">
                         {/* <Avatar>
                             <AvatarFallback className="bg-purple-600">

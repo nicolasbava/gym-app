@@ -108,7 +108,6 @@ export async function getExercisesGymIdName(gymId: string, name: string = '') {
         const { data, error } = await query;
 
         if (error) {
-            console.log('>>> error:', error);
             return {
                 error: error.message,
                 success: false,

@@ -2,10 +2,22 @@
 
 import { signInWithGoogle } from '@/src/app/actions/auth';
 import { Button } from '@/src/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/src/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/src/components/ui/card';
 import { Input } from '@/src/components/ui/input';
 import { Label } from '@/src/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/src/components/ui/select';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/src/components/ui/select';
 import { Separator } from '@/src/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs';
 import { Dumbbell, User, UserCheck } from 'lucide-react';
@@ -44,20 +56,22 @@ function AuthForm() {
         }
     };
 
-    const inputClassName = 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white';
+    const inputClassName =
+        'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white';
 
     return (
         <Card className="bg-white border border-gray-200 shadow-sm">
-            
             <CardHeader className="text-center pb-2">
-                <CardTitle className="text-gray-900 text-2xl font-semibold">{isLogin ? 'Iniciar Sesión' : 'Crear Cuenta'}</CardTitle>
+                <CardTitle className="text-gray-900 text-2xl font-semibold">
+                    {isLogin ? 'Iniciar Sesión' : 'Crear Cuenta'}
+                </CardTitle>
                 <CardDescription className="text-gray-600 text-sm">
                     {isLogin ? 'Accede a tu cuenta de Luxion' : 'Únete a la comunidad Luxion'}
                 </CardDescription>
             </CardHeader>
 
             <CardContent className="pt-4">
-                {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
+                {/* {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>} */}
                 <Tabs value={isLogin ? 'login' : 'register'} className="w-full">
                     <TabsList className="grid w-full grid-cols-2 bg-gray-100 p-1 rounded-lg">
                         <TabsTrigger
@@ -114,7 +128,10 @@ function AuthForm() {
                             <Label htmlFor="userType" className="text-sm font-medium text-gray-700">
                                 Tipo de Usuario
                             </Label>
-                            <Select value={userType} onValueChange={(value: 'client' | 'trainer') => setUserType(value)}>
+                            <Select
+                                value={userType}
+                                onValueChange={(value: 'client' | 'trainer') => setUserType(value)}
+                            >
                                 <SelectTrigger className={inputClassName}>
                                     <SelectValue placeholder="Selecciona tu perfil" />
                                 </SelectTrigger>
@@ -138,7 +155,12 @@ function AuthForm() {
                             <Label htmlFor="email" className="text-sm font-medium text-gray-700">
                                 Email
                             </Label>
-                            <Input id="email" type="email" placeholder="tu@email.com" className={inputClassName} />
+                            <Input
+                                id="email"
+                                type="email"
+                                placeholder="tu@email.com"
+                                className={inputClassName}
+                            />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="password" className="text-sm font-medium text-gray-700">
@@ -147,11 +169,17 @@ function AuthForm() {
                             <Input id="password" type="password" className={inputClassName} />
                         </div>
                         <div className="flex items-center justify-between">
-                            <Link href="#" className="text-sm text-blue-600 hover:text-blue-700 cursor-pointer">
+                            <Link
+                                href="#"
+                                className="text-sm text-blue-600 hover:text-blue-700 cursor-pointer"
+                            >
                                 ¿Olvidaste tu contraseña?
                             </Link>
                         </div>
-                        <Button onClick={handleLogin} className="w-full bg-blue-600 hover:bg-blue-700 text-white cursor-pointer">
+                        <Button
+                            onClick={handleLogin}
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
+                        >
                             Iniciar Sesión
                         </Button>
                     </TabsContent>
@@ -187,14 +215,22 @@ function AuthForm() {
                                 <Separator className="w-full border-gray-200" />
                             </div>
                             <div className="relative flex justify-center text-xs uppercase">
-                                <span className="bg-white px-2 text-gray-500">O regístrate con</span>
+                                <span className="bg-white px-2 text-gray-500">
+                                    O regístrate con
+                                </span>
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="userType-reg" className="text-sm font-medium text-gray-700">
+                            <Label
+                                htmlFor="userType-reg"
+                                className="text-sm font-medium text-gray-700"
+                            >
                                 Tipo de Usuario
                             </Label>
-                            <Select value={userType} onValueChange={(value: 'client' | 'trainer') => setUserType(value)}>
+                            <Select
+                                value={userType}
+                                onValueChange={(value: 'client' | 'trainer') => setUserType(value)}
+                            >
                                 <SelectTrigger className={inputClassName}>
                                     <SelectValue placeholder="Selecciona tu perfil" />
                                 </SelectTrigger>
@@ -216,44 +252,82 @@ function AuthForm() {
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="firstName" className="text-sm font-medium text-gray-700">
+                                <Label
+                                    htmlFor="firstName"
+                                    className="text-sm font-medium text-gray-700"
+                                >
                                     Nombre
                                 </Label>
-                                <Input id="firstName" placeholder="Juan" className={inputClassName} />
+                                <Input
+                                    id="firstName"
+                                    placeholder="Juan"
+                                    className={inputClassName}
+                                />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="lastName" className="text-sm font-medium text-gray-700">
+                                <Label
+                                    htmlFor="lastName"
+                                    className="text-sm font-medium text-gray-700"
+                                >
                                     Apellido
                                 </Label>
-                                <Input id="lastName" placeholder="Pérez" className={inputClassName} />
+                                <Input
+                                    id="lastName"
+                                    placeholder="Pérez"
+                                    className={inputClassName}
+                                />
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="email-reg" className="text-sm font-medium text-gray-700">
+                            <Label
+                                htmlFor="email-reg"
+                                className="text-sm font-medium text-gray-700"
+                            >
                                 Email
                             </Label>
-                            <Input id="email-reg" type="email" placeholder="tu@email.com" className={inputClassName} />
+                            <Input
+                                id="email-reg"
+                                type="email"
+                                placeholder="tu@email.com"
+                                className={inputClassName}
+                            />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="password-reg" className="text-sm font-medium text-gray-700">
+                            <Label
+                                htmlFor="password-reg"
+                                className="text-sm font-medium text-gray-700"
+                            >
                                 Contraseña
                             </Label>
                             <Input id="password-reg" type="password" className={inputClassName} />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
+                            <Label
+                                htmlFor="confirmPassword"
+                                className="text-sm font-medium text-gray-700"
+                            >
                                 Confirmar Contraseña
                             </Label>
-                            <Input id="confirmPassword" type="password" className={inputClassName} />
+                            <Input
+                                id="confirmPassword"
+                                type="password"
+                                className={inputClassName}
+                            />
                         </div>
-                        <Button onClick={handleLogin} className="w-full bg-blue-600 hover:bg-blue-700 text-white cursor-pointer">
+                        <Button
+                            onClick={handleLogin}
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
+                        >
                             Crear Cuenta
                         </Button>
                     </TabsContent>
                 </Tabs>
 
                 <div className="mt-6 text-center">
-                    <Link href="/" className="text-sm text-blue-600 hover:text-blue-700 cursor-pointer">
+                    <Link
+                        href="/"
+                        className="text-sm text-blue-600 hover:text-blue-700 cursor-pointer"
+                    >
                         ← Volver al inicio
                     </Link>
                 </div>

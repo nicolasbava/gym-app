@@ -95,7 +95,6 @@ export default function WorkoutPage() {
 
     const allExercisesCompleted = routine.routine_exercises.every((ex, idx) => completedSets[idx]?.length === Number(ex.sets));
 
-    console.log('routine', routine);
     return (
         <div className="max-w-4xl mx-auto">
             {/* Header */}

@@ -27,6 +27,7 @@ export function useAuth() {
         refetchSession: context.refetchSession,
         refetchUser: context.refetchUser,
         refetchUserProfile: context.refetchUserProfile,
+        clear: context.clear,
     };
 }
 

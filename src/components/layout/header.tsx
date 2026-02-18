@@ -1,14 +1,22 @@
 'use client';
 import { signOut } from '@/src/app/actions/auth';
 import { Button } from '@/src/components/ui/button';
+import { useAuth } from '@/src/hooks/useAuth';
 import { Dumbbell, LogOut, Menu } from 'lucide-react';
 import { useState } from 'react';
 
 export default function Header() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const { isAuthenticated, clear, refetchSession, refetchUser } = useAuth();
 
     const handleLogout = async () => {
-        await signOut();
+        clear();
+        try {
+            await signOut();
+        } catch {
+            await refetchSession();
+            await refetchUser();
+        }
     };
 
     return (
@@ -41,25 +49,27 @@ export default function Header() {
                     </div> */}
 
                     <div className="flex items-center gap-2">
-                        {/* {userProfile && userProfile?.id && ( */}
-                        <Button
-                            onClick={handleLogout}
-                            variant="ghost"
-                            size="sm"
-                            className="hidden sm:flex items-center gap-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100 cursor-pointer"
-                        >
-                            <LogOut className="w-4 h-4" />
-                            <span>Cerrar Sesión</span>
-                        </Button>
-                        {/* )} */}
-                        <Button
-                            onClick={handleLogout}
-                            variant="ghost"
-                            size="icon"
-                            className="sm:hidden text-gray-700 hover:text-gray-900 hover:bg-gray-100 cursor-pointer"
-                        >
-                            <LogOut className="w-5 h-5" />
-                        </Button>
+                        {isAuthenticated && (
+                            <>
+                                <Button
+                                    onClick={handleLogout}
+                                    variant="ghost"
+                                    size="sm"
+                                    className="hidden sm:flex items-center gap-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100 cursor-pointer"
+                                >
+                                    <LogOut className="w-4 h-4" />
+                                    <span>Cerrar Sesión</span>
+                                </Button>
+                                <Button
+                                    onClick={handleLogout}
+                                    variant="ghost"
+                                    size="icon"
+                                    className="sm:hidden text-gray-700 hover:text-gray-900 hover:bg-gray-100 cursor-pointer"
+                                >
+                                    <LogOut className="w-5 h-5" />
+                                </Button>
+                            </>
+                        )}
                         <button
                             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                             className="sm:hidden p-2 rounded-lg hover:bg-gray-100 cursor-pointer"

@@ -128,7 +128,6 @@ export class RoutineService {
     }
 
     async getUserActiveRoutines(profileId: string) {
-        console.log('GET USER ACTIVE ROUTINES', profileId);
         const { data, error } = await this.supabase
             .from('profile_routines')
             .select(
@@ -197,65 +196,6 @@ export class RoutineService {
         console.log('data getRoutineById', data);
         return data;
     }
-
-    // async updateRoutine(
-    //     id: string,
-    //     routine: {
-    //         name: string;
-    //         description?: string;
-    //         exercises: Array<{
-    //             exercise_id: string;
-    //             order_index: number;
-    //             sets?: number;
-    //             reps?: string;
-    //             rest_seconds?: number;
-    //             notes?: string;
-    //         }>;
-    //     }
-    // ) {
-    //     // Update routine basic info
-    //     const { data: updatedRoutine, error: routineError } = await this.supabase
-    //         .from('routines')
-    //         .update({
-    //             name: routine.name,
-    //             description: routine.description,
-    //         })
-    //         .eq('id', id)
-    //         .select()
-    //         .single();
-
-    //     if (routineError) {
-    //         console.log('routineError', routineError);
-    //         throw routineError;
-    //     }
-
-    //     // Soft delete existing exercises
-    //     const { error: deleteExercisesError } = await this.supabase
-    //         .from('routine_exercises')
-    //         .update({ deleted_at: new Date().toISOString() })
-    //         .eq('routine_id', id)
-    //         .is('deleted_at', null);
-
-    //     if (deleteExercisesError) {
-    //         console.log('deleteExercisesError', deleteExercisesError);
-    //         throw deleteExercisesError;
-    //     }
-
-    //     // Insert new exercises
-    //     const exercisesToInsert = routine.exercises.map((ex) => ({
-    //         routine_id: id,
-    //         ...ex,
-    //     }));
-
-    //     const { error: exercisesError } = await this.supabase.from('routine_exercises').insert(exercisesToInsert);
-
-    //     if (exercisesError) {
-    //         console.log('exercisesError', exercisesError);
-    //         throw exercisesError;
-    //     }
-
-    //     return updatedRoutine;
-    // }
 
     async updateRoutine(
         id: string,
@@ -342,10 +282,6 @@ export class RoutineService {
 
         // Only update exercises if they actually changed
         if (exercisesChanged) {
-            console.log('Exercises changed, updating...');
-            console.log('Existing exercises count:', normalizedExisting.length);
-            console.log('New exercises count:', normalizedNew.length);
-
             // Soft delete ALL existing exercises for this routine
             // Remove the .is('deleted_at', null) filter to ensure we delete ALL exercises, even if some were previously soft-deleted
             const deletedAt = new Date().toISOString();
@@ -378,7 +314,6 @@ export class RoutineService {
                     notes: ex.notes || '',
                 }));
 
-                console.log('Inserting exercises:', exercisesToInsert.length);
                 const { error: exercisesError } = await this.supabase
                     .from('routine_exercises')
                     .insert(exercisesToInsert);
@@ -397,7 +332,6 @@ export class RoutineService {
 
     async deleteRoutine(id: string) {
         // soft deleting the routine
-        console.log('>>> SHOOT DELETE ROUTINE', id);
         const { data, error } = await this.supabase
             .from('routines')
             .update({ deleted_at: new Date().toISOString() })

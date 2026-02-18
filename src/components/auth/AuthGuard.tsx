@@ -17,12 +17,8 @@ export function AuthGuard({ children, fallback }: AuthGuardProps) {
     const routeConfig = getRouteConfig(pathname);
     const routeRequiresAuth = requiresAuth(pathname);
 
-    // log the variables avobe
     console.log('auth', auth);
-    // console.log('routeConfig', routeConfig);
-    // console.log('routeRequiresAuth', routeRequiresAuth);
-    // console.log('pathname', pathname);
-    // console.log('router', router);
+    console.log('IS AUTH', auth.isAuthenticated);
 
     useEffect(() => {
         if (auth.isLoading) return;
@@ -58,7 +54,6 @@ export function AuthGuard({ children, fallback }: AuthGuardProps) {
         router.replace('/auth');
         return;
     }
-    console.log('routeConfig', routeConfig);
     if (routeConfig?.allowedRoles && routeConfig.allowedRoles.length > 0) {
         if (!auth.canAccess(routeConfig.allowedRoles)) {
             router.replace('/auth');

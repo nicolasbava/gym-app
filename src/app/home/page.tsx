@@ -1,7 +1,10 @@
 'use client';
 import { useApp } from '@/src/contexts/AppContext';
 import { mockExercises, mockRoutines } from '@/src/lib/mock-data';
-import { AssignedRoutineWithDetails, RoutineExerciseWithExercise } from '@/src/modules/routines/routines.schema';
+import {
+    AssignedRoutineWithDetails,
+    RoutineExerciseWithExercise,
+} from '@/src/modules/routines/routines.schema';
 import { useRoutines } from '@/src/modules/routines/useRoutines';
 import { useQuery } from '@tanstack/react-query';
 import { Calendar, Dumbbell, Play } from 'lucide-react';
@@ -23,7 +26,6 @@ const MemberHomePage = () => {
         queryKey: ['user-active-routines', profile?.id],
         queryFn: () => getUserActiveRoutines(profile?.id ?? ''),
     });
-    console.log('data >', data);
 
     const getExerciseName = (exerciseId: string) => {
         return mockExercises.find((ex) => ex.id === exerciseId)?.name || 'Unknown';
@@ -52,7 +54,10 @@ const MemberHomePage = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {data.map((routine: AssignedRoutineWithDetails) => (
-                    <div key={routine.id} className="bg-white rounded-lg shadow-sm border overflow-hidden hover:shadow-md transition-shadow">
+                    <div
+                        key={routine.id}
+                        className="bg-white rounded-lg shadow-sm border overflow-hidden hover:shadow-md transition-shadow"
+                    >
                         <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-6 text-white">
                             <h3 className="text-xl font-semibold mb-2">{routine.exercises.name}</h3>
                             <p className="text-blue-100 text-sm">{routine.exercises.description}</p>
@@ -65,14 +70,21 @@ const MemberHomePage = () => {
                             </div>
 
                             <div className="space-y-2">
-                                {routine.exercises.routine_exercises.map((ex: RoutineExerciseWithExercise, index: number) => (
-                                    <div key={index} className="flex items-center justify-between text-sm bg-gray-50 p-3 rounded-lg">
-                                        <span className="font-medium text-gray-900">{ex.exercise.name}</span>
-                                        <span className="text-gray-600">
-                                            {ex.sets} × {ex.reps}
-                                        </span>
-                                    </div>
-                                ))}
+                                {routine.exercises.routine_exercises.map(
+                                    (ex: RoutineExerciseWithExercise, index: number) => (
+                                        <div
+                                            key={index}
+                                            className="flex items-center justify-between text-sm bg-gray-50 p-3 rounded-lg"
+                                        >
+                                            <span className="font-medium text-gray-900">
+                                                {ex.exercise.name}
+                                            </span>
+                                            <span className="text-gray-600">
+                                                {ex.sets} × {ex.reps}
+                                            </span>
+                                        </div>
+                                    ),
+                                )}
                             </div>
 
                             <button
