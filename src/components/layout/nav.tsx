@@ -19,7 +19,7 @@ export default function NavBar() {
         router.push(`/${view}`);
     };
     console.log('isAuthenticated', isAuthenticated);
-    
+
     if (!isAuthenticated) {
         return null;
     }
@@ -87,7 +87,7 @@ const MemberNavBar = ({ handleViewChange }: { handleViewChange: (view: any) => v
                 }`}
             >
                 <Calendar className="w-5 h-5" />
-                Mis rutinas
+                Home
             </button>
             <button
                 onClick={() => handleViewChange('profile')}

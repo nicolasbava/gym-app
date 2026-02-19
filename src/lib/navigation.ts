@@ -9,4 +9,5 @@ export const navigationHelpers = {
 
     redirectToMember: (id: string) => redirect(ROUTES.member(id)),
     redirectToRoutine: (id: string) => redirect(ROUTES.routine(id)),
+    redirectAfterWorkout: () => redirect(ROUTES.HOME),
 };

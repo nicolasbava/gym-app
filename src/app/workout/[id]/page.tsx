@@ -26,7 +26,7 @@ export default function WorkoutPage() {
     if (!id || typeof id !== 'string') return <div>Routine not found</div>;
 
     const onEndWorkout = () => {
-        router.push(navigationHelpers.redirectAfterLogin());
+        router.push(navigationHelpers.redirectAfterWorkout());
     };
 
     const {

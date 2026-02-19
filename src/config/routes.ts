@@ -192,7 +192,7 @@ export function hasRequiredRole(userRole: UserRole | null | undefined, pathname:
 
 export const ROUTES = {
     // Public routes
-    HOME: '/',
+    HOME: '/home',
     LOGIN: '/auth',
     REGISTER: '/register',
 
