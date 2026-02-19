@@ -22,6 +22,7 @@ export const routineExerciseSchema = z.object({
     reps: z.string().min(1, 'El número de repeticiones es requerido'),
     rest_seconds: z.number().int().min(0, 'El tiempo de descanso debe ser mayor o igual a 0'),
     notes: z.string().optional(),
+    weight: z.string().optional(),
 });
 
 export const createRoutineSchema = z.object({
@@ -43,6 +44,7 @@ export const createRoutineSchema = z.object({
 
 export const updateRoutineSchema = z.object({
     id: z.string().min(1, 'El id es requerido'),
+    updated_at: z.string().min(1, 'La fecha de actualización es requerida'),
     name: z
         .string()
         .min(3, 'El nombre debe tener al menos 3 caracteres')

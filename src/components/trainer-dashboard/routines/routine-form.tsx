@@ -74,6 +74,7 @@ export default function CreateRoutineForm({
                               reps: ex.reps || '8-12',
                               rest_seconds: parseInt(ex.rest_seconds) || 60,
                               notes: ex.notes || '',
+                              weight: ex.weight || '',
                           }))
                         : [
                               {
@@ -83,6 +84,7 @@ export default function CreateRoutineForm({
                                   reps: '8-12',
                                   rest_seconds: 60,
                                   notes: '',
+                                  weight: '',
                               },
                           ],
             };
@@ -101,6 +103,7 @@ export default function CreateRoutineForm({
                     reps: '8-12',
                     rest_seconds: 60,
                     notes: '',
+                    weight: '',
                 },
             ],
         };
@@ -164,6 +167,7 @@ export default function CreateRoutineForm({
                     name: data.name,
                     description: data.description,
                     exercises: data.exercises,
+                    updated_at: new Date().toISOString(),
                 };
                 console.log('updateData', updateData);
                 const result = await updateRoutine(updateData);
@@ -209,6 +213,7 @@ export default function CreateRoutineForm({
                             reps: '8-12',
                             rest_seconds: 60,
                             notes: '',
+                            weight: '',
                         },
                     ],
                 });
@@ -233,6 +238,7 @@ export default function CreateRoutineForm({
             reps: '8-12',
             rest_seconds: 60,
             notes: '',
+            weight: '',
         });
     };
 
@@ -437,12 +443,14 @@ export default function CreateRoutineForm({
                                                 </FormItem>
                                             )}
                                         />
-                                        {/* <FormField
+                                        <FormField
                                             control={form.control}
                                             name={`exercises.${index}.weight`}
                                             render={({ field: weightField }) => (
                                                 <FormItem>
-                                                    <FormLabel className="text-xs font-medium text-gray-600">Weight</FormLabel>
+                                                    <FormLabel className="text-xs font-medium text-gray-600">
+                                                        Peso
+                                                    </FormLabel>
                                                     <FormControl>
                                                         <Input
                                                             {...weightField}
@@ -454,7 +462,7 @@ export default function CreateRoutineForm({
                                                     <FormMessage className="text-red-600 text-xs" />
                                                 </FormItem>
                                             )}
-                                        /> */}
+                                        />
                                         <FormField
                                             control={form.control}
                                             name={`exercises.${index}.rest_seconds`}
@@ -482,27 +490,27 @@ export default function CreateRoutineForm({
                                                 </FormItem>
                                             )}
                                         />
-                                        <FormField
-                                            control={form.control}
-                                            name={`exercises.${index}.notes`}
-                                            render={({ field: notesField }) => (
-                                                <FormItem>
-                                                    <FormLabel className="text-xs font-medium text-gray-600">
-                                                        Notas
-                                                    </FormLabel>
-                                                    <FormControl>
-                                                        <Input
-                                                            {...notesField}
-                                                            placeholder="Opcional"
-                                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                                            disabled={routineMutation.isPending}
-                                                        />
-                                                    </FormControl>
-                                                    <FormMessage className="text-red-600 text-xs" />
-                                                </FormItem>
-                                            )}
-                                        />
                                     </div>
+                                    <FormField
+                                        control={form.control}
+                                        name={`exercises.${index}.notes`}
+                                        render={({ field: notesField }) => (
+                                            <FormItem>
+                                                <FormLabel className="text-xs font-medium text-gray-600">
+                                                    Notas
+                                                </FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        {...notesField}
+                                                        placeholder="Opcional"
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                        disabled={routineMutation.isPending}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage className="text-red-600 text-xs" />
+                                            </FormItem>
+                                        )}
+                                    />
                                 </div>
                             ))}
 

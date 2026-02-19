@@ -11,16 +11,10 @@ import {
 } from '@/src/components/ui/card';
 import { Input } from '@/src/components/ui/input';
 import { Label } from '@/src/components/ui/label';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/src/components/ui/select';
 import { Separator } from '@/src/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs';
-import { Dumbbell, User, UserCheck } from 'lucide-react';
+import { navigationHelpers } from '@/src/lib/navigation';
+import { Dumbbell } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
@@ -50,9 +44,9 @@ function AuthForm() {
     const handleLogin = () => {
         // Simular login y redirigir según el tipo de usuario
         if (userType === 'client') {
-            window.location.href = '/client-dashboard';
+            navigationHelpers.redirectAfterLogin();
         } else {
-            window.location.href = '/trainer-dashboard';
+            navigationHelpers.redirectAfterLoginCoach();
         }
     };
 
@@ -124,7 +118,7 @@ function AuthForm() {
                                 <span className="bg-white px-2 text-gray-500">O continúa con</span>
                             </div>
                         </div>
-                        <div className="space-y-2">
+                        {/* <div className="space-y-2">
                             <Label htmlFor="userType" className="text-sm font-medium text-gray-700">
                                 Tipo de Usuario
                             </Label>
@@ -150,7 +144,7 @@ function AuthForm() {
                                     </SelectItem>
                                 </SelectContent>
                             </Select>
-                        </div>
+                        </div> */}
                         <div className="space-y-2">
                             <Label htmlFor="email" className="text-sm font-medium text-gray-700">
                                 Email
@@ -170,7 +164,7 @@ function AuthForm() {
                         </div>
                         <div className="flex items-center justify-between">
                             <Link
-                                href="#"
+                                href="/reset-password"
                                 className="text-sm text-blue-600 hover:text-blue-700 cursor-pointer"
                             >
                                 ¿Olvidaste tu contraseña?
@@ -220,7 +214,7 @@ function AuthForm() {
                                 </span>
                             </div>
                         </div>
-                        <div className="space-y-2">
+                        {/* <div className="space-y-2">
                             <Label
                                 htmlFor="userType-reg"
                                 className="text-sm font-medium text-gray-700"
@@ -249,7 +243,7 @@ function AuthForm() {
                                     </SelectItem>
                                 </SelectContent>
                             </Select>
-                        </div>
+                        </div> */}
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label

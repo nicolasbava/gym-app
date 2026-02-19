@@ -14,7 +14,6 @@ export const ROUTE_CONFIG: Record<string, RouteConfig> = {
     '/': { path: '/', protection: 'public' },
     '/auth': { path: '/auth', protection: 'public' },
     '/auth/callback': { path: '/auth/callback', protection: 'public' },
-    '/register': { path: '/register', protection: 'public' },
     '/routines': {
         path: '/routines',
         protection: 'protected',
@@ -45,18 +44,6 @@ export const ROUTE_CONFIG: Record<string, RouteConfig> = {
         allowedRoles: ['coach', 'coach_admin'],
         redirectTo: '/auth',
     },
-    '/trainer-dashboard': {
-        path: '/trainer-dashboard',
-        protection: 'protected',
-        allowedRoles: ['coach', 'coach_admin'],
-        redirectTo: '/auth',
-    },
-    '/client-dashboard': {
-        path: '/client-dashboard',
-        protection: 'protected',
-        allowedRoles: ['member'],
-        redirectTo: '/auth',
-    },
     '/workout': {
         path: '/workout',
         protection: 'protected',
@@ -69,16 +56,14 @@ export const ROUTE_CONFIG: Record<string, RouteConfig> = {
         allowedRoles: ['member', 'coach', 'coach_admin'],
         redirectTo: '/auth',
     },
-    '/payment': {
-        path: '/payment',
+    '/password-reset': {
+        path: '/password-reset',
+        protection: 'public',
+    },
+    '/password-change': {
+        path: '/password-change',
         protection: 'protected',
         allowedRoles: ['member', 'coach', 'coach_admin'],
-        redirectTo: '/auth',
-    },
-    '/trainer-payment': {
-        path: '/trainer-payment',
-        protection: 'protected',
-        allowedRoles: ['coach', 'coach_admin'],
         redirectTo: '/auth',
     },
 };
@@ -199,6 +184,7 @@ export const ROUTES = {
     // Auth redirects
     AUTH_CALLBACK: '/auth/callback',
     AFTER_LOGIN: '/routines',
+    AFTER_LOGIN_COACH: '/routines',
     AFTER_LOGOUT: '/auth',
 
     // Dashboard routes

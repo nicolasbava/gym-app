@@ -4,6 +4,7 @@ import {
     AssignRoutine,
     assignRoutineSchema,
     createRoutineSchema,
+    RoutineExercise,
     updateRoutineSchema,
     type CreateRoutine,
     type UpdateRoutine,
@@ -106,13 +107,15 @@ export async function updateRoutine(formData: UpdateRoutine) {
             id: validationResult.data.id,
             name: validationResult.data.name,
             description: validationResult.data.description,
-            exercises: validationResult.data.exercises.map((ex) => ({
+            updated_at: validationResult.data.updated_at,
+            exercises: validationResult.data.exercises.map((ex: RoutineExercise) => ({
                 exercise_id: ex.exercise_id,
                 order_index: ex.order_index,
                 sets: ex.sets,
                 reps: ex.reps,
                 rest_seconds: ex.rest_seconds,
                 notes: ex.notes,
+                weight: ex.weight,
             })),
         });
 

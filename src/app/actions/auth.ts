@@ -134,3 +134,66 @@ export async function getUserWithProfile() {
         session,
     };
 }
+
+/**
+ * Request password reset email
+ */
+export async function resetPassword(email: string) {
+    const cookieStore = await cookies();
+    const supabase = await createClient(cookieStore);
+
+    // const siteUrl = await getSiteUrl();
+    const siteUrl = 'http://localhost:3000';
+    const redirectTo = `${siteUrl}/password-change`;
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo,
+    });
+
+    if (error) {
+        return {
+            success: false,
+            error: error.message,
+        };
+    }
+
+    return {
+        success: true,
+    };
+}
+
+/**
+ * Update user password
+ */
+export async function updatePassword(newPassword: string) {
+    const cookieStore = await cookies();
+    const supabase = await createClient(cookieStore);
+
+    // Verify user is authenticated
+    const {
+        data: { user },
+        error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+        return {
+            success: false,
+            error: 'No estás autenticado. Por favor, inicia sesión.',
+        };
+    }
+
+    const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+    });
+
+    if (error) {
+        return {
+            success: false,
+            error: error.message,
+        };
+    }
+
+    return {
+        success: true,
+    };
+}

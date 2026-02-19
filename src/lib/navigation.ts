@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 // Helpers for navigation
 export const navigationHelpers = {
     redirectAfterLogin: () => redirect(ROUTES.AFTER_LOGIN),
+    redirectAfterLoginCoach: () => redirect(ROUTES.AFTER_LOGIN_COACH),
     redirectAfterLogout: () => redirect(ROUTES.AFTER_LOGOUT),
     redirectToLogin: () => redirect(ROUTES.LOGIN),
 
