@@ -104,6 +104,7 @@ export default function RoutinesPage() {
 
     return (
         <div>
+            {/* Header routines */}
             <div className="flex items-center justify-between mb-6">
                 <div>
                     <h2 className="text-2xl font-semibold text-gray-900">Rutinas</h2>
@@ -121,6 +122,7 @@ export default function RoutinesPage() {
                 </div>
             </div>
 
+            {/* Loading and error states */}
             {isLoading && <div>Loading...</div>}
             {error && <div>Error: {error.message}</div>}
             {loading && <div>Loading...</div>}
@@ -128,6 +130,7 @@ export default function RoutinesPage() {
                 <div>No routines found</div>
             )}
 
+            {/* Routines list */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {routines &&
                     routines.data &&
