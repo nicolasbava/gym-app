@@ -1,13 +1,18 @@
 'use client';
+
 import { signOut } from '@/src/app/actions/auth';
 import { Button } from '@/src/components/ui/button';
 import { useAuth } from '@/src/hooks/useAuth';
-import { Dumbbell, LogOut, Menu } from 'lucide-react';
+import { Dumbbell, LogIn, LogOut, Menu } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 export default function Header() {
+    const router = useRouter();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const { isAuthenticated, clear, refetchSession, refetchUser } = useAuth();
+
+    const pageIsNotAuth = usePathname() !== '/auth';
 
     const handleLogout = async () => {
         clear();
@@ -17,6 +22,11 @@ export default function Header() {
             await refetchSession();
             await refetchUser();
         }
+    };
+
+    const handleLogin = () => {
+        clear();
+        router.push('/auth');
     };
 
     return (
@@ -49,6 +59,27 @@ export default function Header() {
                     </div> */}
 
                     <div className="flex items-center gap-2">
+                        {!isAuthenticated && pageIsNotAuth && (
+                            <>
+                                <Button
+                                    onClick={handleLogin}
+                                    variant="ghost"
+                                    size="sm"
+                                    className="hidden sm:flex items-center gap-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100 cursor-pointer"
+                                >
+                                    <LogOut className="w-4 h-4" />
+                                    <span>Iniciar Sesión</span>
+                                </Button>
+                                <Button
+                                    onClick={handleLogin}
+                                    variant="ghost"
+                                    size="icon"
+                                    className="sm:hidden text-gray-700 hover:text-gray-900 hover:bg-gray-100 cursor-pointer"
+                                >
+                                    <LogIn className="w-5 h-5" />
+                                </Button>
+                            </>
+                        )}
                         {isAuthenticated && (
                             <>
                                 <Button

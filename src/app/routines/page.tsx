@@ -20,11 +20,12 @@ import { useRoutines } from '@/src/modules/routines/useRoutines';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Dumbbell, Edit2, Trash2 } from 'lucide-react';
 import { useCallback, useState } from 'react';
+import { getRoutinesByGymNameAction } from '../actions/routines';
 
 export default function RoutinesPage() {
     const { userProfile } = useApp();
     const queryClient = useQueryClient();
-    const { getRoutinesByGymName, deleteRoutine } = useRoutines();
+    const { deleteRoutine } = useRoutines();
     const [loading, setLoading] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [routineToDelete, setRoutineToDelete] = useState<string | null>(null);
@@ -64,11 +65,11 @@ export default function RoutinesPage() {
         isLoading,
     } = useQuery({
         queryKey: ['routines', userProfile?.gym_id, nameRoutine],
-        queryFn: () => getRoutinesByGymName(userProfile?.gym_id ?? '', nameRoutine),
+        queryFn: () => getRoutinesByGymNameAction(userProfile?.gym_id ?? '', nameRoutine),
         enabled: !!userProfile?.gym_id,
     });
 
-
+    console.log('routines', routines);
     const handleOpenEditModal = (routine: RoutineWithExercises) => {
         setEditingRoutine(routine);
         setIsEditModalOpen(true);
@@ -101,21 +102,6 @@ export default function RoutinesPage() {
         setNameRoutine('');
     }, []);
 
-    // const {
-    //     data: exercisesData,
-    //     error,
-    //     isLoading,
-    // } = useQuery({
-    //     queryKey: ['exercises', userProfile?.gym_id, nameExercise],
-    //     queryFn: () => getExercisesGymIdName(userProfile?.gym_id ?? '', nameExercise),
-    //     enabled: !!userProfile?.gym_id,
-    // });
-
-    if (!routines) return <div>No routines found</div>;
-    if (error) return <div>Error: {error.message}</div>;
-    if (isLoading) return <div>Loading...</div>;
-    if (loading) return <div>Loading...</div>;
-
     return (
         <div>
             <div className="flex items-center justify-between mb-6">
@@ -125,19 +111,27 @@ export default function RoutinesPage() {
                         Crear y gestionar programas de entrenamiento
                     </p>
                 </div>
-                <>
+                <div className="flex items-center gap-2">
                     <SearchBar
                         fetchFunction={onSearch}
                         query={nameRoutine}
                         clearSearch={clearSearch}
                     />
                     <RoutinesDialog />
-                </>
+                </div>
             </div>
+
+            {isLoading && <div>Loading...</div>}
+            {error && <div>Error: {error.message}</div>}
+            {loading && <div>Loading...</div>}
+            {routines && routines.data && routines.data.length === 0 && (
+                <div>No routines found</div>
+            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {routines &&
-                    routines.map((routine) => (
+                    routines.data &&
+                    routines.data.map((routine) => (
                         <div
                             key={routine.id}
                             className="bg-white rounded-lg shadow-sm border p-6 hover:shadow-md transition-shadow"
@@ -225,6 +219,7 @@ export default function RoutinesPage() {
                                 handleCloseEditModal();
                                 // La invalidación y refetch ya se hacen en el formulario
                             }}
+                            handleCancel={handleCloseEditModal}
                         />
                     )}
                 </DialogContent>

@@ -74,7 +74,7 @@ export async function createRoutine(formData: CreateRoutine) {
     }
 }
 
-export async function updateRoutine(routineId: string, formData: UpdateRoutine) {
+export async function updateRoutine(formData: UpdateRoutine) {
     // Validar datos del formulario
     const validationResult = updateRoutineSchema.safeParse(formData);
 
@@ -102,7 +102,8 @@ export async function updateRoutine(routineId: string, formData: UpdateRoutine) 
         const routineService = new RoutineService(supabase);
 
         // Actualizar rutina usando el servicio
-        const updatedRoutine = await routineService.updateRoutine(routineId, {
+        const updatedRoutine = await routineService.updateRoutine({
+            id: validationResult.data.id,
             name: validationResult.data.name,
             description: validationResult.data.description,
             exercises: validationResult.data.exercises.map((ex) => ({

@@ -29,12 +29,6 @@ export function useProfiles() {
         }
     }
 
-    // // Get member details by profile ID
-    // const { data: memberDetails, isLoading: loadingMemberDetails, error: errorMemberDetails } = useQuery({
-    //   queryKey: ['profile', profileId],
-    //   queryFn: () => profileService.getProfileById(profileId ?? ''),
-    // });
-
     async function getProfileById(profileId: string) {
         if (!profileId) return console.error('profileId is required');
         try {
