@@ -23,7 +23,5 @@ export async function getProfilesByGymName(gymName: string, name: string = '') {
         throw error;
     }
 
-    console.log('>>> data:', data);
-
     return data;
 }
