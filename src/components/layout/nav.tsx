@@ -81,7 +81,7 @@ const MemberNavBar = ({ handleViewChange }: { handleViewChange: (view: any) => v
             <button
                 onClick={() => handleViewChange('home')}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-colors cursor-pointer ${
-                    pathname === '/routines'
+                    pathname === '/home'
                         ? 'bg-blue-600 text-white'
                         : 'bg-white text-gray-700 hover:bg-gray-50'
                 }`}

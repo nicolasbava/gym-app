@@ -182,6 +182,7 @@ export class RoutineService {
         id: string;
         name: string;
         description?: string;
+        updated_at: string;
         exercises: Array<{
             exercise_id: string;
             order_index: number;

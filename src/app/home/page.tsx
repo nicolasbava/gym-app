@@ -82,6 +82,9 @@ const MemberHomePage = () => {
                                             <span className="text-gray-600">
                                                 {ex.sets} × {ex.reps}
                                             </span>
+                                            <span className="text-gray-900 ">
+                                                {ex.weight && +ex.weight > 0 && `@ ${ex.weight}kg`}
+                                            </span>
                                         </div>
                                     ),
                                 )}
