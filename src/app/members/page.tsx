@@ -1,22 +1,23 @@
 'use client';
 import ConfirmAction from '@/src/components/common/confirm-action';
+import SearchBar from '@/src/components/common/SearchBar';
 import MemberForm from '@/src/components/trainer-dashboard/members/member-form';
 import MembersDialog from '@/src/components/trainer-dashboard/members/members-dialog';
 import { Dialog, DialogContent, DialogHeader } from '@/src/components/ui/dialog';
 import { useApp } from '@/src/contexts/AppContext';
-import { Member, mockMembers } from '@/src/lib/mock-data';
+import { Member } from '@/src/lib/mock-data';
 import { Profile } from '@/src/modules/profiles/profiles.schema';
 import { useProfiles } from '@/src/modules/profiles/useProfiles';
 import { DialogTitle } from '@radix-ui/react-dialog';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Calendar, Edit2, Mail, Phone, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
+import { getProfilesByGymName } from '../actions/profile';
 import { deleteProfile } from '../actions/users';
-import MembersLoading from './loading';
 
 export default function MemberManager() {
     const { userProfile } = useApp();
-    const [members, setMembers] = useState<Member[]>(mockMembers);
+    const [nameMember, setNameMember] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingMember, setEditingMember] = useState<Member | null>(null);
     const [isDeleteMemberOpen, setIsDeleteMemberOpen] = useState(false);
@@ -35,8 +36,8 @@ export default function MemberManager() {
         isLoading,
         error,
     } = useQuery({
-        queryKey: ['members', userProfile?.gym_id],
-        queryFn: () => getProfilesPerGym(userProfile?.gym_id ?? ''),
+        queryKey: ['members', userProfile?.gym_id, nameMember],
+        queryFn: () => getProfilesByGymName(userProfile?.gym_id ?? '', nameMember),
         enabled: !!userProfile?.gym_id,
         gcTime: 50,
         staleTime: 50,
@@ -93,42 +94,43 @@ export default function MemberManager() {
         }
     };
 
-    // const toggleRoutineAssignment = (routineId: string) => {
-    //     const currentRoutines = formData.assignedRoutines || [];
-    //     const newRoutines = currentRoutines.includes(routineId) ? currentRoutines.filter((id) => id !== routineId) : [...currentRoutines, routineId];
-    //     setFormData({ ...formData, assignedRoutines: newRoutines });
-    // };
-
-    // const getRoutineName = (routineId: string) => {
-    //     return mockRoutines.find((r) => r.id === routineId)?.name || 'Unknown';
-    // };
-
-    if (isLoading) return <MembersLoading />;
-    if (error) return <div>Error: {error.message}</div>;
-    if (!membersData)
-        return (
-            <div>
-                <div className="flex items-center justify-between mb-6">
-                    <div>
-                        <h2 className="text-2xl font-semibold text-gray-900">Clientes</h2>
-                        <p className="text-gray-600 mt-1">Gestiona a tus clientes y sus rutinas</p>
-                    </div>
-                </div>
-            </div>
-        );
+    // Members search
+    const onSearch = useCallback(
+        (query: string) => {
+            setNameMember(query);
+        },
+        [nameMember.length],
+    );
+    const clearSearch = useCallback(() => {
+        setNameMember('');
+    }, []);
 
     return (
         <div>
+            {/* Header members */}
             <div className="flex items-center justify-between mb-6">
                 <div>
                     <h2 className="text-2xl font-semibold text-gray-900">Clientes</h2>
                     <p className="text-gray-600 mt-1">Gestiona a tus clientes y sus rutinas</p>
                 </div>
-                <div>
-                    <MembersDialog member={editingMember as unknown as Profile} />
+                <div className="flex items-center gap-2">
+                    <SearchBar
+                        fetchFunction={onSearch}
+                        query={nameMember}
+                        clearSearch={clearSearch}
+                    />
+                    <MembersDialog />
                 </div>
             </div>
 
+            {/* Loading and error states */}
+            {isLoading && <div>Cargando...</div>}
+            {error && <div>Error: {error.message}</div>}
+            {membersData && membersData.length === 0 && (
+                <div>Lo siento, no se encontraron clientes</div>
+            )}
+
+            {/* Members list */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {membersData &&
                     membersData.map((member) => (
