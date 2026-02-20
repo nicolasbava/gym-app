@@ -2,9 +2,9 @@ export interface Exercise {
     id: string;
     name: string;
     description: string;
-    videoUrl: string;
-    imageUrl: string;
-    muscleGroup: string;
+    video_url: string;
+    image_url: string;
+    muscle_group: string;
     equipment: string;
     instructions: string[];
 }
@@ -40,9 +40,9 @@ export const mockExercises: Exercise[] = [
         id: 'ex1',
         name: 'Barbell Bench Press',
         description: 'Compound chest exercise for building upper body strength',
-        videoUrl: 'https://example.com/video1.mp4',
-        imageUrl: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800',
-        muscleGroup: 'Chest',
+        video_url: 'https://example.com/video1.mp4',
+        image_url: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800',
+        muscle_group: 'Chest',
         equipment: 'Barbell',
         instructions: [
             'Lie flat on bench with feet on floor',
@@ -56,9 +56,9 @@ export const mockExercises: Exercise[] = [
         id: 'ex2',
         name: 'Barbell Squat',
         description: 'King of leg exercises for overall lower body development',
-        videoUrl: 'https://example.com/video2.mp4',
-        imageUrl: 'https://images.unsplash.com/photo-1574680096145-d05b474e2155?w=800',
-        muscleGroup: 'Legs',
+        video_url: 'https://example.com/video2.mp4',
+        image_url: 'https://images.unsplash.com/photo-1574680096145-d05b474e2155?w=800',
+        muscle_group: 'Legs',
         equipment: 'Barbell',
         instructions: [
             'Position bar on upper back',
@@ -72,9 +72,9 @@ export const mockExercises: Exercise[] = [
         id: 'ex3',
         name: 'Deadlift',
         description: 'Full body compound movement for strength and muscle',
-        videoUrl: 'https://example.com/video3.mp4',
-        imageUrl: 'https://images.unsplash.com/photo-1584863231364-2edc166de576?w=800',
-        muscleGroup: 'Back',
+        video_url: 'https://example.com/video3.mp4',
+        image_url: 'https://images.unsplash.com/photo-1584863231364-2edc166de576?w=800',
+        muscle_group: 'Back',
         equipment: 'Barbell',
         instructions: [
             'Stand with feet hip-width apart',
@@ -88,9 +88,9 @@ export const mockExercises: Exercise[] = [
         id: 'ex4',
         name: 'Pull-ups',
         description: 'Bodyweight exercise for back and bicep development',
-        videoUrl: 'https://example.com/video4.mp4',
-        imageUrl: 'https://images.unsplash.com/photo-1599058917212-d750089bc07e?w=800',
-        muscleGroup: 'Back',
+        video_url: 'https://example.com/video4.mp4',
+        image_url: 'https://images.unsplash.com/photo-1599058917212-d750089bc07e?w=800',
+        muscle_group: 'Back',
         equipment: 'Pull-up Bar',
         instructions: [
             'Hang from bar with overhand grip',
@@ -104,9 +104,9 @@ export const mockExercises: Exercise[] = [
         id: 'ex5',
         name: 'Dumbbell Shoulder Press',
         description: 'Build strong, defined shoulders with this classic movement',
-        videoUrl: 'https://example.com/video5.mp4',
-        imageUrl: 'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?w=800',
-        muscleGroup: 'Shoulders',
+        video_url: 'https://example.com/video5.mp4',
+        image_url: 'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?w=800',
+        muscle_group: 'Shoulders',
         equipment: 'Dumbbells',
         instructions: [
             'Sit with back supported',

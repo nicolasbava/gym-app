@@ -86,18 +86,21 @@ export async function createExercise(formData: CreateExercise) {
     }
 }
 
-export async function getExercisesGymIdName(gymId: string, name: string = '') {
+export async function getExercisesGymIdName(gymId: string, name: string = '', page: number = 0) {
     // TODO : Validate data from the form zod schema
     try {
         const cookieStore = await cookies();
         const supabase = await createClient(cookieStore);
+
+        const limit = 6;
 
         let query = supabase
             .from('exercises')
             .select('*')
             .is('deleted_at', null)
             .order('name', { ascending: true })
-            .limit(20);
+            .limit(limit)
+            .range(page * limit, (page + 1) * limit - 1);
         // .eq('gym_id', gymId) // TODO: add gym_id to the query
 
         // If name is provided, add the filter to the query
@@ -105,13 +108,15 @@ export async function getExercisesGymIdName(gymId: string, name: string = '') {
             query = query.ilike('name', `%${name}%`);
         }
 
-        const { data, error } = await query;
+        const { data, error, count } = await query;
 
         if (error) {
             return {
                 error: error.message,
                 success: false,
                 data: [],
+                count: 0,
+                hasMore: false,
             };
         }
 
@@ -119,6 +124,8 @@ export async function getExercisesGymIdName(gymId: string, name: string = '') {
             data: data,
             success: true,
             error: null,
+            count: count || 0,
+            hasMore: count && count > page * 20,
         };
     } catch (error) {
         console.error('Error getting exercises:', error);

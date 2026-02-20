@@ -1,45 +1,65 @@
 'use client';
-import { deleteExercise, getExercisesGymIdName } from '@/src/app/actions/exercises';
+
+import { deleteExercise } from '@/src/app/actions/exercises';
 import ConfirmAction from '@/src/components/common/confirm-action';
 import SearchBar from '@/src/components/common/SearchBar';
 import ExerciseDialog from '@/src/components/trainer-dashboard/exercises/exercise-dialog';
 import CreateExerciseForm from '@/src/components/trainer-dashboard/exercises/exercise-form';
 import { Dialog, DialogContent, DialogHeader } from '@/src/components/ui/dialog';
 import { useApp } from '@/src/contexts/AppContext';
+import { useInfiniteScroll } from '@/src/hooks/useInfiniteScroll';
+import { Exercise } from '@/src/modules/exercises/exercises.schema';
+import { useExercisesScroll } from '@/src/modules/exercises/useExercisesScroll';
 import { DialogTitle } from '@radix-ui/react-dialog';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Edit2, Trash2 } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useCallback, useMemo, useState } from 'react';
+import ExerciseCard from './ExerciseCard';
 import ExercisesLoading from './loading';
 
-interface ExerciseData {
-    id: string;
-    name: string;
-    description?: string;
-    muscle_group?: string;
-    equipment?: string;
-}
+// interface ExerciseData {
+//     id: string;
+//     name: string;
+//     description?: string;
+//     muscle_group?: string;
+//     equipment?: string;
+// }
 
 export default function ExercisesPage() {
     const queryClient = useQueryClient();
     const { userProfile } = useApp();
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [editingExercise, setEditingExercise] = useState<ExerciseData | null>(null);
+    const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
     const [exerciseToDelete, setExerciseToDelete] = useState<string | null>(null);
-
     const [nameExercise, setNameExercise] = useState('');
+
+    const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, error } =
+        useExercisesScroll([], userProfile?.gym_id ?? '', nameExercise);
+
+    const exercises = useMemo(() => data?.pages.flatMap((page) => page) ?? [], [data]);
+
+    const handleLoadMore = useCallback(() => {
+        if (!hasNextPage || isFetchingNextPage) {
+            return;
+        }
+        void fetchNextPage();
+    }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+    const loadMoreRef = useInfiniteScroll(
+        handleLoadMore,
+        Boolean(hasNextPage) && !isLoading && !isFetchingNextPage,
+    );
 
     const deleteExerciseMutation = useMutation({
         mutationFn: (id: string) => deleteExercise(id),
         onSuccess: async () => {
-            // Invalidate and refetch routines queries to ensure list is updated
+            // Invalidate and refetch exercises queries to ensure list is updated
             await queryClient.invalidateQueries({
-                queryKey: ['routines'],
+                queryKey: ['exercises'],
                 exact: false,
             });
             // Force refetch to ensure immediate update
             await queryClient.refetchQueries({
-                queryKey: ['routines'],
+                queryKey: ['exercises'],
                 exact: false,
             });
             setExerciseToDelete(null);
@@ -61,28 +81,15 @@ export default function ExercisesPage() {
     };
 
     // Fetch exercises by gym id and name
-    const onSearch = useCallback(
-        (query: string) => {
-            setNameExercise(query);
-        },
-        [nameExercise.length],
-    );
+    const onSearch = useCallback((query: string) => {
+        setNameExercise(query);
+    }, []);
 
     const clearSearch = useCallback(() => {
         setNameExercise('');
     }, []);
 
-    const {
-        data: exercisesData,
-        error,
-        isLoading,
-    } = useQuery({
-        queryKey: ['exercises', userProfile?.gym_id, nameExercise],
-        queryFn: () => getExercisesGymIdName(userProfile?.gym_id ?? '', nameExercise),
-        enabled: !!userProfile?.gym_id,
-    });
-
-    const handleOpenModal = (exercise?: ExerciseData) => {
+    const handleOpenModal = (exercise?: Exercise) => {
         if (exercise) {
             setEditingExercise(exercise);
         } else {
@@ -124,14 +131,76 @@ export default function ExercisesPage() {
 
             {isLoading ? (
                 <ExercisesLoading />
-            ) : exercisesData?.data.length === 0 ? (
-                <div className="text-center text-gray-600">No se encontraron ejercicios</div>
             ) : error ? (
-                <div className="text-center text-gray-600">Error: {error.message}</div>
+                <div className="text-center text-gray-600">
+                    Error: {error instanceof Error ? error.message : 'Error al cargar ejercicios'}
+                </div>
+            ) : exercises.length === 0 ? (
+                <div className="text-center text-gray-600">No se encontraron ejercicios</div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {exercisesData?.data.map((exercise) => (
-                        <div
+                <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {exercises.map((exercise) => {
+                            return (
+                                <ExerciseCard
+                                    key={exercise.id}
+                                    exercise={exercise}
+                                    handleOpenModal={() => handleOpenModal(exercise)}
+                                    handleOpenDeleteDialog={handleOpenDeleteDialog}
+                                    deleteExerciseMutation={deleteExerciseMutation.mutateAsync}
+                                />
+                            );
+                        })}
+                    </div>
+                    <div ref={loadMoreRef} className="h-8 w-full" />
+                    {isFetchingNextPage && (
+                        <div className="mt-6 flex justify-center">
+                            <p className="text-sm text-gray-600">Cargando más ejercicios...</p>
+                        </div>
+                    )}
+                    {!hasNextPage && exercises.length > 0 && (
+                        <div className="mt-6 flex justify-center">
+                            <p className="text-sm text-gray-500">
+                                No hay más ejercicios para mostrar
+                            </p>
+                        </div>
+                    )}
+                </>
+            )}
+
+            <ConfirmAction
+                open={!!exerciseToDelete}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setExerciseToDelete(null);
+                    }
+                }}
+                title="Delete Exercise"
+                description="Are you sure you want to delete this exercise?"
+                onConfirm={handleDelete}
+                variant="destructive"
+            />
+
+            {/* Edit Exercise Modal */}
+            <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+                <DialogHeader>
+                    <DialogTitle className="sr-only">Editar Ejercicio</DialogTitle>
+                </DialogHeader>
+                <DialogContent>
+                    <CreateExerciseForm
+                        gymId={userProfile?.gym_id ?? ''}
+                        exercise={editingExercise || undefined}
+                        onSuccess={handleCloseModal}
+                        setOpen={setIsModalOpen}
+                    />
+                </DialogContent>
+            </Dialog>
+        </div>
+    );
+}
+
+{
+    /* <div
                             key={exercise.id}
                             className="bg-white rounded-lg shadow-sm border overflow-hidden hover:shadow-md transition-shadow"
                         >
@@ -174,38 +243,5 @@ export default function ExercisesPage() {
                                     </p>
                                 )}
                             </div>
-                        </div>
-                    ))}
-                </div>
-            )}
-
-            <ConfirmAction
-                open={!!exerciseToDelete}
-                onOpenChange={(open) => {
-                    if (!open) {
-                        setExerciseToDelete(null);
-                    }
-                }}
-                title="Delete Exercise"
-                description="Are you sure you want to delete this exercise?"
-                onConfirm={handleDelete}
-                variant="destructive"
-            />
-
-            {/* Edit Exercise Modal */}
-            <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-                <DialogHeader>
-                    <DialogTitle className="sr-only">Editar Ejercicio</DialogTitle>
-                </DialogHeader>
-                <DialogContent>
-                    <CreateExerciseForm
-                        gymId={userProfile?.gym_id ?? ''}
-                        exercise={editingExercise || undefined}
-                        onSuccess={handleCloseModal}
-                        setOpen={setIsModalOpen}
-                    />
-                </DialogContent>
-            </Dialog>
-        </div>
-    );
+                        </div> */
 }
