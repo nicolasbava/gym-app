@@ -63,6 +63,10 @@ type AppContextValue = {
     canAccess: (allowedRoles?: UserRole[]) => boolean;
     /** Clear the app context. */
     clear: () => void;
+    /** Set the mode of the app. */
+    setMode: (mode: 'coach' | 'member') => void;
+    /** Get the mode of the app. */
+    mode: 'coach' | 'member';
 };
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -78,7 +82,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const [sessionLoading, setSessionLoading] = useState(true);
     const [user, setUser] = useState<User | null>(null);
     const [userLoading, setUserLoading] = useState(true);
-
+    const [mode, setMode] = useState<'coach' | 'member'>('member');
     const refetchUserProfile = useCallback(async () => {
         setUserProfileLoading(true);
         setUserProfileError(null);
@@ -174,7 +178,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
             setSessionLoading(true);
             setUser(null);
             setUserLoading(true);
+            setMode('member');
         },
+        setMode: (mode: 'coach' | 'member') => {
+            setMode(mode);
+        },
+        mode,
     };
 
     return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

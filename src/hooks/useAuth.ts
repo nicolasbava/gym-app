@@ -41,7 +41,7 @@ export function useRequireAuth() {
 
     useEffect(() => {
         if (!isLoading && !isAuthenticated) {
-            const redirectTo = `/auth?redirectTo=${encodeURIComponent(pathname)}`;
+            const redirectTo = `/auth`;
             router.push(redirectTo);
         }
     }, [isAuthenticated, isLoading, router, pathname]);
@@ -79,9 +79,7 @@ export function useRouteAuth() {
 
     const routeConfig = getRouteConfig(pathname);
     const routeRequiresAuth = requiresAuth(pathname);
-    const hasAccess = routeConfig?.allowedRoles
-        ? auth.canAccess(routeConfig.allowedRoles)
-        : true;
+    const hasAccess = routeConfig?.allowedRoles ? auth.canAccess(routeConfig.allowedRoles) : true;
 
     useEffect(() => {
         if (!auth.isLoading) {
@@ -98,7 +96,15 @@ export function useRouteAuth() {
                 return;
             }
         }
-    }, [auth.isLoading, auth.isAuthenticated, routeRequiresAuth, hasAccess, router, pathname, routeConfig]);
+    }, [
+        auth.isLoading,
+        auth.isAuthenticated,
+        routeRequiresAuth,
+        hasAccess,
+        router,
+        pathname,
+        routeConfig,
+    ]);
 
     return {
         ...auth,
