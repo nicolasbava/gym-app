@@ -1,4 +1,5 @@
 'use client';
+import UserAvatar from '@/src/components/common/UserAvatar';
 import { useApp } from '@/src/contexts/AppContext';
 import { Profile } from '@/src/modules/profiles/profiles.schema';
 import { Calendar, Edit2, Mail, Phone, Save, User, X } from 'lucide-react';
@@ -50,10 +51,11 @@ export default function ProfilePage() {
                 <div className="px-6 pb-6">
                     <div className="flex flex-col sm:flex-row items-center sm:items-end gap-6 -mt-16 mb-6">
                         <div className="relative">
-                            <img
-                                src={profile?.image_url ?? ''}
-                                alt={profile?.name ?? ''}
-                                className="w-32 h-32 rounded-full border-4 border-white object-cover shadow-lg"
+                            <UserAvatar
+                                name={profile?.name}
+                                imageUrl={profile?.image_url}
+                                className="w-32 h-32 border-4 border-white shadow-lg"
+                                fallbackClassName="text-3xl"
                             />
                             {isEditing && (
                                 <button className="absolute bottom-0 right-0 p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 shadow-lg">

@@ -15,7 +15,6 @@ export default function SearchBar({ fetchFunction, query, clearSearch }: SearchB
     const [searchTerm, setSearchTerm] = useState(query);
     const debouncedTerm = useDebounce(searchTerm);
 
-    console.log('debouncedTerm', debouncedTerm);
 
     const onSearch = useCallback(() => {
         fetchFunction(debouncedTerm);

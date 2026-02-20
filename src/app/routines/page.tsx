@@ -11,22 +11,21 @@ import {
     DialogTitle,
 } from '@/src/components/ui/dialog';
 import { useApp } from '@/src/contexts/AppContext';
-import { Routine } from '@/src/lib/mock-data';
+import { useInfiniteScroll } from '@/src/hooks/useInfiniteScroll';
 import {
     RoutineExerciseWithExercise,
     RoutineWithExercises,
 } from '@/src/modules/routines/routines.schema';
 import { useRoutines } from '@/src/modules/routines/useRoutines';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useRoutinesScroll } from '@/src/modules/routines/useRoutinesScroll';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Dumbbell, Edit2, Trash2 } from 'lucide-react';
-import { useCallback, useState } from 'react';
-import { getRoutinesByGymNameAction } from '../actions/routines';
+import { useCallback, useMemo, useState } from 'react';
 
 export default function RoutinesPage() {
     const { userProfile } = useApp();
     const queryClient = useQueryClient();
     const { deleteRoutine } = useRoutines();
-    const [loading, setLoading] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [routineToDelete, setRoutineToDelete] = useState<string | null>(null);
     const [editingRoutine, setEditingRoutine] = useState<RoutineWithExercises | null>(null);
@@ -53,23 +52,9 @@ export default function RoutinesPage() {
             setRoutineToDelete(null);
         },
     });
-    const [formData, setFormData] = useState<Partial<Routine>>({
-        name: '',
-        description: '',
-        exercises: [],
-    });
-
-    const {
-        data: routines,
-        error,
-        isLoading,
-    } = useQuery({
-        queryKey: ['routines', userProfile?.gym_id, nameRoutine],
-        queryFn: () => getRoutinesByGymNameAction(userProfile?.gym_id ?? '', nameRoutine),
-        enabled: !!userProfile?.gym_id,
-    });
-
-    console.log('routines', routines);
+    const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, error } =
+        useRoutinesScroll([], userProfile?.gym_id ?? '', nameRoutine);
+    const routines = useMemo(() => data?.pages.flatMap((page) => page) ?? [], [data]);
     const handleOpenEditModal = (routine: RoutineWithExercises) => {
         setEditingRoutine(routine);
         setIsEditModalOpen(true);
@@ -95,12 +80,24 @@ export default function RoutinesPage() {
         (query: string) => {
             setNameRoutine(query);
         },
-        [nameRoutine.length],
+        [],
     );
 
     const clearSearch = useCallback(() => {
         setNameRoutine('');
     }, []);
+
+    const handleLoadMore = useCallback(() => {
+        if (!hasNextPage || isFetchingNextPage) {
+            return;
+        }
+        void fetchNextPage();
+    }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+    const loadMoreRef = useInfiniteScroll(
+        handleLoadMore,
+        Boolean(hasNextPage) && !isLoading && !isFetchingNextPage,
+    );
 
     return (
         <div>
@@ -123,18 +120,16 @@ export default function RoutinesPage() {
             </div>
 
             {/* Loading and error states */}
-            {isLoading && <div>Loading...</div>}
-            {error && <div>Error: {error.message}</div>}
-            {loading && <div>Loading...</div>}
-            {routines && routines.data && routines.data.length === 0 && (
+            {isLoading ? (
+                <div>Loading...</div>
+            ) : error ? (
+                <div>Error: {error instanceof Error ? error.message : 'Error loading routines'}</div>
+            ) : routines.length === 0 ? (
                 <div>No routines found</div>
-            )}
-
-            {/* Routines list */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {routines &&
-                    routines.data &&
-                    routines.data.map((routine) => (
+            ) : (
+                <>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        {routines.map((routine) => (
                         <div
                             key={routine.id}
                             className="bg-white rounded-lg shadow-sm border p-6 hover:shadow-md transition-shadow"
@@ -199,8 +194,23 @@ export default function RoutinesPage() {
                                 variant="destructive"
                             />
                         </div>
-                    ))}
-            </div>
+                        ))}
+                    </div>
+                    <div ref={loadMoreRef} className="h-8 w-full" />
+                    {isFetchingNextPage && (
+                        <div className="mt-6 flex justify-center">
+                            <p className="text-sm text-gray-600">Loading more routines...</p>
+                        </div>
+                    )}
+                    {!hasNextPage && routines.length > 0 && (
+                        <div className="mt-6 flex justify-center">
+                            <p className="text-sm text-gray-500">
+                                No hay más rutinas para mostrar
+                            </p>
+                        </div>
+                    )}
+                </>
+            )}
 
             {/* Edit Routine Dialog */}
             <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>

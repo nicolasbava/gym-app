@@ -5,48 +5,36 @@ import MemberForm from '@/src/components/trainer-dashboard/members/member-form';
 import MembersDialog from '@/src/components/trainer-dashboard/members/members-dialog';
 import { Dialog, DialogContent, DialogHeader } from '@/src/components/ui/dialog';
 import { useApp } from '@/src/contexts/AppContext';
-import { Member } from '@/src/lib/mock-data';
+import { useInfiniteScroll } from '@/src/hooks/useInfiniteScroll';
 import { Profile } from '@/src/modules/profiles/profiles.schema';
-import { useProfiles } from '@/src/modules/profiles/useProfiles';
+import { useMembersScroll } from '@/src/modules/profiles/useMembersScroll';
 import { DialogTitle } from '@radix-ui/react-dialog';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { Calendar, Edit2, Mail, Phone, Trash2 } from 'lucide-react';
-import { useCallback, useState } from 'react';
-import { getProfilesByGymName } from '../actions/profile';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useCallback, useMemo, useState } from 'react';
 import { deleteProfile } from '../actions/users';
+import MemberCard from './MemberCard';
+import MembersLoading from './loading';
 
 export default function MemberManager() {
+    const queryClient = useQueryClient();
     const { userProfile } = useApp();
     const [nameMember, setNameMember] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [editingMember, setEditingMember] = useState<Member | null>(null);
+    const [editingMember, setEditingMember] = useState<Profile | null>(null);
     const [isDeleteMemberOpen, setIsDeleteMemberOpen] = useState(false);
-    const { getProfilesPerGym } = useProfiles();
-    const [formData, setFormData] = useState<Partial<Member>>({
-        name: '',
-        email: '',
-        phone: '',
-        membershipStart: '',
-        assignedRoutines: [],
-        profileImage: '',
-    });
 
-    const {
-        data: membersData,
-        isLoading,
-        error,
-    } = useQuery({
-        queryKey: ['members', userProfile?.gym_id, nameMember],
-        queryFn: () => getProfilesByGymName(userProfile?.gym_id ?? '', nameMember),
-        enabled: !!userProfile?.gym_id,
-        gcTime: 50,
-        staleTime: 50,
-    });
+    const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, error } =
+        useMembersScroll([], userProfile?.gym_id ?? '', nameMember);
+
+    const members = useMemo(() => data?.pages.flatMap((page) => page) ?? [], [data]);
 
     const deleteMemberMutation = useMutation({
         mutationFn: (id: string) => deleteProfile(id),
-        onSuccess: () => {
-            console.log('member deleted');
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({
+                queryKey: ['members'],
+                exact: false,
+            });
             setIsDeleteMemberOpen(false);
         },
         onError: (error) => {
@@ -55,20 +43,11 @@ export default function MemberManager() {
         },
     });
 
-    const handleOpenModal = (member?: Member) => {
+    const handleOpenModal = (member?: Profile) => {
         if (member) {
             setEditingMember(member);
-            setFormData(member);
         } else {
             setEditingMember(null);
-            setFormData({
-                name: '',
-                email: '',
-                phone: '',
-                membershipStart: new Date().toISOString().split('T')[0],
-                assignedRoutines: [],
-                profileImage: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400',
-            });
         }
         setIsModalOpen(true);
     };
@@ -79,7 +58,7 @@ export default function MemberManager() {
     };
 
     const handleDelete = (id: string) => {
-        setEditingMember(membersData?.find((m) => m.id === id) || null);
+        setEditingMember(members.find((m) => m.id === id) ?? null);
         setIsDeleteMemberOpen(true);
     };
 
@@ -99,7 +78,19 @@ export default function MemberManager() {
         (query: string) => {
             setNameMember(query);
         },
-        [nameMember.length],
+        [],
+    );
+
+    const handleLoadMore = useCallback(() => {
+        if (!hasNextPage || isFetchingNextPage) {
+            return;
+        }
+        void fetchNextPage();
+    }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+    const loadMoreRef = useInfiniteScroll(
+        handleLoadMore,
+        Boolean(hasNextPage) && !isLoading && !isFetchingNextPage,
     );
     const clearSearch = useCallback(() => {
         setNameMember('');
@@ -123,79 +114,39 @@ export default function MemberManager() {
                 </div>
             </div>
 
-            {/* Loading and error states */}
-            {isLoading && <div>Cargando...</div>}
-            {error && <div>Error: {error.message}</div>}
-            {membersData && membersData.length === 0 && (
-                <div>Lo siento, no se encontraron clientes</div>
-            )}
-
-            {/* Members list */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {membersData &&
-                    membersData.map((member) => (
-                        <div
-                            key={member.id}
-                            className="bg-white rounded-lg shadow-sm border p-6 hover:shadow-md transition-shadow"
-                        >
-                            <div className="flex items-start gap-4 mb-4">
-                                {/* <img src={member.profileImagze} alt={member.name} className="w-16 h-16 rounded-full object-cover" /> */}
-                                <div className="flex-1 min-w-0">
-                                    <h3 className="font-semibold text-lg text-gray-900 mb-1 truncate">
-                                        {member.name}
-                                    </h3>
-                                    <div className="space-y-1">
-                                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                                            <Mail className="w-4 h-4" />
-                                            <span className="truncate">{member.email}</span>
-                                        </div>
-                                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                                            <Phone className="w-4 h-4" />
-                                            <span>{member.phone}</span>
-                                        </div>
-                                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                                            <Calendar className="w-4 h-4" />
-                                            <span>Iniciado el {member.membershipStart}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="mb-4">
-                                <p className="text-sm font-medium text-gray-700 mb-2">
-                                    Rutinas asignadas:
-                                </p>
-                                {/* <div className="flex flex-wrap gap-2">
-                                    {member.assignedRoutines.map((routineId) => (
-                                        <span key={routineId} className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
-                                            {getRoutineName(routineId)}
-                                        </span>
-                                    ))}
-                                    {member.assignedRoutines.length === 0 && <span className="text-sm text-gray-500">No routines assigned</span>}
-                                </div> */}
-                            </div>
-
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={() => handleOpenModal(member)}
-                                    className="flex-1 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium text-sm"
-                                >
-                                    <Edit2 className="w-4 h-4 inline mr-1" />
-                                    Edit
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        setEditingMember(member);
-                                        setIsDeleteMemberOpen(true);
-                                    }}
-                                    className="px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 font-medium text-sm"
-                                >
-                                    <Trash2 className="w-4 h-4" />
-                                </button>
-                            </div>
+            {isLoading ? (
+                <MembersLoading />
+            ) : error ? (
+                <div className="text-center text-gray-600">
+                    Error: {error instanceof Error ? error.message : 'Error loading members'}
+                </div>
+            ) : members.length === 0 ? (
+                <div className="text-center text-gray-600">Lo siento, no se encontraron clientes</div>
+            ) : (
+                <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {members.map((member) => (
+                            <MemberCard
+                                key={member.id}
+                                member={member}
+                                handleOpenModal={() => handleOpenModal(member)}
+                                handleDelete={() => handleDelete(member.id)}
+                            />
+                        ))}
+                    </div>
+                    <div ref={loadMoreRef} className="h-8 w-full" />
+                    {isFetchingNextPage && (
+                        <div className="mt-6 flex justify-center">
+                            <p className="text-sm text-gray-600">Loading more members...</p>
                         </div>
-                    ))}
-            </div>
+                    )}
+                    {!hasNextPage && members.length > 0 && (
+                        <div className="mt-6 flex justify-center">
+                            <p className="text-sm text-gray-500">No more members to show</p>
+                        </div>
+                    )}
+                </>
+            )}
 
             {/* UPDATE MEMBER MODAL */}
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
@@ -205,7 +156,7 @@ export default function MemberManager() {
                 <DialogContent>
                     <MemberForm
                         gym_id={userProfile?.gym_id ?? ''}
-                        member={editingMember as unknown as Profile}
+                        member={editingMember ?? undefined}
                         onSuccess={handleCloseModal}
                         setOpen={setIsModalOpen}
                     />

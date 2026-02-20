@@ -4,7 +4,7 @@ import { updateRoutineSchema } from './routines.schema';
 export class RoutineService {
     constructor(private supabase: SupabaseClient) {}
 
-    async getRoutinesByGym(gymId: string, name: string) {
+    async getRoutinesByGym(gymId: string, name: string, page: number = 0, limit: number = 6) {
         let query = this.supabase
             .from('routines')
             .select(
@@ -19,7 +19,8 @@ export class RoutineService {
             )
             .eq('gym_id', gymId)
             .is('deleted_at', null)
-            .order('created_at', { ascending: false });
+            .order('created_at', { ascending: false })
+            .range(page * limit, (page + 1) * limit - 1);
 
         if (name) {
             console.log('name', name);

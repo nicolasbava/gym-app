@@ -17,9 +17,6 @@ export function AuthGuard({ children, fallback }: AuthGuardProps) {
     const routeConfig = getRouteConfig(pathname);
     const routeRequiresAuth = requiresAuth(pathname);
 
-    console.log('auth', auth);
-    console.log('IS AUTH', auth.isAuthenticated);
-
     useEffect(() => {
         if (auth.isLoading) return;
 

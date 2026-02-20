@@ -176,13 +176,13 @@ export async function assignRoutine(formData: AssignRoutine) {
     }
 }
 
-export async function getRoutinesByGymNameAction(gymId: string, name: string = '') {
+export async function getRoutinesByGymNameAction(gymId: string, name: string = '', page: number = 0) {
     if (!gymId) return { success: false, data: [], error: 'Gimnasio requerido' };
     try {
         const cookieStore = await cookies();
         const supabase = await createClient(cookieStore);
         const routineService = new RoutineService(supabase);
-        const data = await routineService.getRoutinesByGym(gymId, name);
+        const data = await routineService.getRoutinesByGym(gymId, name, page);
         return { success: true, data: data ?? [], error: null };
     } catch (error) {
         console.log('Error getting routines:', error);
