@@ -125,24 +125,15 @@ export class RoutineService {
         assigned_by:profiles!assigned_by(name)
       `,
             )
-            .eq('profile_id', profileId);
-        // .eq('status', 'active');
+            .eq('profile_id', profileId)
+            .eq('status', 'active')
+            .is('deleted_at', null);
+
+        console.log('data getUserActiveRoutines', data);
 
         if (error) {
             console.log('error getUserActiveRoutines', error);
             throw error;
-        }
-
-        // Filter out deleted exercises from the results
-        if (data) {
-            data.forEach((assignment: any) => {
-                if (assignment.exercises && assignment.exercises.routine_exercises) {
-                    assignment.exercises.routine_exercises =
-                        assignment.exercises.routine_exercises.filter(
-                            (ex: any) => ex.deleted_at === null,
-                        );
-                }
-            });
         }
 
         return data;

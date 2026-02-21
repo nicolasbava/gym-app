@@ -22,7 +22,9 @@ export interface UserProfile {
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 /** Get members (profiles with role=member) for a gym. */
-export async function getProfilesByGym(gymId: string): Promise<{ success: boolean; data: UserProfile[]; error?: string }> {
+export async function getProfilesByGym(
+    gymId: string,
+): Promise<{ success: boolean; data: UserProfile[]; error?: string }> {
     if (!gymId) return { success: false, data: [], error: 'Gimnasio requerido' };
     try {
         const cookieStore = await cookies();
@@ -31,13 +33,17 @@ export async function getProfilesByGym(gymId: string): Promise<{ success: boolea
             .from('profiles')
             .select('id, name, email, phone, image_url, role, gym_id')
             .eq('gym_id', gymId)
-            .eq('role', 'member')
+            // .eq('role', 'member')
             .is('deleted_at', null)
             .order('created_at', { ascending: false });
         if (error) return { success: false, data: [], error: error.message };
         return { success: true, data: (data ?? []) as UserProfile[], error: undefined };
     } catch (e) {
-        return { success: false, data: [], error: e instanceof Error ? e.message : 'Error al obtener clientes' };
+        return {
+            success: false,
+            data: [],
+            error: e instanceof Error ? e.message : 'Error al obtener clientes',
+        };
     }
 }
 
@@ -51,7 +57,11 @@ export async function getCurrentUserGymId(): Promise<{ gymId: string | null; err
     } = await supabase.auth.getUser();
 
     if (!user) return { gymId: null, error: 'No autenticado' };
-    const { data: profile } = await supabase.from('profiles').select('gym_id').eq('id', user.id).maybeSingle();
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('gym_id')
+        .eq('id', user.id)
+        .maybeSingle();
     return { gymId: profile?.gym_id ?? null };
 }
 
@@ -88,16 +98,19 @@ export async function createMember(data: CreateUser) {
     const redirectTo = `${siteUrl}/auth/callback`;
 
     // 2. Invite user by email (creates user in Auth and sends invite email via SMTP)
-    const { data: inviteData, error: authError } = await supabaseAdmin.auth.admin.inviteUserByEmail(data.email, {
-        data: {
-            name: data.name,
-            phone: data.phone,
-            gym_id: data.gym_id,
-            email: data.email,
-            role: data.role,
+    const { data: inviteData, error: authError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
+        data.email,
+        {
+            data: {
+                name: data.name,
+                phone: data.phone,
+                gym_id: data.gym_id,
+                email: data.email,
+                role: data.role,
+            },
+            redirectTo,
         },
-        redirectTo,
-    });
+    );
 
     if (authError) {
         return { success: false, error: authError.message };
@@ -130,7 +143,11 @@ export async function getCurrentUserProfile(): Promise<{
         return { profile: null, error: 'No autenticado' };
     }
 
-    const { data: profile, error } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
+    const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle();
 
     if (error) {
         return { profile: null, error: error.message };
@@ -142,7 +159,6 @@ export async function getCurrentUserProfile(): Promise<{
 
     return { profile };
 }
-
 
 /** Update a member's profile (trainer only, same gym). */
 export async function updateMember(
@@ -156,12 +172,21 @@ export async function updateMember(
     } = await supabase.auth.getUser();
     if (!user) return { success: false, error: 'No autenticado' };
 
-    const { data: coachProfile } = await supabase.from('profiles').select('role, gym_id').eq('id', user.id).maybeSingle();
+    const { data: coachProfile } = await supabase
+        .from('profiles')
+        .select('role, gym_id')
+        .eq('id', user.id)
+        .maybeSingle();
     if (!coachProfile || !['coach', 'coach_admin'].includes(coachProfile.role ?? '')) {
         return { success: false, error: 'No tienes permisos para editar este perfil' };
     }
 
-    const { data: memberProfile } = await supabase.from('profiles').select('gym_id').eq('id', profileId).eq('role', 'member').maybeSingle();
+    const { data: memberProfile } = await supabase
+        .from('profiles')
+        .select('gym_id')
+        .eq('id', profileId)
+        .eq('role', 'member')
+        .maybeSingle();
     if (!memberProfile) return { success: false, error: 'Cliente no encontrado' };
     if (memberProfile.gym_id !== coachProfile.gym_id) {
         return { success: false, error: 'No tienes permisos para editar este perfil' };
@@ -181,12 +206,17 @@ export async function updateMember(
     return { success: true, message: 'Perfil actualizado correctamente' };
 }
 
-export async function deleteProfile(profileId: string): Promise<{ success: boolean; error?: string; message?: string }> {
+export async function deleteProfile(
+    profileId: string,
+): Promise<{ success: boolean; error?: string; message?: string }> {
     const cookieStore = await cookies();
     const supabase = await createClient(cookieStore);
     // const { error } = await supabase.from('profiles').delete().eq('id', profileId);
 
-    const { error } = await supabase.from('profiles').update({ deleted_at: new Date().toISOString() }).eq('id', profileId);
+    const { error } = await supabase
+        .from('profiles')
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('id', profileId);
     if (error) return { success: false, error: error.message };
     revalidatePath('/trainer-dashboard');
     revalidatePath(`/member/${profileId}`);

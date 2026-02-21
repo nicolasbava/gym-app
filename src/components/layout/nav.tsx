@@ -27,10 +27,10 @@ export default function NavBar() {
     return (
         <nav className="flex gap-2 mb-6 overflow-x-auto pb-2 mt-8">
             {userProfile?.role === 'coach' && <CoachNavBar setCoachView={handleViewChange} />}
-            {userProfile?.role === 'member' ||
-                (userProfile?.role === 'coach' && mode === 'member' && (
-                    <MemberNavBar handleViewChange={handleViewChange} />
-                ))}
+            {(userProfile?.role === 'member' ||
+                (userProfile?.role === 'coach' && mode === 'member')) && (
+                <MemberNavBar handleViewChange={handleViewChange} />
+            )}
         </nav>
     );
 }
