@@ -1,5 +1,6 @@
 import { Pause, Play, RotateCcw, SkipForward } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import { useRestTimer } from '../hooks/useRestTimer';
 
 interface TimerProps {
     duration: number; // in seconds
@@ -8,31 +9,11 @@ interface TimerProps {
 }
 
 export function Timer({ duration, onComplete, onSkip }: TimerProps) {
-    const [timeLeft, setTimeLeft] = useState(duration);
-    const [isRunning, setIsRunning] = useState(true);
+    const { timeLeft, isRunning, start, pause, resume, reset } = useRestTimer(duration, onComplete);
 
     useEffect(() => {
-        setTimeLeft(duration);
-        setIsRunning(true);
-    }, [duration]);
-
-    useEffect(() => {
-        if (!isRunning || timeLeft <= 0) return;
-
-        const interval = setInterval(() => {
-            setTimeLeft((prev) => {
-                if (prev <= 1) {
-                    clearInterval(interval);
-                    setIsRunning(false);
-                    onComplete();
-                    return 0;
-                }
-                return prev - 1;
-            });
-        }, 1000);
-
-        return () => clearInterval(interval);
-    }, [isRunning, timeLeft, onComplete]);
+        start();
+    }, [duration, start]);
 
     const formatTime = (seconds: number) => {
         const mins = Math.floor(seconds / 60);
@@ -41,8 +22,16 @@ export function Timer({ duration, onComplete, onSkip }: TimerProps) {
     };
 
     const handleReset = () => {
-        setTimeLeft(duration);
-        setIsRunning(true);
+        reset();
+        start();
+    };
+
+    const handleToggleRunning = () => {
+        if (isRunning) {
+            pause();
+        } else {
+            resume();
+        }
     };
 
     const progress = ((duration - timeLeft) / duration) * 100;
@@ -62,7 +51,10 @@ export function Timer({ duration, onComplete, onSkip }: TimerProps) {
 
             <div className="relative mb-4">
                 <div className="w-full h-2 bg-white bg-opacity-20 rounded-full overflow-hidden">
-                    <div className="h-full bg-white transition-all duration-1000 ease-linear" style={{ width: `${progress}%` }} />
+                    <div
+                        className="h-full bg-white transition-all duration-1000 ease-linear"
+                        style={{ width: `${progress}%` }}
+                    />
                 </div>
             </div>
 
@@ -73,19 +65,19 @@ export function Timer({ duration, onComplete, onSkip }: TimerProps) {
 
             <div className="flex gap-3">
                 <button
-                    onClick={() => setIsRunning(!isRunning)}
-                    className="flex-1 flex items-center justify-center gap-2 py-3 bg-white bg-opacity-20 rounded-lg hover:bg-opacity-30 font-medium"
+                    onClick={handleToggleRunning}
+                    className="flex-1 flex items-center justify-center gap-2 py-3 bg-white bg-opacity-20 rounded-lg hover:bg-opacity-30 font-medium cursor-pointer"
                 >
                     {isRunning ? (
-                        <div className="text-black flex items-center gap-2 bg-white bg-opacity-20 rounded-lg hover:bg-opacity-30 cursor-pointer">
+                        <>
                             <Pause className="w-5 h-5" />
                             Pausar
-                        </div>
+                        </>
                     ) : (
-                        <div className="text-black flex items-center gap-2 bg-white bg-opacity-20 rounded-lg hover:bg-opacity-30 cursor-pointer">
-                            <Play className="w-5 h-5 text-black" />
+                        <>
+                            <Play className="w-5 h-5" />
                             Reanudar
-                        </div>
+                        </>
                     )}
                 </button>
                 <button

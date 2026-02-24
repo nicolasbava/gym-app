@@ -15,7 +15,7 @@ export default function Header() {
     const pathname = usePathname();
     const { userProfile, mode, setMode } = useApp();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const { isAuthenticated, clear, refetchSession, refetchUser } = useAuth();
+    const { isAuthenticated, clear } = useAuth();
     const { filteredButtons, showNav } = useFilteredNavButtons();
 
     // const pageIsNotAuth = usePathname() !== '/auth';

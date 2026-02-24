@@ -2,7 +2,14 @@
 
 import { AlertTriangle } from 'lucide-react';
 import { Button } from '../ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '../ui/dialog';
 
 interface ConfirmActionProps {
     open: boolean;
@@ -38,14 +45,23 @@ export default function ConfirmAction({
     };
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="bg-white border border-gray-200 rounded-lg max-w-md" showCloseButton={false}>
+        <Dialog open={open} onOpenChange={(open) => onOpenChange(open)}>
+            <DialogContent
+                className="bg-white border border-gray-200 rounded-lg max-w-md"
+                showCloseButton={false}
+            >
                 <DialogHeader>
                     <DialogTitle className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                        {variant === 'destructive' && <AlertTriangle className="h-6 w-6 text-red-600" />}
+                        {variant === 'destructive' && (
+                            <AlertTriangle className="h-6 w-6 text-red-600" />
+                        )}
                         {title}
                     </DialogTitle>
-                    {description && <DialogDescription className="text-sm text-gray-600 mt-2">{description}</DialogDescription>}
+                    {description && (
+                        <DialogDescription className="text-sm text-gray-600 mt-2">
+                            {description}
+                        </DialogDescription>
+                    )}
                 </DialogHeader>
 
                 <DialogFooter className="flex gap-3 sm:justify-end mt-4">
@@ -62,7 +78,9 @@ export default function ConfirmAction({
                         variant={variant === 'destructive' ? 'destructive' : 'default'}
                         onClick={handleConfirm}
                         className={`px-4 py-2 rounded-lg font-medium cursor-pointer ${
-                            variant === 'destructive' ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-blue-600 text-white hover:bg-blue-700'
+                            variant === 'destructive'
+                                ? 'bg-red-600 text-white hover:bg-red-700'
+                                : 'bg-blue-600 text-white hover:bg-blue-700'
                         }`}
                     >
                         {confirmText}

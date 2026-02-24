@@ -63,9 +63,14 @@ export default function RoutinesPage() {
     };
 
     const handleDelete = () => {
-        if (routineToDelete) {
-            deleteRoutineMutation.mutate(routineToDelete);
+        try {
+            if (routineToDelete) {
+                deleteRoutineMutation.mutate(routineToDelete);
+            }
+        } catch (error) {
+            console.log('error delete routine', error);
         }
+        setRoutineToDelete(null);
     };
 
     const handleOpenDeleteDialog = (id: string) => {
@@ -125,7 +130,9 @@ export default function RoutinesPage() {
                                 handleOpenDeleteDialog={handleOpenDeleteDialog}
                                 handleDelete={handleDelete}
                                 openDeleteDialog={routineToDelete === routine.id}
-                                setOpenDeleteDialog={() => setRoutineToDelete(routine.id)}
+                                setOpenDeleteDialog={(open) =>
+                                setRoutineToDelete(open ? routine.id : null)
+                            }
                             />
                         ))}
                     </div>

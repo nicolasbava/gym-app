@@ -30,8 +30,6 @@ export default function WorkoutPage() {
         router.push(navigationHelpers.redirectAfterWorkout());
     };
 
-    console.log('LLEGUE 1');
-
     const {
         data: routine,
         error,
@@ -40,8 +38,6 @@ export default function WorkoutPage() {
         queryKey: ['routine', id],
         queryFn: () => getRoutineById(id),
     });
-
-    console.log('LLEGUE 2');
 
     if (!routine) return <div>Routine not found</div>;
 

@@ -69,13 +69,13 @@ export default function RoutineCard({
             {openDeleteDialog && (
                 <ConfirmAction
                     open={openDeleteDialog}
-                    onOpenChange={(open) => {
-                        if (!open) {
-                            setOpenDeleteDialog(false);
-                        }
+                    onOpenChange={() => {
+                        setOpenDeleteDialog(false);
                     }}
                     onConfirm={handleDelete}
-                    onCancel={() => setOpenDeleteDialog(false)}
+                    onCancel={() => {
+                        setOpenDeleteDialog(false);
+                    }}
                     title="Eliminar rutina"
                     description="¿Estás seguro de querer eliminar esta rutina?"
                     variant="destructive"

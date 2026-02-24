@@ -228,26 +228,6 @@ export class RoutineService {
             throw deleteError;
         }
 
-        // console.log('updatedRoutine.exercises', updatedRoutine.exercises);
-        // console.log('parsedRoutine', parsedRoutine);
-
-        // if (updatedRoutine.exercises && updatedRoutine.exercises.length > 0) {
-        //     const { error: insertError } = await this.supabase.from('routine_exercises').insert(
-        //         updatedRoutine.exercises.map((exercise: any, index: number) => ({
-        //             routine_id: routine.id,
-        //             exercise_id: exercise.id,
-        //             order: index,
-        //             sets: exercise.sets,
-        //             reps: exercise.reps,
-        //         })),
-        //     );
-
-        //     if (insertError) {
-        //         console.log('insertError', insertError);
-        //         throw insertError;
-        //     }
-        // }
-
         const exercisesToInsert = parsedRoutine.data.exercises.map((ex) => ({
             routine_id: parsedRoutine.data.id,
             ...ex,
@@ -267,24 +247,39 @@ export class RoutineService {
     }
 
     async deleteRoutine(id: string) {
-        // soft deleting the routine
+        // soft delete the routine
         const { data, error } = await this.supabase
             .from('routines')
             .update({ deleted_at: new Date().toISOString() })
             .eq('id', id);
+
         if (error) {
             console.log('error deleteRoutine', error);
             throw error;
         }
-        // soft deleting the routine_exercises item
+
+        // soft delete the routine_exercises
         const { error: routineExercisesError } = await this.supabase
             .from('routine_exercises')
             .update({ deleted_at: new Date().toISOString() })
             .eq('routine_id', id);
+
         if (routineExercisesError) {
             console.log('error deleteRoutineExercises', routineExercisesError);
             throw routineExercisesError;
         }
+
+        // mark all profile_routines as deleted
+        const { error: profileRoutinesError } = await this.supabase
+            .from('profile_routines')
+            .update({ status: 'deleted' })
+            .eq('routine_id', id);
+
+        if (profileRoutinesError) {
+            console.log('error deleteProfileRoutines', profileRoutinesError);
+            throw profileRoutinesError;
+        }
+
         return data;
     }
 }
