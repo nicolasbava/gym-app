@@ -3,10 +3,10 @@
 import {
     AssignRoutine,
     assignRoutineSchema,
-    createRoutineSchema,
+    createRoutineInputSchema,
     RoutineExercise,
     updateRoutineSchema,
-    type CreateRoutine,
+    type CreateRoutineInput,
     type UpdateRoutine,
 } from '@/src/modules/routines/routines.schema';
 import { RoutineService } from '@/src/modules/routines/routines.service';
@@ -15,9 +15,8 @@ import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { getCurrentUserProfile } from './users';
 
-export async function createRoutine(formData: CreateRoutine) {
-    // Validar datos del formulario
-    const validationResult = createRoutineSchema.safeParse(formData);
+export async function createRoutine(formData: CreateRoutineInput) {
+    const validationResult = createRoutineInputSchema.safeParse(formData);
 
     if (!validationResult.success) {
         return {

@@ -5,12 +5,14 @@ import { createExercise, getEquipmentTypes, getMuscleGroups, updateExercise } fr
 import { Button } from '@/src/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/src/components/ui/form';
 import { Input } from '@/src/components/ui/input';
+import { Label } from '@/src/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/src/components/ui/select';
 import { Textarea } from '@/src/components/ui/textarea';
 import { createExerciseSchema, type CreateExercise, type UpdateExercise } from '@/src/modules/exercises/exercises.schema';
+import { uploadExerciseImage } from '@/src/modules/exercises/useUploadExImage';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 interface Exercise {
@@ -28,9 +30,16 @@ interface CreateExerciseFormProps {
     setOpen?: (open: boolean) => void; // Para cerrar el diálogo desde fuera
 }
 
+const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const MAX_IMAGE_SIZE_MB = 5;
+
 export default function CreateExerciseForm({ gymId, exercise, onSuccess, setOpen }: CreateExerciseFormProps) {
     const queryClient = useQueryClient();
     const isEditing = !!exercise;
+    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+    const pendingImageFileRef = useRef<File | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Preparar valores por defecto basados en si estamos editando o creando
     const defaultValues = useMemo(() => {
@@ -98,6 +107,49 @@ export default function CreateExerciseForm({ gymId, exercise, onSuccess, setOpen
         }
     }, [exercise?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    // Cleanup object URL on unmount or when image file changes
+    useEffect(() => {
+        return () => {
+            if (imagePreviewUrl) {
+                URL.revokeObjectURL(imagePreviewUrl);
+            }
+        };
+    }, [imagePreviewUrl]);
+
+    const handleImageChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) {
+            setImageFile(null);
+            setImagePreviewUrl((prev) => {
+                if (prev) URL.revokeObjectURL(prev);
+                return null;
+            });
+            return;
+        }
+        if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+            return;
+        }
+        if (file.size > MAX_IMAGE_SIZE_MB * 1024 * 1024) {
+            return;
+        }
+        setImagePreviewUrl((prev) => {
+            if (prev) URL.revokeObjectURL(prev);
+            return URL.createObjectURL(file);
+        });
+        setImageFile(file);
+    }, []);
+
+    const handleClearImage = useCallback(() => {
+        setImageFile(null);
+        setImagePreviewUrl((prev) => {
+            if (prev) URL.revokeObjectURL(prev);
+            return null;
+        });
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    }, []);
+
     // Create or update exercise mutation
     const exerciseMutation = useMutation({
         mutationFn: async (data: CreateExercise) => {
@@ -122,29 +174,35 @@ export default function CreateExerciseForm({ gymId, exercise, onSuccess, setOpen
                 return result;
             }
         },
-        onSuccess: async () => {
-            // Invalidate and refetch exercises queries to ensure list is updated
+        onSuccess: async (result) => {
+            if (!isEditing && result?.data?.id && pendingImageFileRef.current) {
+                try {
+                    await uploadExerciseImage(result.data.id, pendingImageFileRef.current);
+                } catch (err) {
+                    console.error('Error uploading exercise image:', err);
+                }
+                pendingImageFileRef.current = null;
+            }
+
             await queryClient.invalidateQueries({
                 queryKey: ['exercises'],
                 exact: false,
             });
-            // Force refetch to ensure immediate update
             await queryClient.refetchQueries({
                 queryKey: ['exercises'],
                 exact: false,
             });
 
             if (!isEditing) {
-                // Solo resetear el formulario si estamos creando
                 form.reset({
                     name: '',
                     description: '',
                     muscle_group: '',
                     created_by: form.getValues('created_by'),
                 });
+                handleClearImage();
             }
 
-            // Call success callback if provided
             if (onSuccess) {
                 onSuccess();
             }
@@ -152,6 +210,7 @@ export default function CreateExerciseForm({ gymId, exercise, onSuccess, setOpen
     });
 
     const onSubmit = async (data: CreateExercise) => {
+        pendingImageFileRef.current = imageFile ?? null;
         exerciseMutation.mutate(data);
     };
 
@@ -212,6 +271,55 @@ export default function CreateExerciseForm({ gymId, exercise, onSuccess, setOpen
                         )}
                     />
 
+                    {!isEditing && (
+                        <div className="space-y-2">
+                            <Label className="text-sm font-medium text-gray-700">Foto (opcional)</Label>
+                            <p className="text-xs text-muted-foreground">
+                                Una sola imagen. JPG, PNG, WebP o GIF. Máx. {MAX_IMAGE_SIZE_MB} MB.
+                            </p>
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept={ACCEPTED_IMAGE_TYPES.join(',')}
+                                onChange={handleImageChange}
+                                className="hidden"
+                                aria-label="Seleccionar imagen del ejercicio"
+                            />
+                            {imagePreviewUrl ? (
+                                <div className="flex items-start gap-3 rounded-lg border border-gray-300 bg-muted/30 p-3">
+                                    <img
+                                        src={imagePreviewUrl}
+                                        alt="Vista previa"
+                                        className="h-20 w-20 shrink-0 rounded-md object-cover"
+                                    />
+                                    <div className="flex flex-1 flex-col gap-2">
+                                        <p className="text-sm text-muted-foreground truncate">{imageFile?.name}</p>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={handleClearImage}
+                                            disabled={exerciseMutation.isPending}
+                                            className="w-fit cursor-pointer"
+                                        >
+                                            Quitar foto
+                                        </Button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => fileInputRef.current?.click()}
+                                    disabled={exerciseMutation.isPending}
+                                    className="w-full cursor-pointer"
+                                >
+                                    Añadir foto
+                                </Button>
+                            )}
+                        </div>
+                    )}
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FormField
                             control={form.control}
@@ -268,7 +376,6 @@ export default function CreateExerciseForm({ gymId, exercise, onSuccess, setOpen
                                 if (setOpen) {
                                     setOpen(false);
                                 } else if (isEditing && exercise) {
-                                    // Resetear a los valores originales del ejercicio
                                     form.reset(defaultValues);
                                 } else {
                                     form.reset({
@@ -277,6 +384,7 @@ export default function CreateExerciseForm({ gymId, exercise, onSuccess, setOpen
                                         muscle_group: '',
                                         created_by: form.getValues('created_by'),
                                     });
+                                    handleClearImage();
                                 }
                                 if (onSuccess) {
                                     onSuccess();

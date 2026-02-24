@@ -12,6 +12,7 @@ import {
     FormMessage,
 } from '@/src/components/ui/form';
 import { Input } from '@/src/components/ui/input';
+import { Label } from '@/src/components/ui/label';
 import {
     Select,
     SelectContent,
@@ -21,16 +22,20 @@ import {
 } from '@/src/components/ui/select';
 import { Textarea } from '@/src/components/ui/textarea';
 import {
-    createRoutineSchema,
-    type CreateRoutine,
+    createRoutineInputSchema,
+    type CreateRoutineInput,
     type RoutineWithExercises,
     type UpdateRoutine,
 } from '@/src/modules/routines/routines.schema';
+import { uploadRoutineImage } from '@/src/modules/routines/useUploadRoutineImage';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { GripVertical, Trash2 } from 'lucide-react';
-import { useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
+
+const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const MAX_IMAGE_SIZE_MB = 5;
 
 interface Exercise {
     id: string;
@@ -55,6 +60,10 @@ export default function CreateRoutineForm({
 }: CreateRoutineDialogProps) {
     const queryClient = useQueryClient();
     const isEditing = !!routine;
+    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+    const pendingImageFileRef = useRef<File | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Preparar valores por defecto basados en si estamos editando o creando
     const defaultValues = useMemo(() => {
@@ -109,8 +118,8 @@ export default function CreateRoutineForm({
         };
     }, [routine, gymId]);
 
-    const form = useForm<CreateRoutine>({
-        resolver: zodResolver(createRoutineSchema),
+    const form = useForm<CreateRoutineInput>({
+        resolver: zodResolver(createRoutineInputSchema),
         defaultValues,
     });
 
@@ -157,19 +166,63 @@ export default function CreateRoutineForm({
         }
     }, [routine?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    useEffect(() => {
+        return () => {
+            if (imagePreviewUrl) {
+                URL.revokeObjectURL(imagePreviewUrl);
+            }
+        };
+    }, [imagePreviewUrl]);
+
+    const handleImageChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) {
+            setImageFile(null);
+            setImagePreviewUrl((prev) => {
+                if (prev) URL.revokeObjectURL(prev);
+                return null;
+            });
+            return;
+        }
+        if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+            return;
+        }
+        if (file.size > MAX_IMAGE_SIZE_MB * 1024 * 1024) {
+            return;
+        }
+        setImagePreviewUrl((prev) => {
+            if (prev) URL.revokeObjectURL(prev);
+            return URL.createObjectURL(file);
+        });
+        setImageFile(file);
+    }, []);
+
+    const handleClearImage = useCallback(() => {
+        setImageFile(null);
+        setImagePreviewUrl((prev) => {
+            if (prev) URL.revokeObjectURL(prev);
+            return null;
+        });
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    }, []);
+
     // Create or update routine mutation
     const routineMutation = useMutation({
-        mutationFn: async (data: CreateRoutine) => {
+        mutationFn: async (data: CreateRoutineInput) => {
             if (isEditing && routine) {
-                // Modo edición: actualizar rutina
                 const updateData: UpdateRoutine = {
                     id: routine.id,
                     name: data.name,
                     description: data.description,
                     exercises: data.exercises,
                     updated_at: new Date().toISOString(),
+                    created_by: routine.created_by,
+                    created_at: routine.created_at ?? new Date().toISOString(),
+                    gym_id: data.gym_id,
+                    image_url: routine.image_url ?? undefined,
                 };
-                console.log('updateData', updateData);
                 const result = await updateRoutine(updateData);
                 if (!result.success) {
                     throw new Error(result.error || 'Error al actualizar la rutina');
@@ -181,25 +234,30 @@ export default function CreateRoutineForm({
                 if (!result.success) {
                     throw new Error(result.error || 'Error al crear la rutina');
                 }
-                console.log('result update', result);
                 return result;
             }
         },
-        onSuccess: async () => {
-            // Invalidate and refetch routines queries to ensure list is updated
-            // Invalidar todas las queries de rutinas (con y sin gym_id)
+        onSuccess: async (result) => {
+            const routineId = result?.data?.id ?? routine?.id;
+            if (routineId && pendingImageFileRef.current) {
+                try {
+                    await uploadRoutineImage(routineId, pendingImageFileRef.current);
+                } catch (err) {
+                    console.error('Error uploading routine image:', err);
+                }
+                pendingImageFileRef.current = null;
+            }
+
             await queryClient.invalidateQueries({
                 queryKey: ['routines'],
                 exact: false,
             });
-            // Force refetch to ensure immediate update
             await queryClient.refetchQueries({
                 queryKey: ['routines'],
                 exact: false,
             });
 
             if (!isEditing) {
-                // Solo resetear el formulario si estamos creando
                 form.reset({
                     gym_id: gymId,
                     name: '',
@@ -217,16 +275,17 @@ export default function CreateRoutineForm({
                         },
                     ],
                 });
+                handleClearImage();
             }
 
-            // Call success callback if provided
             if (onSuccess) {
                 onSuccess();
             }
         },
     });
 
-    const onSubmit = async (data: CreateRoutine) => {
+    const onSubmit = async (data: CreateRoutineInput) => {
+        pendingImageFileRef.current = imageFile ?? null;
         routineMutation.mutate(data);
     };
 
@@ -310,6 +369,79 @@ export default function CreateRoutineForm({
                             </FormItem>
                         )}
                     />
+
+                    <div className="space-y-2">
+                        <Label className="text-sm font-medium text-gray-700">
+                            {isEditing ? 'Foto de la rutina' : 'Foto (opcional)'}
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
+                            Una sola imagen. JPG, PNG, WebP o GIF. Máx. {MAX_IMAGE_SIZE_MB} MB.
+                            {isEditing && ' Sube una nueva imagen para reemplazar la actual.'}
+                        </p>
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept={ACCEPTED_IMAGE_TYPES.join(',')}
+                            onChange={handleImageChange}
+                            className="hidden"
+                            aria-label="Seleccionar imagen de la rutina"
+                        />
+                        {imagePreviewUrl ? (
+                            <div className="flex items-start gap-3 rounded-lg border border-gray-300 bg-muted/30 p-3">
+                                <img
+                                    src={imagePreviewUrl}
+                                    alt="Vista previa"
+                                    className="h-20 w-20 shrink-0 rounded-md object-cover"
+                                />
+                                <div className="flex flex-1 flex-col gap-2">
+                                    <p className="text-sm text-muted-foreground truncate">
+                                        {imageFile?.name}
+                                    </p>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={handleClearImage}
+                                        disabled={routineMutation.isPending}
+                                        className="w-fit cursor-pointer"
+                                    >
+                                        Quitar foto
+                                    </Button>
+                                </div>
+                            </div>
+                        ) : routine?.image_url ? (
+                            <div className="flex items-start gap-3 rounded-lg border border-gray-300 bg-muted/30 p-3">
+                                <img
+                                    src={routine.image_url}
+                                    alt="Imagen actual de la rutina"
+                                    className="h-20 w-20 shrink-0 rounded-md object-cover"
+                                />
+                                <div className="flex flex-1 flex-col gap-2">
+                                    <p className="text-sm text-muted-foreground">Imagen actual</p>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => fileInputRef.current?.click()}
+                                        disabled={routineMutation.isPending}
+                                        className="w-fit cursor-pointer"
+                                    >
+                                        Cambiar imagen
+                                    </Button>
+                                </div>
+                            </div>
+                        ) : (
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => fileInputRef.current?.click()}
+                                disabled={routineMutation.isPending}
+                                className="w-full cursor-pointer"
+                            >
+                                {isEditing ? 'Añadir imagen' : 'Añadir foto'}
+                            </Button>
+                        )}
+                    </div>
 
                     <div>
                         <div className="flex items-center justify-between mb-3">
@@ -542,11 +674,11 @@ export default function CreateRoutineForm({
                             variant="outline"
                             onClick={() => {
                                 if (isEditing && routine) {
-                                    // Resetear a los valores originales de la rutina
                                     form.reset(defaultValues);
                                     handleCancel();
                                 } else {
                                     form.reset();
+                                    handleClearImage();
                                     handleCancel();
                                 }
                             }}

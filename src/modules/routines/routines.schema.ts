@@ -12,7 +12,9 @@ export const routineSchema = z.object({
         .optional(),
     created_by: z.string().min(1, 'El creador es requerido'),
     created_at: z.string().min(1, 'La fecha de creación es requerida'),
+    image_url: z.string().optional().nullable(),
     updated_at: z.string().min(1, 'La fecha de actualización es requerida'),
+    gym_id: z.string().min(1, 'El gimnasio es requerido'),
 });
 
 export const routineExerciseSchema = z.object({
@@ -25,7 +27,8 @@ export const routineExerciseSchema = z.object({
     weight: z.string().optional(),
 });
 
-export const createRoutineSchema = z.object({
+/** Payload for creating a routine (no id, created_at, updated_at). */
+export const createRoutineInputSchema = z.object({
     gym_id: z.string().min(1, 'El gimnasio es requerido'),
     name: z
         .string()
@@ -42,21 +45,16 @@ export const createRoutineSchema = z.object({
         .max(50, 'El máximo de ejercicios es 50 por rutina'),
 });
 
-export const updateRoutineSchema = z.object({
-    id: z.string().min(1, 'El id es requerido'),
-    updated_at: z.string().min(1, 'La fecha de actualización es requerida'),
-    name: z
-        .string()
-        .min(3, 'El nombre debe tener al menos 3 caracteres')
-        .max(100, 'El nombre no debe tener más de 100 caracteres'),
-    description: z
-        .string()
-        .max(500, 'La descripción no debe tener más de 500 caracteres')
-        .optional(),
+export const createRoutineSchema = routineSchema.extend({
     exercises: z
         .array(routineExerciseSchema)
         .min(1, 'Debe tener al menos un ejercicio')
         .max(50, 'El máximo de ejercicios es 50 por rutina'),
+});
+
+export const updateRoutineSchema = createRoutineSchema.extend({
+    id: z.string().min(1, 'El id es requerido'),
+    updated_at: z.string().min(1, 'La fecha de actualización es requerida'),
 });
 
 export const assignRoutineSchema = z.object({
@@ -74,6 +72,7 @@ export const exerciseSchema = z.object({
     description: z.string(),
     muscle_group: z.string().nullable(),
     equipment: z.string().nullable(),
+    image_url: z.array(z.string()).optional().nullable(),
 });
 
 export const routineExerciseWithExerciseSchema = z.object({
@@ -97,6 +96,7 @@ export const routineWithExercisesSchema = z.object({
     created_at: z.string(),
     created_by: z.string(),
     description: z.string(),
+    image_url: z.string().optional().nullable(),
     routine_exercises: z.array(routineExerciseWithExerciseSchema),
 });
 
@@ -107,16 +107,19 @@ export const assignedRoutineWithDetailsSchema = z.object({
     start_date: z.string().nullable(),
     end_date: z.string().nullable(),
     status: z.string(),
+    image_url: z.string().optional().nullable(),
     routine_id: z.string(),
     assigned_by: z.object({
         name: z.string(),
     }),
+    routine: routineSchema,
     exercises: routineWithExercisesSchema,
 });
 
 // Infer types
 export type Routine = z.infer<typeof routineSchema>;
 export type RoutineExercise = z.infer<typeof routineExerciseSchema>;
+export type CreateRoutineInput = z.infer<typeof createRoutineInputSchema>;
 export type CreateRoutine = z.infer<typeof createRoutineSchema>;
 export type UpdateRoutine = z.infer<typeof updateRoutineSchema>;
 export type AssignRoutine = z.infer<typeof assignRoutineSchema>;
@@ -168,3 +171,128 @@ export type Exercise = z.infer<typeof exerciseSchema>;
 //         ]
 //     }
 // }
+
+// import { z } from 'zod';
+
+// // ─── Base schemas (building blocks) ───────────────────────────────────────────
+
+// const baseEntitySchema = z.object({
+//     id: z.string().min(1, 'El id es requerido'),
+//     created_at: z.string().min(1, 'La fecha de creación es requerida'),
+//     created_by: z.string().min(1, 'El creador es requerido'),
+// });
+
+// const dateRangeSchema = z.object({
+//     start_date: z.string().nullable(),
+//     end_date: z.string().nullable(),
+// });
+
+// const imageSchema = z.object({
+//     image_url: z.string().optional().nullable(),
+// });
+
+// // ─── Exercise ─────────────────────────────────────────────────────────────────
+
+// export const exerciseSchema = baseEntitySchema.extend({
+//     name: z.string(),
+//     gym_id: z.string().nullable(),
+//     video_url: z.string().nullable(),
+//     description: z.string(),
+//     muscle_group: z.string().nullable(),
+//     equipment: z.string().nullable(),
+//     image_url: z.array(z.string()).optional().nullable(),
+// });
+
+// // ─── Routine Exercise ──────────────────────────────────────────────────────────
+
+// export const routineExerciseSchema = z.object({
+//     exercise_id: z.string().min(1, 'El ejercicio es requerido'),
+//     order_index: z.number().min(0, 'El orden debe ser mayor o igual a 0'),
+//     sets: z.number().int().min(1, 'El número de series debe ser mayor o igual a 1'),
+//     reps: z.string().min(1, 'El número de repeticiones es requerido'),
+//     rest_seconds: z.number().int().min(0, 'El tiempo de descanso debe ser mayor o igual a 0'),
+//     notes: z.string().optional(),
+//     weight: z.string().optional(),
+// });
+
+// export const routineExerciseWithExerciseSchema = baseEntitySchema
+//     .omit({ created_by: true })
+//     .extend({
+//         reps: z.string(),
+//         sets: z.string(),
+//         weight: z.string().nullable(),
+//         notes: z.string(),
+//         exercise: exerciseSchema,
+//         routine_id: z.string(),
+//         exercise_id: z.string(),
+//         order_index: z.string(),
+//         rest_seconds: z.string(),
+//     });
+
+// // ─── Routine ──────────────────────────────────────────────────────────────────
+
+// export const routineSchema = baseEntitySchema
+//     .merge(imageSchema)
+//     .extend({
+//         name: z
+//             .string()
+//             .min(3, 'El nombre debe tener al menos 3 caracteres')
+//             .max(100, 'El nombre no debe tener más de 100 caracteres'),
+//         description: z
+//             .string()
+//             .max(500, 'La descripción no debe tener más de 500 caracteres')
+//             .optional(),
+//         updated_at: z.string().min(1, 'La fecha de actualización es requerida'),
+//     });
+
+// export const routineWithExercisesSchema = baseEntitySchema.extend({
+//     name: z.string(),
+//     gym_id: z.string(),
+//     description: z.string(),
+//     image_url: z.array(z.string()).optional().nullable(),
+//     routine_exercises: z.array(routineExerciseWithExerciseSchema),
+// });
+
+// // ─── CRUD schemas ─────────────────────────────────────────────────────────────
+
+// const exercisesArraySchema = z.object({
+//     exercises: z
+//         .array(routineExerciseSchema)
+//         .min(1, 'Debe tener al menos un ejercicio')
+//         .max(50, 'El máximo de ejercicios es 50 por rutina'),
+// });
+
+// export const createRoutineSchema = routineSchema.merge(exercisesArraySchema);
+
+// export const updateRoutineSchema = createRoutineSchema;
+
+// export const assignRoutineSchema = z.object({
+//     routine_id: z.string().min(1, 'La rutina es requerida'),
+//     profile_id: z.string().min(1, 'El perfil es requerido'),
+// });
+
+// // ─── Assigned Routine ─────────────────────────────────────────────────────────
+
+// export const assignedRoutineWithDetailsSchema = baseEntitySchema
+//     .omit({ created_by: true })
+//     .merge(dateRangeSchema)
+//     .merge(imageSchema)
+//     .extend({
+//         profile_id: z.string(),
+//         status: z.string(),
+//         routine_id: z.string(),
+//         assigned_by: z.object({ name: z.string() }),
+//         exercises: routineWithExercisesSchema,
+//     });
+
+// // ─── Types ────────────────────────────────────────────────────────────────────
+
+// export type Routine = z.infer<typeof routineSchema>;
+// export type RoutineExercise = z.infer<typeof routineExerciseSchema>;
+// export type CreateRoutine = z.infer<typeof createRoutineSchema>;
+// export type UpdateRoutine = z.infer<typeof updateRoutineSchema>;
+// export type AssignRoutine = z.infer<typeof assignRoutineSchema>;
+// export type Exercise = z.infer<typeof exerciseSchema>;
+// export type RoutineWithExercises = z.infer<typeof routineWithExercisesSchema>;
+// export type RoutineExerciseWithExercise = z.infer<typeof routineExerciseWithExerciseSchema>;
+// export type AssignedRoutineWithDetails = z.infer<typeof assignedRoutineWithDetailsSchema>;

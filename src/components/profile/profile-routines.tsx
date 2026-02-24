@@ -2,7 +2,11 @@
 
 import { Badge } from '@/src/components/ui/badge';
 import { Card, CardContent, CardHeader } from '@/src/components/ui/card';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/src/components/ui/collapsible';
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from '@/src/components/ui/collapsible';
 import { Skeleton } from '@/src/components/ui/skeleton';
 import { useRoutines } from '@/src/modules/routines/useRoutines';
 import { ChevronDown, Dumbbell, ListOrdered, User } from 'lucide-react';
@@ -37,7 +41,7 @@ export default function RoutinesProfile({ profileId }: { profileId: string }) {
         if (!profileId) return;
         let cancelled = false;
         getUserActiveRoutines(profileId).then((data) => {
-            if (!cancelled && Array.isArray(data)) setRoutinesData(data);
+            if (!cancelled && Array.isArray(data)) setRoutinesData(data as RoutineAssignment[]);
         });
         return () => {
             cancelled = true;
@@ -76,7 +80,9 @@ export default function RoutinesProfile({ profileId }: { profileId: string }) {
             <div className="rounded-lg border border-purple-800/30 bg-purple-900/10 px-4 py-8 text-center">
                 <Dumbbell className="mx-auto h-10 w-10 text-purple-500/60" />
                 <p className="mt-2 text-sm font-medium text-purple-200">Sin rutinas asignadas</p>
-                <p className="mt-1 text-xs text-purple-300/70">Asigna una rutina desde el dashboard del entrenador.</p>
+                <p className="mt-1 text-xs text-purple-300/70">
+                    Asigna una rutina desde el dashboard del entrenador.
+                </p>
             </div>
         );
     }
@@ -87,19 +93,29 @@ export default function RoutinesProfile({ profileId }: { profileId: string }) {
                 const routine = assignment.routine;
                 const exercises = routine?.routine_exercises ?? [];
                 return (
-                    <Card key={assignment.id ?? routine?.name ?? Math.random()} className="bg-black/20 border-purple-800/30 overflow-hidden">
+                    <Card
+                        key={assignment.id ?? routine?.name ?? Math.random()}
+                        className="bg-black/20 border-purple-800/30 overflow-hidden"
+                    >
                         <Collapsible defaultOpen={routinesData.length <= 2}>
                             <CardHeader className="pb-2">
                                 <div className="flex items-start justify-between gap-3">
                                     <div className="min-w-0 flex-1">
                                         <div className="flex flex-wrap items-center gap-2">
-                                            <h3 className="font-semibold text-white truncate">{routine?.name ?? 'Rutina'}</h3>
-                                            <Badge variant="secondary" className="bg-green-900/30 text-green-300 border-green-700/50 text-xs">
+                                            <h3 className="font-semibold text-white truncate">
+                                                {routine?.name ?? 'Rutina'}
+                                            </h3>
+                                            <Badge
+                                                variant="secondary"
+                                                className="bg-green-900/30 text-green-300 border-green-700/50 text-xs"
+                                            >
                                                 Activa
                                             </Badge>
                                         </div>
                                         {routine?.description ? (
-                                            <p className="mt-1 text-sm text-purple-200/90 line-clamp-2">{routine.description}</p>
+                                            <p className="mt-1 text-sm text-purple-200/90 line-clamp-2">
+                                                {routine.description}
+                                            </p>
                                         ) : null}
                                         <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-purple-300/80">
                                             {assignment.assigned_by?.name ? (
@@ -111,7 +127,8 @@ export default function RoutinesProfile({ profileId }: { profileId: string }) {
                                             {exercises.length > 0 ? (
                                                 <span className="flex items-center gap-1">
                                                     <ListOrdered className="h-3.5 w-3.5" />
-                                                    {exercises.length} ejercicio{exercises.length !== 1 ? 's' : ''}
+                                                    {exercises.length} ejercicio
+                                                    {exercises.length !== 1 ? 's' : ''}
                                                 </span>
                                             ) : null}
                                         </div>
@@ -130,13 +147,21 @@ export default function RoutinesProfile({ profileId }: { profileId: string }) {
                             <CollapsibleContent>
                                 <CardContent className="pt-0">
                                     <div className="rounded-lg bg-purple-950/20 border border-purple-800/20 p-3">
-                                        <p className="mb-2 text-xs font-medium uppercase tracking-wider text-purple-400">Ejercicios</p>
+                                        <p className="mb-2 text-xs font-medium uppercase tracking-wider text-purple-400">
+                                            Ejercicios
+                                        </p>
                                         <ul className="space-y-2">
                                             {exercises.length === 0 ? (
-                                                <li className="text-sm text-purple-300/70">Sin ejercicios en esta rutina.</li>
+                                                <li className="text-sm text-purple-300/70">
+                                                    Sin ejercicios en esta rutina.
+                                                </li>
                                             ) : (
                                                 exercises
-                                                    .sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0))
+                                                    .sort(
+                                                        (a, b) =>
+                                                            (a.order_index ?? 0) -
+                                                            (b.order_index ?? 0),
+                                                    )
                                                     .map((ex, idx) => (
                                                         <li
                                                             key={ex.id ?? ex.exercise_id ?? idx}
@@ -145,10 +170,18 @@ export default function RoutinesProfile({ profileId }: { profileId: string }) {
                                                             <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-purple-700/40 text-xs font-medium text-purple-200">
                                                                 {idx + 1}
                                                             </span>
-                                                            <span>{ex.exercise?.name ?? 'Ejercicio'}</span>
+                                                            <span>
+                                                                {ex.exercise?.name ?? 'Ejercicio'}
+                                                            </span>
                                                             {(ex.sets != null || ex.reps) && (
                                                                 <span className="text-purple-300/80">
-                                                                    {[ex.sets != null && `${ex.sets} series`, ex.reps].filter(Boolean).join(' · ')}
+                                                                    {[
+                                                                        ex.sets != null &&
+                                                                            `${ex.sets} series`,
+                                                                        ex.reps,
+                                                                    ]
+                                                                        .filter(Boolean)
+                                                                        .join(' · ')}
                                                                 </span>
                                                             )}
                                                         </li>

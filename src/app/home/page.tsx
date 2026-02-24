@@ -40,11 +40,6 @@ const MemberHomePage = () => {
     if (error) return <div>Error: {error.message}</div>;
     if (!data) return <div>No data found</div>;
 
-    // const parsedData = routineSchema.array().safeParse(data);
-    // if (!parsedData.success) return <div>Error: {parsedData.error.message}</div>;
-
-    // const exercises = parsedData.routine;
-
     return (
         <div>
             <div className="mb-6">
@@ -58,6 +53,20 @@ const MemberHomePage = () => {
                         key={routine.id}
                         className="bg-white rounded-lg shadow-sm border overflow-hidden hover:shadow-md transition-shadow"
                     >
+                        {/* Routine Image/Video */}
+                        <div className="relative h-64 md:h-96 bg-gray-900">
+                            <img
+                                src={routine.routine.image_url ?? ''}
+                                alt={routine.exercises.name}
+                                className="w-full h-full object-cover opacity-90"
+                            />
+                            {/* <button
+                                onClick={() => setShowExerciseDetails(!showExerciseDetails)}
+                                className="absolute top-4 right-4 px-3 py-2 bg-white bg-opacity-90 rounded-lg font-medium text-sm"
+                            >
+                                {showExerciseDetails ? 'Hide' : 'Show'} Details
+                            </button> */}
+                        </div>
                         <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-6 text-white">
                             <h3 className="text-xl font-semibold mb-2">{routine.exercises.name}</h3>
                             <p className="text-blue-100 text-sm">{routine.exercises.description}</p>

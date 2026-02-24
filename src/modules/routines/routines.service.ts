@@ -1,3 +1,4 @@
+import { getImageUrl } from '@/src/app/actions/images';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { updateRoutineSchema } from './routines.schema';
 
@@ -122,6 +123,7 @@ export class RoutineService {
             exercise:exercises(*)
           )
         ),
+        routine:routines(image_url),
         assigned_by:profiles!assigned_by(name)
       `,
             )
@@ -129,11 +131,17 @@ export class RoutineService {
             .eq('status', 'active')
             .is('deleted_at', null);
 
-        console.log('data getUserActiveRoutines', data);
-
         if (error) {
             console.log('error getUserActiveRoutines', error);
             throw error;
+        }
+
+        // get the image url from the routine image_url
+        for (const routine of data) {
+            if (routine.routine.image_url === null) continue;
+
+            const imageUrl = await getImageUrl(routine.routine.image_url);
+            routine.routine.image_url = imageUrl;
         }
 
         return data;

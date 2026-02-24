@@ -1,5 +1,4 @@
 'use client';
-import { mockExercises } from '@/src/lib/mock-data';
 import { navigationHelpers } from '@/src/lib/navigation';
 import { Timer } from '@/src/lib/timer';
 import { useRoutines } from '@/src/modules/routines/useRoutines';
@@ -23,11 +22,15 @@ export default function WorkoutPage() {
     const [completedSets, setCompletedSets] = useState<Record<number, number[]>>({});
     const [showExerciseDetails, setShowExerciseDetails] = useState(true);
 
+    console.log('id', id);
+
     if (!id || typeof id !== 'string') return <div>Routine not found</div>;
 
     const onEndWorkout = () => {
         router.push(navigationHelpers.redirectAfterWorkout());
     };
+
+    console.log('LLEGUE 1');
 
     const {
         data: routine,
@@ -38,10 +41,14 @@ export default function WorkoutPage() {
         queryFn: () => getRoutineById(id),
     });
 
+    console.log('LLEGUE 2');
+
     if (!routine) return <div>Routine not found</div>;
 
     const currentRoutineExercise = routine.routine_exercises[currentExerciseIndex];
-    const currentExercise = mockExercises.find((ex) => ex.id === currentRoutineExercise.id);
+    const currentExercise = routine.routine_exercises.find(
+        (ex) => ex.id === currentRoutineExercise.id,
+    );
 
     const isSetCompleted = (exerciseIndex: number, setNumber: number) => {
         return completedSets[exerciseIndex]?.includes(setNumber) || false;
@@ -97,6 +104,11 @@ export default function WorkoutPage() {
         (ex, idx) => completedSets[idx]?.length === Number(ex.sets),
     );
 
+    console.log('routine', routine);
+    if (isLoading) return <div>Loading...</div>;
+    if (error) return <div>Error: {error.message}</div>;
+    if (!routine) return <div>Routine not found</div>;
+
     return (
         <div className="max-w-4xl mx-auto">
             {/* Header */}
@@ -138,8 +150,8 @@ export default function WorkoutPage() {
                         {/* Exercise Image/Video */}
                         <div className="relative h-64 md:h-96 bg-gray-900">
                             <img
-                                src={currentExercise?.image_url}
-                                alt={currentExercise?.name}
+                                src={currentRoutineExercise?.exercise.image_url?.[0]}
+                                alt={currentRoutineExercise?.exercise.name}
                                 className="w-full h-full object-cover opacity-90"
                             />
                             {/* <button
@@ -242,13 +254,13 @@ export default function WorkoutPage() {
                             )}
 
                             {/* Exercise Instructions */}
-                            {showExerciseDetails && currentExercise?.instructions && (
+                            {/* {showExerciseDetails && currentRoutineExercise?.exercise.instructions && (
                                 <div className="mt-6 p-4 bg-blue-50 rounded-lg">
                                     <h4 className="font-semibold text-gray-900 mb-3">
                                         Instrucciones
                                     </h4>
                                     <ol className="space-y-2">
-                                        {currentExercise.instructions.map((_instruction, idx) => (
+                                        {currentRoutineExercise?.exercise?.instructions?.map((_instruction, idx) => (
                                             <li
                                                 key={idx}
                                                 className="flex gap-3 text-sm text-gray-700"
@@ -261,7 +273,7 @@ export default function WorkoutPage() {
                                         ))}
                                     </ol>
                                 </div>
-                            )}
+                            )} */}
                         </div>
                     </div>
 
