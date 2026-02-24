@@ -27,8 +27,10 @@ export default function App({ children }: { children: ReactNode }) {
                 <AppContent>
                     <Header />
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 min-h-[calc(100vh-150px)]">
-                        <NavBar />
-                        {children}
+                        <div className="hidden sm:block">
+                            <NavBar />
+                        </div>
+                        <div className="mt-4">{children}</div>
                     </div>
                     <Footer />
                 </AppContent>

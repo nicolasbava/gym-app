@@ -15,7 +15,6 @@ export default function SearchBar({ fetchFunction, query, clearSearch }: SearchB
     const [searchTerm, setSearchTerm] = useState(query);
     const debouncedTerm = useDebounce(searchTerm);
 
-
     const onSearch = useCallback(() => {
         fetchFunction(debouncedTerm);
     }, [debouncedTerm, fetchFunction]);
@@ -36,6 +35,7 @@ export default function SearchBar({ fetchFunction, query, clearSearch }: SearchB
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Buscar"
+                className="border-gray-200 text-gray-500 border-2"
             />
             <XIcon
                 className="w-4 h-4 absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer"

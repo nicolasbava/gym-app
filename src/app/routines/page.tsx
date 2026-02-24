@@ -1,5 +1,5 @@
 'use client';
-import SearchBar from '@/src/components/common/SearchBar';
+import LayoutHeader from '@/src/components/layout/LayoutHeader';
 import CreateRoutineForm from '@/src/components/trainer-dashboard/routines/routine-form';
 import RoutinesDialog from '@/src/components/trainer-dashboard/routines/routines-dialog';
 import {
@@ -96,22 +96,14 @@ export default function RoutinesPage() {
     return (
         <div>
             {/* Header routines */}
-            <div className="flex items-center justify-between mb-6">
-                <div>
-                    <h2 className="text-2xl font-semibold text-gray-900">Rutinas</h2>
-                    <p className="text-gray-600 mt-1">
-                        Crear y gestionar programas de entrenamiento
-                    </p>
-                </div>
-                <div className="flex items-center gap-2">
-                    <SearchBar
-                        fetchFunction={onSearch}
-                        query={nameRoutine}
-                        clearSearch={clearSearch}
-                    />
-                    <RoutinesDialog />
-                </div>
-            </div>
+            <LayoutHeader
+                name="Rutinas"
+                description="Crear y gestionar programas de entrenamiento"
+                onSearch={onSearch}
+                query={nameRoutine}
+                clearSearch={clearSearch}
+                children={<RoutinesDialog />}
+            />
 
             {/* Loading and error states */}
             {isLoading ? (

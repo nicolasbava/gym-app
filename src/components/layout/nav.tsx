@@ -3,106 +3,122 @@ import { useApp } from '@/src/contexts/AppContext';
 import { useAuth } from '@/src/hooks/useAuth';
 import { Calendar, ClipboardList, Dumbbell, User, Users } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useMemo } from 'react';
 
-type CoachView = 'exercises' | 'routines' | 'members';
-type MemberView = 'home' | 'exercises' | 'routines' | 'workout' | 'profile';
+export const navButtons = [
+    {
+        link: '/exercises',
+        icon: <Dumbbell className="w-5 h-5" />,
+        label: 'Ejercicios',
+        role: 'coach' as const,
+    },
+    {
+        link: '/routines',
+        icon: <ClipboardList className="w-5 h-5" />,
+        label: 'Rutinas',
+        role: 'coach' as const,
+    },
+    {
+        link: '/members',
+        icon: <Users className="w-5 h-5" />,
+        label: 'Miembros',
+        role: 'coach' as const,
+    },
+    {
+        link: '/home',
+        icon: <Calendar className="w-5 h-5" />,
+        label: 'Home',
+        role: 'member' as const,
+    },
+    {
+        link: '/profile',
+        icon: <User className="w-5 h-5" />,
+        label: 'Perfil',
+        role: 'member' as const,
+    },
+];
 
-export default function NavBar() {
-    const router = useRouter();
+function getFilteredNavButtons(role: string, mode: string) {
+    if (role === 'coach' && mode === 'member') {
+        return navButtons;
+    }
+    if (role === 'member') {
+        return navButtons.filter((button) => button.role === role);
+    }
+    if (role === 'coach' && mode === 'coach') {
+        return navButtons.filter((button) => button.role === role);
+    }
+    return [];
+}
+
+export function useFilteredNavButtons() {
     const { userProfile, mode } = useApp();
     const { isAuthenticated } = useAuth();
-    const [memberView, setMemberView] = useState<MemberView>('routines');
+    const showNav =
+        Boolean(isAuthenticated) &&
+        Boolean(userProfile?.role) &&
+        Boolean(mode);
+    const filteredButtons = useMemo(
+        () =>
+            showNav && userProfile?.role && mode
+                ? getFilteredNavButtons(userProfile.role, mode)
+                : [],
+        [showNav, userProfile?.role, mode],
+    );
+    return { filteredButtons, showNav };
+}
 
-    const handleViewChange = (view: MemberView) => {
-        setMemberView(view);
-        router.push(`/${view}`);
-    };
-    console.log('isAuthenticated', isAuthenticated);
-
-    if (!isAuthenticated) {
-        return null;
-    }
-
+export function NavButton({
+    label,
+    icon,
+    onClick,
+    isActive,
+    className = '',
+}: {
+    label: string;
+    icon: React.ReactNode;
+    onClick: () => void;
+    isActive: boolean;
+    className?: string;
+}) {
     return (
-        <nav className="flex gap-2 mb-6 overflow-x-auto pb-2 mt-8">
-            {userProfile?.role === 'coach' && <CoachNavBar setCoachView={handleViewChange} />}
-            {(userProfile?.role === 'member' ||
-                (userProfile?.role === 'coach' && mode === 'member')) && (
-                <MemberNavBar handleViewChange={handleViewChange} />
-            )}
-        </nav>
+        <button
+            type="button"
+            onClick={onClick}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-colors cursor-pointer ${className} ${
+                isActive ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'
+            }`}
+        >
+            {icon}
+            {label}
+        </button>
     );
 }
 
-const CoachNavBar = ({ setCoachView }: { setCoachView: (view: any) => void }) => {
+export default function NavBar() {
+    const router = useRouter();
     const pathname = usePathname();
+    const { filteredButtons, showNav } = useFilteredNavButtons();
+
+    if (!showNav) {
+        return null;
+    }
+
+    const handleNavigation = (path: string) => {
+        router.push(path);
+    };
 
     return (
-        <nav className="flex gap-2 mb-6 overflow-x-auto pb-2">
-            <button
-                onClick={() => setCoachView('exercises')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-colors cursor-pointer ${
-                    pathname === '/exercises'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-white text-gray-700 hover:bg-gray-50'
-                }`}
-            >
-                <Dumbbell className="w-5 h-5" />
-                Ejercicios
-            </button>
-            <button
-                onClick={() => setCoachView('routines')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-colors cursor-pointer ${
-                    pathname === '/routines'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-white text-gray-700 hover:bg-gray-50'
-                }`}
-            >
-                <ClipboardList className="w-5 h-5" />
-                Rutinas
-            </button>
-            <button
-                onClick={() => setCoachView('members')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-colors cursor-pointer ${
-                    pathname === '/members'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-white text-gray-700 hover:bg-gray-50'
-                }`}
-            >
-                <Users className="w-5 h-5" />
-                Miembros
-            </button>
+        <nav className="flex gap-2 overflow-x-auto pb-2 mt-8">
+            {filteredButtons.map((button) => (
+                <NavButton
+                    key={button.link}
+                    onClick={() => handleNavigation(button.link)}
+                    label={button.label}
+                    icon={button.icon}
+                    isActive={pathname === button.link}
+                />
+            ))}
         </nav>
     );
-};
-
-const MemberNavBar = ({ handleViewChange }: { handleViewChange: (view: any) => void }) => {
-    const pathname = usePathname();
-    return (
-        <nav className="flex gap-2 mb-6 overflow-x-auto pb-2">
-            <button
-                onClick={() => handleViewChange('home')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-colors cursor-pointer ${
-                    pathname === '/home'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-white text-gray-700 hover:bg-gray-50'
-                }`}
-            >
-                <Calendar className="w-5 h-5" />
-                Home
-            </button>
-            <button
-                onClick={() => handleViewChange('profile')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-colors cursor-pointer ${
-                    pathname === '/profile'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-white text-gray-700 hover:bg-gray-50'
-                }`}
-            >
-                <User className="w-5 h-5" />
-                Perfil
-            </button>
-        </nav>
-    );
-};
+}

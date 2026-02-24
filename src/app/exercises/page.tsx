@@ -105,7 +105,7 @@ export default function ExercisesPage() {
 
     return (
         <div>
-            <div className="flex items-center justify-between mb-6">
+            <div className="md:flex items-center justify-between mb-6 ">
                 <div>
                     <h2 className="text-2xl font-semibold text-gray-900">Librería de Ejercicios</h2>
                     <p className="text-gray-600 mt-1">
@@ -119,7 +119,7 @@ export default function ExercisesPage() {
                     <Plus className="w-5 h-5" />
                     Add Exercise
                     </button> */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 mt-4">
                     <SearchBar
                         fetchFunction={onSearch}
                         query={nameExercise}

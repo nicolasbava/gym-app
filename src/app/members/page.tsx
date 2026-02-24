@@ -1,6 +1,6 @@
 'use client';
 import ConfirmAction from '@/src/components/common/confirm-action';
-import SearchBar from '@/src/components/common/SearchBar';
+import LayoutHeader from '@/src/components/layout/LayoutHeader';
 import MemberForm from '@/src/components/trainer-dashboard/members/member-form';
 import MembersDialog from '@/src/components/trainer-dashboard/members/members-dialog';
 import { Dialog, DialogContent, DialogHeader } from '@/src/components/ui/dialog';
@@ -12,8 +12,8 @@ import { DialogTitle } from '@radix-ui/react-dialog';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo, useState } from 'react';
 import { deleteProfile } from '../actions/users';
-import MemberCard from './MemberCard';
 import MembersLoading from './loading';
+import MemberCard from './MemberCard';
 
 export default function MemberManager() {
     const queryClient = useQueryClient();
@@ -74,12 +74,9 @@ export default function MemberManager() {
     };
 
     // Members search
-    const onSearch = useCallback(
-        (query: string) => {
-            setNameMember(query);
-        },
-        [],
-    );
+    const onSearch = useCallback((query: string) => {
+        setNameMember(query);
+    }, []);
 
     const handleLoadMore = useCallback(() => {
         if (!hasNextPage || isFetchingNextPage) {
@@ -99,20 +96,14 @@ export default function MemberManager() {
     return (
         <div>
             {/* Header members */}
-            <div className="flex items-center justify-between mb-6">
-                <div>
-                    <h2 className="text-2xl font-semibold text-gray-900">Clientes</h2>
-                    <p className="text-gray-600 mt-1">Gestiona a tus clientes y sus rutinas</p>
-                </div>
-                <div className="flex items-center gap-2">
-                    <SearchBar
-                        fetchFunction={onSearch}
-                        query={nameMember}
-                        clearSearch={clearSearch}
-                    />
-                    <MembersDialog />
-                </div>
-            </div>
+            <LayoutHeader
+                name="Clientes"
+                description="Gestiona a tus clientes y sus rutinas"
+                onSearch={onSearch}
+                query={nameMember}
+                clearSearch={clearSearch}
+                children={<MembersDialog />}
+            />
 
             {isLoading ? (
                 <MembersLoading />
@@ -121,7 +112,9 @@ export default function MemberManager() {
                     Error: {error instanceof Error ? error.message : 'Error loading members'}
                 </div>
             ) : members.length === 0 ? (
-                <div className="text-center text-gray-600">Lo siento, no se encontraron clientes</div>
+                <div className="text-center text-gray-600">
+                    Lo siento, no se encontraron clientes
+                </div>
             ) : (
                 <>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
