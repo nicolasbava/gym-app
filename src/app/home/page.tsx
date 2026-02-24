@@ -4,17 +4,11 @@ import { AssignedRoutineWithDetails } from '@/src/modules/routines/routines.sche
 import { useRoutines } from '@/src/modules/routines/useRoutines';
 import { useQuery } from '@tanstack/react-query';
 import { Calendar } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import RoutineCard from './RoutineCard';
 
 const MemberHomePage = () => {
-    const router = useRouter();
     const { userProfile: profile } = useApp();
     const { getUserActiveRoutines } = useRoutines();
-
-    const startWorkout = (routineId: string) => {
-        router.push(`/workout/${routineId}`);
-    };
 
     const { data, error, isLoading } = useQuery({
         queryKey: ['user-active-routines', profile?.id],

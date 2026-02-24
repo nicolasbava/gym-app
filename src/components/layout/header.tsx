@@ -6,6 +6,7 @@ import { Button } from '@/src/components/ui/button';
 import { useApp } from '@/src/contexts/AppContext';
 import { useAuth } from '@/src/hooks/useAuth';
 import { Dumbbell, LogOut, Menu, X } from 'lucide-react';
+import { isRedirectError } from 'next/dist/client/components/redirect-error';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -17,15 +18,18 @@ export default function Header() {
     const { isAuthenticated, clear, refetchSession, refetchUser } = useAuth();
     const { filteredButtons, showNav } = useFilteredNavButtons();
 
-    const pageIsNotAuth = usePathname() !== '/auth';
+    // const pageIsNotAuth = usePathname() !== '/auth';
 
     const handleLogout = async () => {
-        clear();
         try {
-            await signOut();
-        } catch {
-            await refetchSession();
-            await refetchUser();
+            clear();
+            const response = await signOut();
+            if (response.success) {
+                window.location.href = '/auth';
+            }
+        } catch (error) {
+            if (isRedirectError(error)) return;
+            console.error('Logout error:', error);
         }
     };
 

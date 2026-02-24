@@ -1,8 +1,6 @@
 'use server';
 
-import { navigationHelpers } from '@/src/lib/navigation';
 import { createClient } from '@/src/utils/supabase/server';
-import { revalidatePath } from 'next/cache';
 import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 
@@ -44,17 +42,22 @@ export async function signInWithGoogle() {
 }
 
 export async function signOut() {
+    console.log('>>> signOut <<<<');
+
     const cookieStore = await cookies();
     const supabase = await createClient(cookieStore);
 
+    console.log('>>> error <<<<');
     const { error } = await supabase.auth.signOut();
-
+    console.log('>>> error <<<<', error);
     if (error) {
+        console.error('Error signing out:', error);
         throw error;
     }
 
-    revalidatePath('/', 'layout');
-    redirect(navigationHelpers.redirectAfterLogout());
+    return {
+        success: true,
+    };
 }
 
 export async function getSession() {

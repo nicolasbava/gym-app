@@ -15,6 +15,7 @@ import { Separator } from '@/src/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs';
 import { navigationHelpers } from '@/src/lib/navigation';
 import { Dumbbell } from 'lucide-react';
+import { isRedirectError } from 'next/dist/client/components/redirect-error';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
@@ -26,6 +27,7 @@ function AuthForm() {
     const searchParams = useSearchParams();
 
     useEffect(() => {
+        
         const errorParam = searchParams.get('error');
         if (errorParam) {
             setError(errorParam);
@@ -37,6 +39,7 @@ function AuthForm() {
             setError(null);
             await signInWithGoogle();
         } catch (err) {
+            if (isRedirectError(err)) return;
             setError(err instanceof Error ? err.message : 'Error al iniciar sesión con Google');
         }
     };
