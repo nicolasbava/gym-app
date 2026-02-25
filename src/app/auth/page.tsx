@@ -26,6 +26,8 @@ function AuthForm() {
     const [error, setError] = useState<string | null>(null);
     const searchParams = useSearchParams();
 
+    
+
     useEffect(() => {
         
         const errorParam = searchParams.get('error');

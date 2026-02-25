@@ -1,8 +1,8 @@
 'use client';
 import ConfirmAction from '@/src/components/common/confirm-action';
 import LayoutHeader from '@/src/components/layout/LayoutHeader';
-import MemberForm from '@/src/components/trainer-dashboard/members/member-form';
-import MembersDialog from '@/src/components/trainer-dashboard/members/members-dialog';
+import MemberForm from '@/src/components/members/MemberForm';
+import MembersDialog from '@/src/components/members/MembersDialog';
 import { Dialog, DialogContent, DialogHeader } from '@/src/components/ui/dialog';
 import { useApp } from '@/src/contexts/AppContext';
 import { useInfiniteScroll } from '@/src/hooks/useInfiniteScroll';

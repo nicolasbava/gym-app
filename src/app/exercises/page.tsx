@@ -3,8 +3,8 @@
 import { deleteExercise } from '@/src/app/actions/exercises';
 import ConfirmAction from '@/src/components/common/confirm-action';
 import SearchBar from '@/src/components/common/SearchBar';
-import ExerciseDialog from '@/src/components/trainer-dashboard/exercises/exercise-dialog';
-import CreateExerciseForm from '@/src/components/trainer-dashboard/exercises/exercise-form';
+import ExerciseDialog from '@/src/components/exercises/ExerciseDialog';
+import CreateExerciseForm from '@/src/components/exercises/ExerciseForm';
 import { Dialog, DialogContent, DialogHeader } from '@/src/components/ui/dialog';
 import { useApp } from '@/src/contexts/AppContext';
 import { useInfiniteScroll } from '@/src/hooks/useInfiniteScroll';

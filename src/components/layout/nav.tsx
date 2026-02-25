@@ -54,10 +54,7 @@ function getFilteredNavButtons(role: string, mode: string) {
 export function useFilteredNavButtons() {
     const { userProfile, mode } = useApp();
     const { isAuthenticated } = useAuth();
-    const showNav =
-        Boolean(isAuthenticated) &&
-        Boolean(userProfile?.role) &&
-        Boolean(mode);
+    const showNav = Boolean(isAuthenticated) && Boolean(userProfile?.role) && Boolean(mode);
     const filteredButtons = useMemo(
         () =>
             showNav && userProfile?.role && mode

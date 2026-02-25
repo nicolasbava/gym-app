@@ -1,7 +1,7 @@
 'use client';
 import LayoutHeader from '@/src/components/layout/LayoutHeader';
-import CreateRoutineForm from '@/src/components/trainer-dashboard/routines/routine-form';
-import RoutinesDialog from '@/src/components/trainer-dashboard/routines/routines-dialog';
+import CreateRoutineForm from '@/src/components/routines/RoutineForm';
+import RoutinesDialog from '@/src/components/routines/RoutinesDialog';
 import {
     Dialog,
     DialogContent,
@@ -131,8 +131,8 @@ export default function RoutinesPage() {
                                 handleDelete={handleDelete}
                                 openDeleteDialog={routineToDelete === routine.id}
                                 setOpenDeleteDialog={(open) =>
-                                setRoutineToDelete(open ? routine.id : null)
-                            }
+                                    setRoutineToDelete(open ? routine.id : null)
+                                }
                             />
                         ))}
                     </div>

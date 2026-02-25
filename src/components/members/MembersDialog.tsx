@@ -4,9 +4,15 @@ import { UpdateUserProfileData } from '@/src/modules/users/register.schema';
 import { DialogTitle } from '@radix-ui/react-dialog';
 import { UserPlus, Users } from 'lucide-react';
 import { useState } from 'react';
-import { Button } from '../../ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTrigger } from '../../ui/dialog';
-import CreateMemberDialog from './member-form';
+import { Button } from '../ui/button';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTrigger,
+} from '../ui/dialog';
+import CreateMemberDialog from './MemberForm';
 
 export default function MembersDialog({ member }: { member?: UpdateUserProfileData }) {
     const { gymId } = useApp();

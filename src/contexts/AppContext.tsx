@@ -64,9 +64,9 @@ type AppContextValue = {
     /** Clear the app context. */
     clear: () => void;
     /** Set the mode of the app. */
-    setMode: (mode: 'coach' | 'member') => void;
+    setMode: (mode: 'coach' | 'member' | 'admin') => void;
     /** Get the mode of the app. */
-    mode: 'coach' | 'member';
+    mode: 'coach' | 'member' | 'admin';
 };
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -82,7 +82,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const [sessionLoading, setSessionLoading] = useState(true);
     const [user, setUser] = useState<User | null>(null);
     const [userLoading, setUserLoading] = useState(true);
-    const [mode, setMode] = useState<'coach' | 'member'>('member');
+    const [mode, setMode] = useState<'coach' | 'member' | 'admin'>('member');
     const refetchUserProfile = useCallback(async () => {
         setUserProfileLoading(true);
         setUserProfileError(null);
@@ -180,7 +180,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             setUserLoading(true);
             setMode('member');
         },
-        setMode: (mode: 'coach' | 'member') => {
+        setMode: (mode: 'coach' | 'member' | 'admin') => {
             setMode(mode);
         },
         mode,

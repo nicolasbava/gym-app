@@ -1,9 +1,16 @@
 import { useApp } from '@/src/contexts/AppContext';
 import { Dumbbell, Plus } from 'lucide-react';
 import { useState } from 'react';
-import { Button } from '../../ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../../ui/dialog';
-import CreateExerciseForm from './exercise-form';
+import { Button } from '../ui/button';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '../ui/dialog';
+import CreateExerciseForm from './ExerciseForm';
 
 interface Exercise {
     id: string;
@@ -47,10 +54,17 @@ export default function ExerciseDialog({ exercise, onSuccess }: ExerciseDialogPr
                         {isEditing ? 'Editar Ejercicio' : 'Crear Nuevo Ejercicio'}
                     </DialogTitle>
                     <DialogDescription>
-                        {isEditing ? 'Modifica los datos del ejercicio' : 'Completa los datos para agregar un nuevo ejercicio a tu biblioteca'}
+                        {isEditing
+                            ? 'Modifica los datos del ejercicio'
+                            : 'Completa los datos para agregar un nuevo ejercicio a tu biblioteca'}
                     </DialogDescription>
                 </DialogHeader>
-                <CreateExerciseForm gymId={gymId ?? ''} exercise={exercise} onSuccess={handleSuccess} setOpen={setOpenExerciseForm} />
+                <CreateExerciseForm
+                    gymId={gymId ?? ''}
+                    exercise={exercise}
+                    onSuccess={handleSuccess}
+                    setOpen={setOpenExerciseForm}
+                />
             </DialogContent>
         </Dialog>
     );

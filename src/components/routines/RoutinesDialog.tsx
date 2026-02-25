@@ -2,10 +2,16 @@ import { useApp } from '@/src/contexts/AppContext';
 import { DialogTitle } from '@radix-ui/react-dialog';
 import { Dumbbell, Link2 } from 'lucide-react';
 import { useState } from 'react';
-import { Button } from '../../ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTrigger } from '../../ui/dialog';
-import AssignRoutineForm from './assign-routine';
-import CreateRoutineForm from './routine-form';
+import { Button } from '../ui/button';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTrigger,
+} from '../ui/dialog';
+import AssignRoutineForm from './AssignRoutineForm';
+import CreateRoutineForm from './RoutineForm';
 
 export default function RoutinesDialog() {
     const { gymId } = useApp();
@@ -31,14 +37,20 @@ export default function RoutinesDialog() {
                             Completa los datos para crear una nueva rutina de entrenamiento
                         </DialogDescription>
                     </DialogHeader>
-                    <CreateRoutineForm gymId={gymId ?? ''} onSuccess={() => setOpenCreateRoutine(false)} />
+                    <CreateRoutineForm
+                        gymId={gymId ?? ''}
+                        onSuccess={() => setOpenCreateRoutine(false)}
+                    />
                 </DialogContent>
             </Dialog>
 
             {/* ASSIGN ROUTINE DIALOG */}
             <Dialog open={openAssignRoutine} onOpenChange={setOpenAssignRoutine}>
                 <DialogTrigger asChild>
-                    <Button variant="outline" className="border border-gray-300 text-gray-700 hover:bg-gray-100 cursor-pointer">
+                    <Button
+                        variant="outline"
+                        className="border border-gray-300 text-gray-700 hover:bg-gray-100 cursor-pointer"
+                    >
                         <Link2 className="h-4 w-4 mr-2" />
                         Asignar Rutina
                     </Button>
@@ -49,9 +61,14 @@ export default function RoutinesDialog() {
                             <Link2 className="h-6 w-6 text-blue-600" />
                             Asignar rutina a cliente
                         </DialogTitle>
-                        <DialogDescription className="text-sm text-gray-600">Elige una rutina y el cliente al que asignarla</DialogDescription>
+                        <DialogDescription className="text-sm text-gray-600">
+                            Elige una rutina y el cliente al que asignarla
+                        </DialogDescription>
                     </DialogHeader>
-                    <AssignRoutineForm gymId={gymId ?? ''} onSuccess={() => setOpenAssignRoutine(false)} />
+                    <AssignRoutineForm
+                        gymId={gymId ?? ''}
+                        onSuccess={() => setOpenAssignRoutine(false)}
+                    />
                 </DialogContent>
             </Dialog>
         </div>
