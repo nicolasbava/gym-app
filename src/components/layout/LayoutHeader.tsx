@@ -23,7 +23,7 @@ export default function LayoutHeader({
                 <h2 className="text-2xl font-semibold text-gray-900">{name}</h2>
                 <p className="text-gray-600 mt-1">{description}</p>
             </div>
-            <div className="flex items-center gap-2 mt-4">
+            <div className="flex items-center gap-2 mt-4 flex-wrap-reverse">
                 <SearchBar fetchFunction={onSearch} query={query} clearSearch={clearSearch} />
                 {children}
             </div>

@@ -171,10 +171,10 @@ export default function WorkoutPage() {
                                 <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full">
                                     {currentRoutineExercise?.exercise.equipment}
                                 </span>
-                                <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full">
-                                    {currentRoutineExercise?.exercise.description}
-                                </span>
                             </div>
+                            <p className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full">
+                                {currentRoutineExercise?.exercise.description}
+                            </p>
 
                             {/* Set Progress */}
                             <div className="bg-gray-50 rounded-lg p-4 mb-4">

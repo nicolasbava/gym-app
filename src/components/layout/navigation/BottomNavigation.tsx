@@ -2,11 +2,12 @@
 
 import { useApp } from '@/src/contexts/AppContext';
 import { Calendar, ClipboardList, Dumbbell, Home, User, Users } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 export function BottomNavigation() {
     const { mode, setMode, isCoach, isAuthenticated } = useApp();
     const router = useRouter();
+    const pathname = usePathname();
 
     const handleNavigation = (path: string) => {
         router.push(path);
@@ -64,7 +65,7 @@ export function BottomNavigation() {
                     <button
                         onClick={() => handleNavigation('/exercises')}
                         className={`flex flex-col items-center justify-center py-2 px-2 rounded-lg transition-colors ${
-                            mode === 'coach' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
+                            pathname === '/exercises' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
                         }`}
                     >
                         <Dumbbell className="w-6 h-6" />
@@ -73,7 +74,7 @@ export function BottomNavigation() {
                     <button
                         onClick={() => handleNavigation('/routines')}
                         className={`flex flex-col items-center justify-center py-2 px-2 rounded-lg transition-colors ${
-                            mode === 'coach' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
+                            pathname === '/routines' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
                         }`}
                     >
                         <ClipboardList className="w-6 h-6" />
@@ -82,7 +83,7 @@ export function BottomNavigation() {
                     <button
                         onClick={() => handleNavigation('/members')}
                         className={`flex flex-col items-center justify-center py-2 px-2 rounded-lg transition-colors ${
-                            mode === 'coach' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
+                            pathname === '/members' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
                         }`}
                     >
                         <Users className="w-6 h-6" />
@@ -106,7 +107,7 @@ export function BottomNavigation() {
                     <button
                         onClick={() => handleNavigation('/home')}
                         className={`flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-colors ${
-                            mode === 'member' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
+                            pathname === '/home' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
                         }`}
                     >
                         <Calendar className="w-6 h-6" />
@@ -115,7 +116,7 @@ export function BottomNavigation() {
                     <button
                         onClick={() => handleNavigation('/profile')}
                         className={`flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-colors ${
-                            mode === 'member' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
+                            pathname === '/profile' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
                         }`}
                     >
                         <User className="w-6 h-6" />

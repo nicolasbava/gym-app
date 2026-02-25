@@ -29,7 +29,7 @@ export default function SearchBar({ fetchFunction, query, clearSearch }: SearchB
     }, [clearSearch]);
 
     return (
-        <div className="relative">
+        <div className="relative min-w-48 max-w-96">
             <Input
                 type="text"
                 value={searchTerm}
