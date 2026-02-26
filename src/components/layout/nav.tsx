@@ -1,4 +1,5 @@
 'use client';
+import { UserRole } from '@/src/config/routes';
 import { useApp } from '@/src/contexts/AppContext';
 import { useAuth } from '@/src/hooks/useAuth';
 import { Calendar, ClipboardList, Dumbbell, User, Users } from 'lucide-react';
@@ -10,31 +11,31 @@ export const navButtons = [
         link: '/exercises',
         icon: <Dumbbell className="w-5 h-5" />,
         label: 'Ejercicios',
-        role: 'coach' as const,
+        role: ['coach', 'coach_admin', 'admin'],
     },
     {
         link: '/routines',
         icon: <ClipboardList className="w-5 h-5" />,
         label: 'Rutinas',
-        role: 'coach' as const,
+        role: ['coach', 'coach_admin', 'admin'],
     },
     {
         link: '/members',
         icon: <Users className="w-5 h-5" />,
         label: 'Miembros',
-        role: 'coach' as const,
+        role: ['coach', 'coach_admin', 'admin'],
     },
     {
         link: '/home',
         icon: <Calendar className="w-5 h-5" />,
-        label: 'Home',
-        role: 'member' as const,
+        label: 'Rutinas',
+        role: ['member', 'coach', 'coach_admin', 'admin'],
     },
     {
         link: '/profile',
         icon: <User className="w-5 h-5" />,
         label: 'Perfil',
-        role: 'member' as const,
+        role: ['member', 'coach', 'coach_admin', 'admin'],
     },
 ];
 
@@ -43,10 +44,10 @@ function getFilteredNavButtons(role: string, mode: string) {
         return navButtons;
     }
     if (role === 'member') {
-        return navButtons.filter((button) => button.role === role);
+        return navButtons.filter((button) => button.role.includes(role));
     }
     if (role === 'coach' && mode === 'coach') {
-        return navButtons.filter((button) => button.role === role);
+        return navButtons.filter((button) => button.role.includes(role));
     }
     return [];
 }
@@ -58,7 +59,7 @@ export function useFilteredNavButtons() {
     const filteredButtons = useMemo(
         () =>
             showNav && userProfile?.role && mode
-                ? getFilteredNavButtons(userProfile.role, mode)
+                ? getFilteredNavButtons(userProfile.role as UserRole, mode)
                 : [],
         [showNav, userProfile?.role, mode],
     );

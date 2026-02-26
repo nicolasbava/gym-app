@@ -1,4 +1,6 @@
 'use client';
+import ErrorComponent from '@/src/components/common/ErrorComponent';
+import LoadingComponent from '@/src/components/common/LoadingComponent';
 import LayoutHeader from '@/src/components/layout/LayoutHeader';
 import CreateRoutineForm from '@/src/components/routines/RoutineForm';
 import RoutinesDialog from '@/src/components/routines/RoutinesDialog';
@@ -112,13 +114,17 @@ export default function RoutinesPage() {
 
             {/* Loading and error states */}
             {isLoading ? (
-                <div>Loading...</div>
+                <LoadingComponent message="rutinas" />
             ) : error ? (
-                <div>
-                    Error: {error instanceof Error ? error.message : 'Error loading routines'}
-                </div>
+                <ErrorComponent
+                    message={
+                        error instanceof Error
+                            ? error.message
+                            : 'Ups, hubo un error al cargar rutinas :('
+                    }
+                />
             ) : routines.length === 0 ? (
-                <div>No routines found</div>
+                <ErrorComponent message="No se encontraron rutinas" />
             ) : (
                 <>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

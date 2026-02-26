@@ -1,4 +1,4 @@
-import ConfirmAction from '@/src/components/common/confirm-action';
+import ConfirmAction from '@/src/components/common/ConfirmAction';
 import {
     RoutineExerciseWithExercise,
     RoutineWithExercises,

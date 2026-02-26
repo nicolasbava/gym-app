@@ -63,28 +63,29 @@ export function DesktopHeader() {
                             </button>
                         </div>
                     )}
+
+                    {isAuthenticated && (
+                        <>
+                            <Button
+                                onClick={handleLogout}
+                                variant="ghost"
+                                size="sm"
+                                className="hidden sm:flex items-center gap-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100 cursor-pointer"
+                            >
+                                <LogOut className="w-4 h-4" />
+                                <span>Cerrar Sesión</span>
+                            </Button>
+                            <Button
+                                onClick={handleLogout}
+                                variant="ghost"
+                                size="icon"
+                                className="sm:hidden text-gray-700 hover:text-gray-900 hover:bg-gray-100 cursor-pointer"
+                            >
+                                <LogOut className="w-5 h-5" />
+                            </Button>
+                        </>
+                    )}
                 </div>
-                {isAuthenticated && (
-                    <>
-                        <Button
-                            onClick={handleLogout}
-                            variant="ghost"
-                            size="sm"
-                            className="hidden sm:flex items-center gap-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100 cursor-pointer"
-                        >
-                            <LogOut className="w-4 h-4" />
-                            <span>Cerrar Sesión</span>
-                        </Button>
-                        <Button
-                            onClick={handleLogout}
-                            variant="ghost"
-                            size="icon"
-                            className="sm:hidden text-gray-700 hover:text-gray-900 hover:bg-gray-100 cursor-pointer"
-                        >
-                            <LogOut className="w-5 h-5" />
-                        </Button>
-                    </>
-                )}
             </div>
         </header>
     );

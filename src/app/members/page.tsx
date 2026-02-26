@@ -1,5 +1,7 @@
 'use client';
-import ConfirmAction from '@/src/components/common/confirm-action';
+import ConfirmAction from '@/src/components/common/ConfirmAction';
+import ErrorComponent from '@/src/components/common/ErrorComponent';
+import LoadingComponent from '@/src/components/common/LoadingComponent';
 import LayoutHeader from '@/src/components/layout/LayoutHeader';
 import MemberForm from '@/src/components/members/MemberForm';
 import MembersDialog from '@/src/components/members/MembersDialog';
@@ -12,7 +14,6 @@ import { DialogTitle } from '@radix-ui/react-dialog';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo, useState } from 'react';
 import { deleteProfile } from '../actions/users';
-import MembersLoading from './loading';
 import MemberCard from './MemberCard';
 
 export default function MemberManager() {
@@ -106,15 +107,17 @@ export default function MemberManager() {
             />
 
             {isLoading ? (
-                <MembersLoading />
+                <LoadingComponent message="clientes" />
             ) : error ? (
-                <div className="text-center text-gray-600">
-                    Error: {error instanceof Error ? error.message : 'Error loading members'}
-                </div>
+                <ErrorComponent
+                    message={
+                        error instanceof Error
+                            ? error.message
+                            : 'Hubo un error al cargar clientes :('
+                    }
+                />
             ) : members.length === 0 ? (
-                <div className="text-center text-gray-600">
-                    Lo siento, no se encontraron clientes
-                </div>
+                <ErrorComponent message="No se encontraron clientes" />
             ) : (
                 <>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

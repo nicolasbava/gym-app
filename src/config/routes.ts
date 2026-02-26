@@ -1,7 +1,7 @@
 // src/config/routes.ts
 
 export type RouteProtection = 'public' | 'protected' | 'auth-only';
-export type UserRole = 'member' | 'coach' | 'coach_admin';
+export type UserRole = 'member' | 'coach' | 'coach_admin' | 'admin';
 
 export interface RouteConfig {
     path: string;
@@ -17,43 +17,43 @@ export const ROUTE_CONFIG: Record<string, RouteConfig> = {
     '/routines': {
         path: '/routines',
         protection: 'protected',
-        allowedRoles: ['member', 'coach', 'coach_admin'],
+        allowedRoles: ['member', 'coach', 'coach_admin', 'admin'],
         redirectTo: '/auth',
     },
     '/exercises': {
         path: '/exercises',
         protection: 'protected',
-        allowedRoles: ['member', 'coach', 'coach_admin'],
+        allowedRoles: ['member', 'coach', 'coach_admin', 'admin'],
         redirectTo: '/auth',
     },
     '/members': {
         path: '/members',
         protection: 'protected',
-        allowedRoles: ['coach', 'coach_admin'],
+        allowedRoles: ['coach', 'coach_admin', 'admin'],
         redirectTo: '/auth',
     },
     '/profile': {
         path: '/profile',
         protection: 'protected',
-        allowedRoles: ['member', 'coach', 'coach_admin'],
+        allowedRoles: ['member', 'coach', 'coach_admin', 'admin'],
         redirectTo: '/auth',
     },
     '/dashboard': {
         path: '/dashboard',
         protection: 'protected',
-        allowedRoles: ['coach', 'coach_admin'],
+        allowedRoles: ['coach', 'coach_admin', 'admin'],
         redirectTo: '/auth',
     },
     '/workout': {
         path: '/workout',
         protection: 'protected',
-        allowedRoles: ['member', 'coach', 'coach_admin'],
+        allowedRoles: ['member', 'coach', 'coach_admin', 'admin'],
         redirectTo: '/auth',
     },
     '/home': {
         path: '/home',
         protection: 'protected',
-        allowedRoles: ['member', 'coach', 'coach_admin'],
+        allowedRoles: ['member', 'coach', 'coach_admin', 'admin'],
         redirectTo: '/auth',
     },
     '/password-reset': {
@@ -63,7 +63,7 @@ export const ROUTE_CONFIG: Record<string, RouteConfig> = {
     '/password-change': {
         path: '/password-change',
         protection: 'protected',
-        allowedRoles: ['member', 'coach', 'coach_admin'],
+        allowedRoles: ['member', 'coach', 'coach_admin', 'admin'],
         redirectTo: '/auth',
     },
 };
@@ -92,7 +92,7 @@ export function getRouteConfig(pathname: string): RouteConfig | undefined {
             config: {
                 path: '/workout/[id]',
                 protection: 'protected' as RouteProtection,
-                allowedRoles: ['member', 'coach', 'coach_admin'] as UserRole[],
+                allowedRoles: ['member', 'coach', 'coach_admin', 'admin'] as UserRole[],
             },
         },
         {
@@ -100,7 +100,7 @@ export function getRouteConfig(pathname: string): RouteConfig | undefined {
             config: {
                 path: '/dashboard/members/[id]',
                 protection: 'protected' as RouteProtection,
-                allowedRoles: ['coach', 'coach_admin'] as UserRole[],
+                allowedRoles: ['coach', 'coach_admin', 'admin'] as UserRole[],
             },
         },
         {
@@ -108,7 +108,7 @@ export function getRouteConfig(pathname: string): RouteConfig | undefined {
             config: {
                 path: '/dashboard/routines/[id]',
                 protection: 'protected' as RouteProtection,
-                allowedRoles: ['coach', 'coach_admin'] as UserRole[],
+                allowedRoles: ['coach', 'coach_admin', 'admin'] as UserRole[],
             },
         },
         {
@@ -116,7 +116,7 @@ export function getRouteConfig(pathname: string): RouteConfig | undefined {
             config: {
                 path: '/dashboard/routines/[id]/edit',
                 protection: 'protected' as RouteProtection,
-                allowedRoles: ['coach', 'coach_admin'] as UserRole[],
+                allowedRoles: ['coach', 'coach_admin', 'admin'] as UserRole[],
             },
         },
     ];

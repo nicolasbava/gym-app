@@ -59,6 +59,8 @@ type AppContextValue = {
     isCoachAdmin: boolean;
     /** Check if user is a member. */
     isMember: boolean;
+    /** Check if user is a admin. */
+    isAdmin: boolean;
     /** Check if user has required role for a route. */
     canAccess: (allowedRoles?: UserRole[]) => boolean;
     /** Clear the app context. */
@@ -161,6 +163,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         refetchUser,
         isAuthenticated,
         userRole,
+        isAdmin: userRole === 'admin',
         hasRole: (role: UserRole) => hasRole(userProfile, role),
         hasAnyRole: (roles: UserRole[]) => hasAnyRole(userProfile, roles),
         isCoach: isCoachValue,

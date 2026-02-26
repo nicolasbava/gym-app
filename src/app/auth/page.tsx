@@ -25,11 +25,15 @@ function AuthForm() {
     const [userType, setUserType] = useState<'client' | 'trainer'>('client');
     const [error, setError] = useState<string | null>(null);
     const searchParams = useSearchParams();
+    // const { isAuthenticated } = useApp();
 
-    
+    // useEffect(() => {
+    //     if (isAuthenticated) {
+    //         navigationHelpers.redirectAfterLogin();
+    //     }
+    // }, [isAuthenticated]);
 
     useEffect(() => {
-        
         const errorParam = searchParams.get('error');
         if (errorParam) {
             setError(errorParam);

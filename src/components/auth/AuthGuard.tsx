@@ -2,6 +2,7 @@
 
 import { getRouteConfig, requiresAuth } from '@/src/config/routes';
 import { useAuth } from '@/src/hooks/useAuth';
+import { navigationHelpers } from '@/src/lib/navigation';
 import { usePathname, useRouter } from 'next/navigation';
 import { type ReactNode, useEffect } from 'react';
 
@@ -21,7 +22,7 @@ export function AuthGuard({ children, fallback }: AuthGuardProps) {
         if (auth.isLoading) return;
 
         if (routeRequiresAuth && !auth.isAuthenticated) {
-            router.replace('/routines');
+            navigationHelpers.redirectToLogin();
             return;
         }
 
@@ -47,16 +48,16 @@ export function AuthGuard({ children, fallback }: AuthGuardProps) {
     }
 
     // Block render until redirect completes to avoid flashing protected content
-    if (routeRequiresAuth && !auth.isAuthenticated) {
-        router.replace('/auth');
-        return;
-    }
-    if (routeConfig?.allowedRoles && routeConfig.allowedRoles.length > 0) {
-        if (!auth.canAccess(routeConfig.allowedRoles)) {
-            router.replace('/auth');
-            return;
-        }
-    }
+    // if (routeRequiresAuth && !auth.isAuthenticated) {
+    //     router.replace('/auth');
+    //     return;
+    // }
+    // if (routeConfig?.allowedRoles && routeConfig.allowedRoles.length > 0) {
+    //     if (!auth.canAccess(routeConfig.allowedRoles)) {
+    //         router.replace('/auth');
+    //         return;
+    //     }
+    // }
 
     return <>{children}</>;
 }

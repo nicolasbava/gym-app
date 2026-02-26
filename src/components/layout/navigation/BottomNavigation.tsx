@@ -5,7 +5,7 @@ import { Calendar, ClipboardList, Dumbbell, Home, User, Users } from 'lucide-rea
 import { usePathname, useRouter } from 'next/navigation';
 
 export function BottomNavigation() {
-    const { mode, setMode, isCoach, isAuthenticated } = useApp();
+    const { mode, setMode, isCoach, isAuthenticated, isAdmin } = useApp();
     const router = useRouter();
     const pathname = usePathname();
 
@@ -53,7 +53,7 @@ export function BottomNavigation() {
             {/* Coach mode */}
             {mode === 'coach' && (
                 <div className="grid grid-cols-4 gap-1 px-2 py-2">
-                    {isCoach && (
+                    {(isCoach || isAdmin) && (
                         <button
                             onClick={() => setMode('admin')}
                             className="flex flex-col items-center justify-center py-2 px-2 rounded-lg text-gray-600 transition-colors active:bg-gray-50"
@@ -95,7 +95,7 @@ export function BottomNavigation() {
             {/* Member mode */}
             {mode === 'member' && (
                 <div className="grid grid-cols-3 gap-1 px-2 py-2">
-                    {isCoach && (
+                    {(isCoach || isAdmin) && (
                         <button
                             onClick={() => setMode('admin')}
                             className="flex flex-col items-center justify-center py-2 px-3 rounded-lg text-gray-600 transition-colors active:bg-gray-50"

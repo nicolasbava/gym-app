@@ -1,7 +1,9 @@
 'use client';
 
 import { deleteExercise } from '@/src/app/actions/exercises';
-import ConfirmAction from '@/src/components/common/confirm-action';
+import ConfirmAction from '@/src/components/common/ConfirmAction';
+import ErrorComponent from '@/src/components/common/ErrorComponent';
+import LoadingComponent from '@/src/components/common/LoadingComponent';
 import SearchBar from '@/src/components/common/SearchBar';
 import ExerciseDialog from '@/src/components/exercises/ExerciseDialog';
 import CreateExerciseForm from '@/src/components/exercises/ExerciseForm';
@@ -14,7 +16,6 @@ import { DialogTitle } from '@radix-ui/react-dialog';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo, useState } from 'react';
 import ExerciseCard from './ExerciseCard';
-import ExercisesLoading from './loading';
 
 // interface ExerciseData {
 //     id: string;
@@ -130,13 +131,13 @@ export default function ExercisesPage() {
             </div>
 
             {isLoading ? (
-                <ExercisesLoading />
+                <LoadingComponent message="ejercicios" />
             ) : error ? (
-                <div className="text-center text-gray-600">
-                    Error: {error instanceof Error ? error.message : 'Error al cargar ejercicios'}
-                </div>
+                <ErrorComponent
+                    message={error instanceof Error ? error.message : 'Error al cargar ejercicios'}
+                />
             ) : exercises.length === 0 ? (
-                <div className="text-center text-gray-600">No se encontraron ejercicios</div>
+                <ErrorComponent message="No se encontraron ejercicios" />
             ) : (
                 <>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
