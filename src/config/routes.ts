@@ -183,7 +183,7 @@ export const ROUTES = {
 
     // Auth redirects
     AUTH_CALLBACK: '/auth/callback',
-    AFTER_LOGIN: '/routines',
+    AFTER_LOGIN: '/home',
     AFTER_LOGIN_COACH: '/routines',
     AFTER_LOGOUT: '/auth',
 

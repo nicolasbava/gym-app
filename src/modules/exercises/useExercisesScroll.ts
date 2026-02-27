@@ -1,7 +1,7 @@
 'use client';
 import { getExercisesGymIdName } from '@/src/app/actions/exercises';
 import { usePaginatedScroll } from '@/src/hooks/usePaginatedScroll';
-import { Exercise } from '@/src/lib/mock-data';
+import { Exercise } from './exercises.schema';
 
 const PAGE_SIZE = 6;
 

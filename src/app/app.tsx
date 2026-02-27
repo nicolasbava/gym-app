@@ -5,9 +5,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { type ReactNode, useState } from 'react';
 import NavBar from '../components/layout/nav';
-import { BottomNavigation } from '../components/layout/navigation/BottomNavigation';
-import { DesktopHeader } from '../components/layout/navigation/DesktopHeader';
-import MobileHeader from '../components/layout/navigation/MobileHeader';
+import { BottomNavigation } from '../components/layout/navigation/bottom-navigation';
+import { DesktopHeader } from '../components/layout/navigation/desktop-header';
+import MobileHeader from '../components/layout/navigation/mobile-header';
 import { AppProvider } from '../contexts/AppContext';
 
 function AppContent({ children }: { children: ReactNode }) {
@@ -33,7 +33,7 @@ export default function App({ children }: { children: ReactNode }) {
                         <div className="hidden sm:block">
                             <NavBar />
                         </div>
-                        <div className="mt-4">{children}</div>
+                        <div className="mt-4 mb-16">{children}</div>
                     </div>
                     <BottomNavigation />
                 </AppContent>

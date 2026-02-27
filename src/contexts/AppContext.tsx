@@ -3,7 +3,9 @@
 import { getSession, getUser } from '@/src/app/actions/auth';
 import { getCurrentUserGymId, getCurrentUserProfile } from '@/src/app/actions/users';
 import type { Session, User } from '@supabase/supabase-js';
+import { useQuery } from '@tanstack/react-query';
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
+import { getGymById } from '../app/actions/gym';
 import { UserRole } from '../config/routes';
 import {
     getUserRole,
@@ -14,6 +16,7 @@ import {
     isCoachAdmin,
     isMember,
 } from '../lib/auth/permissions';
+import { Gym } from '../modules/gym/gym.schema';
 import { Profile } from '../modules/profiles/profiles.schema';
 
 type AppContextValue = {
@@ -69,6 +72,12 @@ type AppContextValue = {
     setMode: (mode: 'coach' | 'member' | 'admin') => void;
     /** Get the mode of the app. */
     mode: 'coach' | 'member' | 'admin';
+    /** Gym data. */
+    gymData: Gym | null;
+    /** True while fetching gym data. */
+    gymLoading: boolean;
+    /** Error message if fetching gym data failed. */
+    gymError: string | null;
 };
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -106,6 +115,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
             setSessionLoading(false);
         }
     }, []);
+
+    // refactor this to useQuery
+    const {
+        data: gymData,
+        isLoading: gymLoading,
+        error: gymError,
+    } = useQuery({
+        queryKey: ['gym', gymId],
+        queryFn: () => getGymById(gymId ?? ''),
+        enabled: !!gymId,
+    });
 
     const refetchUser = useCallback(async () => {
         setUserLoading(true);
@@ -147,7 +167,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const isMemberValue = isMember(userProfile);
 
     const value: AppContextValue = {
+        // gym data
         gymId,
+        gymData: gymData?.data ?? null,
+        gymLoading,
+        gymError: gymError?.message ?? null,
+        // user profile data
         userProfile,
         userProfileLoading,
         userProfileError,

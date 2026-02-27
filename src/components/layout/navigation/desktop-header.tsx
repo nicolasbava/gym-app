@@ -1,12 +1,13 @@
 'use client';
 import { signOut } from '@/src/app/actions/auth';
 import { useApp } from '@/src/contexts/AppContext';
-import { Dumbbell, LogOut } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { isRedirectError } from 'next/dist/client/components/redirect-error';
+import Image from 'next/image';
 import { Button } from '../../ui/button';
 
 export function DesktopHeader() {
-    const { mode, setMode, isCoach, isAuthenticated } = useApp();
+    const { mode, setMode, isCoach, isAuthenticated, gymData } = useApp();
 
     const handleLogout = async () => {
         try {
@@ -25,8 +26,14 @@ export function DesktopHeader() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <Dumbbell className="w-8 h-8 text-blue-600" />
-                        <h1 className="text-xl font-semibold text-gray-900">FitPro Gym</h1>
+                        {/* <Dumbbell className="w-8 h-8 text-blue-600" /> */}
+                        <Image
+                            src={gymData?.logo_url ?? ''}
+                            alt={gymData?.name ?? ''}
+                            width={32}
+                            height={32}
+                        />
+                        <h1 className="text-xl font-semibold text-gray-900">{gymData?.name}</h1>
                     </div>
 
                     {isCoach && (

@@ -4,6 +4,15 @@ import { QueryKey, useInfiniteQuery } from '@tanstack/react-query';
 const INITIAL_PAGE = 0;
 const DEFAULT_PAGE_SIZE = 6;
 
+/**
+ * A hook to paginate a list of items using infinite scroll.
+ * @param queryKey - The query key to use for the query.
+ * @param fetchPage - The function to fetch the next page of items.
+ * @param initialItems - The initial items to display.
+ * @param enabled - Whether the query is enabled.
+ * @param pageSize - The number of items to display per page.
+ */
+
 export function usePaginatedScroll<TItem>({
     queryKey,
     fetchPage,

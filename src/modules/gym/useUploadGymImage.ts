@@ -3,21 +3,23 @@
 import { createClient } from '@/src/utils/supabase/server';
 import { cookies } from 'next/headers';
 
-export async function uploadRoutineImage(routineId: string, file: File) {
+export async function uploadGymImage(gymId: string, file: File) {
     const cookieStore = await cookies();
     const supabase = await createClient(cookieStore);
 
     const extension = file.name.split('.').pop();
-    const path = `routines/${routineId}.${extension ?? 'jpg'}`;
+    const path = `gyms/${gymId}.${extension ?? 'jpg'}`;
 
+    // Upload the gym logo to the bucket
     const { error } = await supabase.storage
         .from('images_bucket')
         .upload(path, file, { upsert: true });
 
     if (error) {
-        console.error('Error uploading routine image:', error);
+        console.error('Error uploading gym logo:', error);
         throw error;
     }
 
-    await supabase.from('routines').update({ image_url: path }).eq('id', routineId);
+    // Update the gym logo url in the database
+    await supabase.from('gyms').update({ logo_url: path }).eq('id', gymId);
 }

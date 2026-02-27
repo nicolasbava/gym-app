@@ -1,4 +1,4 @@
-import { Exercise } from '@/src/lib/mock-data';
+import { Exercise } from '@/src/modules/exercises/exercises.schema';
 import { Edit2, Trash2 } from 'lucide-react';
 
 export default function ExerciseCard({
