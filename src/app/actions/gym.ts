@@ -78,6 +78,7 @@ export async function getGymsNamePaginated(name: string = '', page: number = 0) 
             .order('name', { ascending: true })
             .limit(limit)
             .range(page * limit, (page + 1) * limit - 1);
+
         // .eq('gym_id', gymId) // TODO: add gym_id to the query
 
         // // If name is provided, add the filter to the query
