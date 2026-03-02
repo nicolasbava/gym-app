@@ -30,9 +30,9 @@ export default function App({ children }: { children: ReactNode }) {
                     <MobileHeader />
 
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 min-h-[calc(100vh-150px)]">
-                        <div className="hidden sm:block">
+                        {/* <div className="hidden sm:block md:block"> */}
                             <NavBar />
-                        </div>
+                        {/* </div> */}
                         <div className="mt-4 mb-16">{children}</div>
                     </div>
                     <BottomNavigation />

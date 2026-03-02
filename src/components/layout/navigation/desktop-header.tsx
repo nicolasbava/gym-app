@@ -7,7 +7,7 @@ import Image from 'next/image';
 import { Button } from '../../ui/button';
 
 export function DesktopHeader() {
-    const { mode, setMode, isCoach, isAuthenticated, gymData } = useApp();
+    const { mode, setMode, isCoach, isAuthenticated, gymData, isAdmin } = useApp();
 
     const handleLogout = async () => {
         try {
@@ -21,22 +21,26 @@ export function DesktopHeader() {
         }
     };
 
+    console.log('isAdmin', isAdmin);
+
     return (
         <header className="hidden md:block bg-white shadow-sm border-b sticky top-0 z-10">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         {/* <Dumbbell className="w-8 h-8 text-blue-600" /> */}
-                        <Image
-                            src={gymData?.logo_url ?? ''}
-                            alt={gymData?.name ?? ''}
-                            width={32}
-                            height={32}
-                        />
+                        {gymData?.logo_url && (
+                            <Image
+                                src={gymData?.logo_url ?? ''}
+                                alt={gymData?.name ?? ''}
+                                width={32}
+                                height={32}
+                            />
+                        )}
                         <h1 className="text-xl font-semibold text-gray-900">{gymData?.name}</h1>
                     </div>
 
-                    {isCoach && (
+                    {(isCoach || isAdmin) && (
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={() => setMode('admin')}

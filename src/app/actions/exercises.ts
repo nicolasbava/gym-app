@@ -230,6 +230,28 @@ export async function updateExercise(exerciseId: string, formData: UpdateExercis
     }
 }
 
+export async function setExerciseMuxUploadId(exerciseId: string, muxUploadId: string) {
+    try {
+        const cookieStore = await cookies();
+        const supabase = await createClient(cookieStore);
+        const { error } = await supabase
+            .from('exercises')
+            .update({ mux_upload_id: muxUploadId })
+            .eq('id', exerciseId);
+        if (error) {
+            return { success: false, error: error.message };
+        }
+        return { success: true, error: null };
+    } catch (error) {
+        console.error('Error setting exercise mux upload id:', error);
+        return {
+            success: false,
+            error:
+                error instanceof Error ? error.message : 'Error desconocido al actualizar ejercicio',
+        };
+    }
+}
+
 export async function deleteExercise(exerciseId: string) {
     try {
         const cookieStore = await cookies();
@@ -246,3 +268,4 @@ export async function deleteExercise(exerciseId: string) {
         };
     }
 }
+

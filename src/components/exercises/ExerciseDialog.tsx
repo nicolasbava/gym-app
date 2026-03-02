@@ -1,4 +1,5 @@
 import { useApp } from '@/src/contexts/AppContext';
+import { Exercise } from '@/src/modules/exercises/exercises.schema';
 import { Dumbbell, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '../ui/button';
@@ -11,14 +12,6 @@ import {
     DialogTrigger,
 } from '../ui/dialog';
 import CreateExerciseForm from './ExerciseForm';
-
-interface Exercise {
-    id: string;
-    name: string;
-    description?: string;
-    muscle_group?: string;
-    equipment?: string;
-}
 
 interface ExerciseDialogProps {
     exercise?: Exercise; // Si existe, es modo edición

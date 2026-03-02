@@ -2,7 +2,7 @@
 import { UserRole } from '@/src/config/routes';
 import { useApp } from '@/src/contexts/AppContext';
 import { useAuth } from '@/src/hooks/useAuth';
-import { Calendar, ClipboardList, Dumbbell, User, Users } from 'lucide-react';
+import { Building, Calendar, ClipboardList, Dumbbell, User, Users } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useMemo } from 'react';
 
@@ -11,25 +11,25 @@ export const navButtons = [
         link: '/exercises',
         icon: <Dumbbell className="w-5 h-5" />,
         label: 'Ejercicios',
-        role: ['coach', 'coach_admin', 'admin'],
+        role: ['coach', 'coach_admin'],
     },
     {
         link: '/routines',
         icon: <ClipboardList className="w-5 h-5" />,
         label: 'Rutinas',
-        role: ['coach', 'coach_admin', 'admin'],
+        role: ['coach', 'coach_admin'],
     },
     {
         link: '/members',
         icon: <Users className="w-5 h-5" />,
         label: 'Miembros',
-        role: ['coach', 'coach_admin', 'admin'],
+        role: ['coach', 'coach_admin'],
     },
     {
         link: '/home',
         icon: <Calendar className="w-5 h-5" />,
         label: 'Rutinas',
-        role: ['member', 'coach', 'coach_admin', 'admin'],
+        role: ['member', 'coach', 'coach_admin'],
     },
     {
         link: '/profile',
@@ -37,17 +37,26 @@ export const navButtons = [
         label: 'Perfil',
         role: ['member', 'coach', 'coach_admin', 'admin'],
     },
+    {
+        link: '/gyms',
+        icon: <Building className="w-5 h-5" />,
+        label: 'Gimnasios',
+        role: ['admin'],
+    },
 ];
 
 function getFilteredNavButtons(role: string, mode: string) {
-    if (role === 'coach' && mode === 'member') {
-        return navButtons;
+    if ((role === 'coach' || role === 'coach_admin' || role === 'admin') && mode === 'member') {
+        return navButtons.filter((button) => button.role.includes(mode));
     }
-    if (role === 'member') {
-        return navButtons.filter((button) => button.role.includes(role));
+    if (role === 'member' && mode === 'member') {
+        return navButtons.filter((button) => button.role.includes(mode));
     }
-    if (role === 'coach' && mode === 'coach') {
-        return navButtons.filter((button) => button.role.includes(role));
+    if ((role === 'coach' || role === 'coach_admin' || role === 'admin') && mode === 'coach') {
+        return navButtons.filter((button) => button.role.includes(mode));
+    }
+    if (role === 'admin' && mode === 'admin') {
+        return navButtons.filter((button) => button.role.includes(mode));
     }
     return [];
 }

@@ -1,27 +1,43 @@
 'use client';
 
 import { getUser } from '@/src/app/actions/auth';
-import { createExercise, getEquipmentTypes, getMuscleGroups, updateExercise } from '@/src/app/actions/exercises';
+import {
+    createExercise,
+    getEquipmentTypes,
+    getMuscleGroups,
+    updateExercise,
+} from '@/src/app/actions/exercises';
+import { VideoUploader } from '@/src/components/common/video-uploader';
 import { Button } from '@/src/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/src/components/ui/form';
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from '@/src/components/ui/form';
 import { Input } from '@/src/components/ui/input';
 import { Label } from '@/src/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/src/components/ui/select';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/src/components/ui/select';
 import { Textarea } from '@/src/components/ui/textarea';
-import { createExerciseSchema, type CreateExercise, type UpdateExercise } from '@/src/modules/exercises/exercises.schema';
+import {
+    createExerciseSchema,
+    Exercise,
+    type CreateExercise,
+    type UpdateExercise,
+} from '@/src/modules/exercises/exercises.schema';
 import { uploadExerciseImage } from '@/src/modules/exercises/useUploadExImage';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
-
-interface Exercise {
-    id: string;
-    name: string;
-    description?: string;
-    muscle_group?: string;
-    equipment?: string;
-}
 
 interface CreateExerciseFormProps {
     gymId: string;
@@ -33,7 +49,12 @@ interface CreateExerciseFormProps {
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const MAX_IMAGE_SIZE_MB = 5;
 
-export default function CreateExerciseForm({ gymId, exercise, onSuccess, setOpen }: CreateExerciseFormProps) {
+export default function CreateExerciseForm({
+    gymId,
+    exercise,
+    onSuccess,
+    setOpen,
+}: CreateExerciseFormProps) {
     const queryClient = useQueryClient();
     const isEditing = !!exercise;
     const [imageFile, setImageFile] = useState<File | null>(null);
@@ -156,10 +177,16 @@ export default function CreateExerciseForm({ gymId, exercise, onSuccess, setOpen
             if (isEditing && exercise) {
                 // Modo edición: actualizar ejercicio
                 const updateData: UpdateExercise = {
+                    id: exercise.id,
                     name: data.name,
                     description: data.description,
                     muscle_group: data.muscle_group,
+                    created_by: data.created_by,
+                    mux_upload_id: data.mux_upload_id,
+                    mux_playback_id: data.mux_playback_id,
+                    mux_status: data.mux_status,
                 };
+                console.log('>>>> updateData', updateData);
                 const result = await updateExercise(exercise.id, updateData);
                 if (!result.success) {
                     throw new Error(result.error || 'Error al actualizar el ejercicio');
@@ -237,7 +264,9 @@ export default function CreateExerciseForm({ gymId, exercise, onSuccess, setOpen
                         name="name"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel className="text-sm font-medium text-gray-700">Nombre del Ejercicio</FormLabel>
+                                <FormLabel className="text-sm font-medium text-gray-700">
+                                    Nombre del Ejercicio
+                                </FormLabel>
                                 <FormControl>
                                     <Input
                                         {...field}
@@ -256,7 +285,9 @@ export default function CreateExerciseForm({ gymId, exercise, onSuccess, setOpen
                         name="description"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel className="text-sm font-medium text-gray-700">Descripción (opcional)</FormLabel>
+                                <FormLabel className="text-sm font-medium text-gray-700">
+                                    Descripción (opcional)
+                                </FormLabel>
                                 <FormControl>
                                     <Textarea
                                         {...field}
@@ -273,7 +304,9 @@ export default function CreateExerciseForm({ gymId, exercise, onSuccess, setOpen
 
                     {!isEditing && (
                         <div className="space-y-2">
-                            <Label className="text-sm font-medium text-gray-700">Foto (opcional)</Label>
+                            <Label className="text-sm font-medium text-gray-700">
+                                Foto (opcional)
+                            </Label>
                             <p className="text-xs text-muted-foreground">
                                 Una sola imagen. JPG, PNG, WebP o GIF. Máx. {MAX_IMAGE_SIZE_MB} MB.
                             </p>
@@ -293,7 +326,9 @@ export default function CreateExerciseForm({ gymId, exercise, onSuccess, setOpen
                                         className="h-20 w-20 shrink-0 rounded-md object-cover"
                                     />
                                     <div className="flex flex-1 flex-col gap-2">
-                                        <p className="text-sm text-muted-foreground truncate">{imageFile?.name}</p>
+                                        <p className="text-sm text-muted-foreground truncate">
+                                            {imageFile?.name}
+                                        </p>
                                         <Button
                                             type="button"
                                             variant="outline"
@@ -320,13 +355,34 @@ export default function CreateExerciseForm({ gymId, exercise, onSuccess, setOpen
                         </div>
                     )}
 
+                    {exercise && (
+                        <div className="space-y-2">
+                            <VideoUploader exerciseId={exercise.id} />
+                        </div>
+                    )}
+
+                    {exercise && (
+                        <div className="space-y-2">
+                            <Label className="text-sm font-medium text-gray-700">
+                                ID de subida de vídeo
+                            </Label>
+                            {exercise?.mux_upload_id && (
+                                <p className="text-sm text-muted-foreground">
+                                    {exercise.mux_upload_id}
+                                </p>
+                            )}
+                        </div>
+                    )}
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FormField
                             control={form.control}
                             name="muscle_group"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className="text-sm font-medium text-gray-700">Grupo Muscular</FormLabel>
+                                    <FormLabel className="text-sm font-medium text-gray-700">
+                                        Grupo Muscular
+                                    </FormLabel>
                                     <Select
                                         onValueChange={field.onChange}
                                         value={field.value}
@@ -337,7 +393,9 @@ export default function CreateExerciseForm({ gymId, exercise, onSuccess, setOpen
                                                 <SelectValue placeholder="Selecciona grupo muscular">
                                                     {loadingMuscleGroups
                                                         ? 'Cargando grupos musculares...'
-                                                        : muscleGroups.find((g) => g === field.value) || 'Selecciona grupo muscular'}
+                                                        : muscleGroups.find(
+                                                              (g) => g === field.value,
+                                                          ) || 'Selecciona grupo muscular'}
                                                 </SelectValue>
                                             </SelectTrigger>
                                         </FormControl>
@@ -366,8 +424,8 @@ export default function CreateExerciseForm({ gymId, exercise, onSuccess, setOpen
                                     ? 'Actualizando...'
                                     : 'Creando...'
                                 : isEditing
-                                ? 'Actualizar Ejercicio'
-                                : 'Crear Ejercicio'}
+                                  ? 'Actualizar Ejercicio'
+                                  : 'Crear Ejercicio'}
                         </Button>
                         <Button
                             type="button"
