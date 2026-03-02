@@ -8,13 +8,16 @@ import { useRef, useState } from 'react';
 
 interface VideoUploaderProps {
     exerciseId: string;
+    onUploadSuccess?: (uploadId: string) => void;
 }
 
-export const VideoUploader = ({ exerciseId }: VideoUploaderProps) => {
+export const VideoUploader = ({ exerciseId, onUploadSuccess }: VideoUploaderProps) => {
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
 
-    const uploadMutation = useUploadVideo(exerciseId);
+    const uploadMutation = useUploadVideo(exerciseId, {
+        onSuccess: (uploadId) => onUploadSuccess?.(uploadId),
+    });
 
     const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -33,7 +36,7 @@ export const VideoUploader = ({ exerciseId }: VideoUploaderProps) => {
                 Vídeo del ejercicio (opcional)
             </Label>
             <p className="text-xs text-muted-foreground">
-                Un solo vídeo. Formato MP4, WebM o similar. El archivo se sube a Mux.
+                Un solo vídeo. Formato MP4, WebM o similar. El archivo se sube a Supabase Storage.
             </p>
             <input
                 ref={fileInputRef}
@@ -68,7 +71,7 @@ export const VideoUploader = ({ exerciseId }: VideoUploaderProps) => {
             )}
             {uploadMutation.isSuccess && (
                 <p className="text-xs text-green-600">
-                    Vídeo subido correctamente. Puede tardar unos minutos en procesarse.
+                    Vídeo subido correctamente.
                 </p>
             )}
         </div>

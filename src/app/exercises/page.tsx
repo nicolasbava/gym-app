@@ -194,6 +194,7 @@ export default function ExercisesPage() {
                         gymId={userProfile?.gym_id ?? ''}
                         exercise={editingExercise || undefined}
                         onSuccess={handleCloseModal}
+                        onExerciseUpdated={setEditingExercise}
                         setOpen={setIsModalOpen}
                     />
                 </DialogContent>

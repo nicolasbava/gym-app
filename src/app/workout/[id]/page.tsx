@@ -2,6 +2,7 @@
 
 import ErrorComponent from '@/src/components/common/ErrorComponent';
 import LoadingComponent from '@/src/components/common/LoadingComponent';
+import { VideoPlayer } from '@/src/components/common/video-player';
 import { Skeleton } from '@/src/components/ui/skeleton';
 import { navigationHelpers } from '@/src/lib/navigation';
 import { Timer } from '@/src/lib/timer';
@@ -54,6 +55,7 @@ export default function WorkoutPage() {
         routine != null &&
         Array.isArray(routine.routine_exercises) &&
         routine.routine_exercises.length > 0;
+
     const currentRoutineExercise = hasValidRoutine
         ? (routine.routine_exercises[currentExerciseIndex] ?? null)
         : null;
@@ -148,6 +150,8 @@ export default function WorkoutPage() {
         );
     }
 
+    console.log('currentRoutineExercise', currentRoutineExercise);
+
     return (
         <div className="max-w-4xl mx-auto">
             {/* Header */}
@@ -176,11 +180,20 @@ export default function WorkoutPage() {
                     {/* Main Exercise Card */}
                     <div className="bg-white rounded-lg shadow-sm border overflow-hidden mb-4">
                         <div className="relative h-64 md:h-96 bg-gray-900">
-                            <img
+                            {/* <img
                                 src={currentRoutineExercise.exercise.image_url?.[0]}
                                 alt={currentRoutineExercise.exercise.name}
                                 className="w-full h-full object-cover opacity-90"
-                            />
+                            /> */}
+
+                            {currentRoutineExercise.exercise.mux_playback_id && (
+                                <VideoPlayer
+                                    playbackId={
+                                        currentRoutineExercise.exercise.mux_playback_id ?? ''
+                                    }
+                                    title={currentRoutineExercise.exercise.name}
+                                />
+                            )}
                         </div>
 
                         <div className="p-6">

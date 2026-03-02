@@ -207,6 +207,8 @@ export async function updateExercise(exerciseId: string, formData: UpdateExercis
             name: validationResult.data.name,
             description: validationResult.data.description,
             muscle_group: validationResult.data.muscle_group,
+            created_by: user.id,
+            id: exerciseId,
         });
 
         revalidatePath('/trainer-dashboard');
@@ -230,6 +232,88 @@ export async function updateExercise(exerciseId: string, formData: UpdateExercis
     }
 }
 
+export async function removeExerciseVideo(exerciseId: string) {
+    try {
+        const cookieStore = await cookies();
+        const supabase = await createClient(cookieStore);
+
+        const { data: exercise, error: fetchError } = await supabase
+            .from('exercises')
+            .select('mux_playback_id, mux_upload_id')
+            .eq('id', exerciseId)
+            .single();
+
+        if (fetchError || !exercise) {
+            return {
+                success: false,
+                error: 'Exercise not found',
+                data: null,
+            };
+        }
+
+        // Delete from Mux if we have a playback ID (asset is ready)
+        if (exercise.mux_playback_id) {
+            try {
+                const Mux = (await import('@mux/mux-node')).default;
+                const mux = new Mux({
+                    tokenId: process.env.NEXT_PUBLIC_MUX_TOKEN_ID,
+                    tokenSecret: process.env.NEXT_PUBLIC_MUX_TOKEN_SECRET,
+                });
+
+                const playbackInfo = await mux.video.playbackIds.retrieve(exercise.mux_playback_id);
+                if (playbackInfo.object.type === 'asset') {
+                    await mux.video.assets.delete(playbackInfo.object.id);
+                }
+            } catch (muxError) {
+                console.error('Error deleting video from Mux:', muxError);
+                return {
+                    success: false,
+                    error: 'Failed to delete video from Mux',
+                    data: null,
+                };
+            }
+        }
+
+        const { data: updatedExercise, error: updateError } = await supabase
+            .from('exercises')
+            .update({
+                mux_upload_id: null,
+                mux_playback_id: null,
+                mux_status: null,
+            })
+            .eq('id', exerciseId)
+            .select()
+            .single();
+
+        if (updateError) {
+            return {
+                success: false,
+                error: updateError.message,
+                data: null,
+            };
+        }
+
+        revalidatePath('/trainer-dashboard');
+        revalidatePath('/exercises');
+
+        return {
+            success: true,
+            data: updatedExercise,
+            error: null,
+        };
+    } catch (error) {
+        console.error('Error removing exercise video:', error);
+        return {
+            success: false,
+            error:
+                error instanceof Error
+                    ? error.message
+                    : 'Unknown error whilst removing video',
+            data: null,
+        };
+    }
+}
+
 export async function setExerciseMuxUploadId(exerciseId: string, muxUploadId: string) {
     try {
         const cookieStore = await cookies();
@@ -247,7 +331,9 @@ export async function setExerciseMuxUploadId(exerciseId: string, muxUploadId: st
         return {
             success: false,
             error:
-                error instanceof Error ? error.message : 'Error desconocido al actualizar ejercicio',
+                error instanceof Error
+                    ? error.message
+                    : 'Error desconocido al actualizar ejercicio',
         };
     }
 }
@@ -268,4 +354,3 @@ export async function deleteExercise(exerciseId: string) {
         };
     }
 }
-

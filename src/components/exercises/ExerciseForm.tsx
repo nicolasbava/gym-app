@@ -5,8 +5,10 @@ import {
     createExercise,
     getEquipmentTypes,
     getMuscleGroups,
+    removeExerciseVideo,
     updateExercise,
 } from '@/src/app/actions/exercises';
+import { VideoPlayer } from '@/src/components/common/video-player';
 import { VideoUploader } from '@/src/components/common/video-uploader';
 import { Button } from '@/src/components/ui/button';
 import {
@@ -41,9 +43,10 @@ import { useForm } from 'react-hook-form';
 
 interface CreateExerciseFormProps {
     gymId: string;
-    exercise?: Exercise; // Si existe, es modo edición
+    exercise?: Exercise;
     onSuccess?: () => void;
-    setOpen?: (open: boolean) => void; // Para cerrar el diálogo desde fuera
+    onExerciseUpdated?: (exercise: Exercise) => void;
+    setOpen?: (open: boolean) => void;
 }
 
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
@@ -53,10 +56,13 @@ export default function CreateExerciseForm({
     gymId,
     exercise,
     onSuccess,
+    onExerciseUpdated,
     setOpen,
 }: CreateExerciseFormProps) {
     const queryClient = useQueryClient();
     const isEditing = !!exercise;
+    const [exerciseOverride, setExerciseOverride] = useState<Exercise | null>(null);
+    const exerciseDisplay = exerciseOverride ?? exercise;
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
     const pendingImageFileRef = useRef<File | null>(null);
@@ -121,11 +127,12 @@ export default function CreateExerciseForm({
         loadUser();
     }, [form]);
 
-    // Reset form when exercise prop changes
+    // Reset form and override when exercise prop changes
     useEffect(() => {
         if (exercise) {
             form.reset(defaultValues);
         }
+        setExerciseOverride(null);
     }, [exercise?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Cleanup object URL on unmount or when image file changes
@@ -172,6 +179,17 @@ export default function CreateExerciseForm({
     }, []);
 
     // Create or update exercise mutation
+    const removeVideoMutation = useMutation({
+        mutationFn: (exerciseId: string) => removeExerciseVideo(exerciseId),
+        onSuccess: async (result) => {
+            if (result?.success && result.data) {
+                setExerciseOverride(null);
+                await queryClient.invalidateQueries({ queryKey: ['exercises'], exact: false });
+                onExerciseUpdated?.(result.data as Exercise);
+            }
+        },
+    });
+
     const exerciseMutation = useMutation({
         mutationFn: async (data: CreateExercise) => {
             if (isEditing && exercise) {
@@ -243,11 +261,15 @@ export default function CreateExerciseForm({
 
     return (
         <>
-            {exerciseMutation.isError && (
+            {(exerciseMutation.isError || removeVideoMutation.isError) && (
                 <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-                    {exerciseMutation.error instanceof Error
-                        ? exerciseMutation.error.message
-                        : `Error al ${isEditing ? 'actualizar' : 'crear'} el ejercicio`}
+                    {removeVideoMutation.isError
+                        ? (removeVideoMutation.error instanceof Error
+                              ? removeVideoMutation.error.message
+                              : 'Error al eliminar el vídeo')
+                        : exerciseMutation.error instanceof Error
+                          ? exerciseMutation.error.message
+                          : `Error al ${isEditing ? 'actualizar' : 'crear'} el ejercicio`}
                 </div>
             )}
 
@@ -357,19 +379,46 @@ export default function CreateExerciseForm({
 
                     {exercise && (
                         <div className="space-y-2">
-                            <VideoUploader exerciseId={exercise.id} />
-                        </div>
-                    )}
-
-                    {exercise && (
-                        <div className="space-y-2">
                             <Label className="text-sm font-medium text-gray-700">
-                                ID de subida de vídeo
+                                Vídeo del ejercicio (opcional)
                             </Label>
-                            {exercise?.mux_upload_id && (
-                                <p className="text-sm text-muted-foreground">
-                                    {exercise.mux_upload_id}
-                                </p>
+                            {(exerciseDisplay?.mux_playback_id || exerciseDisplay?.mux_upload_id) ? (
+                                <div className="space-y-2 rounded-lg border border-gray-300 bg-muted/30 p-3">
+                                    {exerciseDisplay.mux_playback_id ? (
+                                        <VideoPlayer
+                                            playbackId={exerciseDisplay.mux_playback_id}
+                                            title={exerciseDisplay.name}
+                                        />
+                                    ) : (
+                                        <div className="bg-gray-200 aspect-video flex items-center justify-center rounded-xl">
+                                            Procesando...
+                                        </div>
+                                    )}
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        className="w-fit cursor-pointer"
+                                        disabled={removeVideoMutation.isPending}
+                                        onClick={() => {
+                                            removeVideoMutation.mutate(exercise.id);
+                                        }}
+                                    >
+                                        {removeVideoMutation.isPending
+                                            ? 'Eliminando...'
+                                            : 'Quitar vídeo'}
+                                    </Button>
+                                </div>
+                            ) : (
+                                <VideoUploader
+                                    exerciseId={exercise.id}
+                                    onUploadSuccess={(uploadId) => {
+                                        setExerciseOverride((prev) => ({
+                                            ...(prev ?? exercise),
+                                            mux_upload_id: uploadId,
+                                        }));
+                                    }}
+                                />
                             )}
                         </div>
                     )}

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { exerciseSchema } from '../exercises/exercises.schema';
 
 export const routineSchema = z.object({
     id: z.string().min(1, 'El id es requerido'),
@@ -60,19 +61,6 @@ export const updateRoutineSchema = createRoutineSchema.extend({
 export const assignRoutineSchema = z.object({
     routine_id: z.string().min(1, 'La rutina es requerida'),
     profile_id: z.string().min(1, 'El perfil es requerido'),
-});
-
-export const exerciseSchema = z.object({
-    id: z.string(),
-    name: z.string(),
-    gym_id: z.string().nullable(),
-    video_url: z.string().nullable(),
-    created_at: z.string(),
-    created_by: z.string(),
-    description: z.string(),
-    muscle_group: z.string().nullable(),
-    equipment: z.string().nullable(),
-    image_url: z.array(z.string()).optional().nullable(),
 });
 
 export const routineExerciseWithExerciseSchema = z.object({

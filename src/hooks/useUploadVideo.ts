@@ -2,7 +2,10 @@ import { setExerciseMuxUploadId } from '@/src/app/actions/exercises';
 import { createUploadUrl } from '@/src/app/actions/mux-action';
 import { useMutation } from '@tanstack/react-query';
 
-export const useUploadVideo = (exerciseId: string) => {
+export const useUploadVideo = (
+    exerciseId: string,
+    options?: { onSuccess?: (uploadId: string) => void },
+) => {
     return useMutation({
         mutationFn: async (file: File) => {
             const { url, uploadId } = await createUploadUrl();
@@ -22,5 +25,10 @@ export const useUploadVideo = (exerciseId: string) => {
 
             return uploadId;
         },
+        onSuccess: (uploadId) => {
+            options?.onSuccess?.(uploadId);
+        },
     });
 };
+
+
