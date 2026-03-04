@@ -181,7 +181,7 @@ export default function WorkoutPage() {
                     <div className="bg-white rounded-lg shadow-sm border overflow-hidden mb-4">
                         <div className="relative h-64 md:h-96 bg-gray-900">
                             {/* <img
-                                src={currentRoutineExercise.exercise.image_url?.[0]}
+                                src={currentRoutineExercise.exercise.images_url?.[0]}
                                 alt={currentRoutineExercise.exercise.name}
                                 className="w-full h-full object-cover opacity-90"
                             /> */}

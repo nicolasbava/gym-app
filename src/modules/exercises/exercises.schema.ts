@@ -16,6 +16,7 @@ export const baseExerciseSchema = z.object({
     mux_upload_id: z.string().optional(),
     mux_playback_id: z.string().optional(),
     mux_status: z.string().optional(),
+    images_url: z.array(z.string()).optional().nullable(),
 });
 
 export const createExerciseSchema = baseExerciseSchema;
@@ -28,9 +29,7 @@ export const exerciseSchema = baseExerciseSchema.extend({
 
 export const getExerciseSchema = baseExerciseSchema;
 
-export const updateExerciseSchema = baseExerciseSchema.extend({
-    id: z.string().min(1, 'El ID es requerido'),
-});
+export const updateExerciseSchema = baseExerciseSchema;
 
 // Infer types
 export type Exercise = z.infer<typeof exerciseSchema>;

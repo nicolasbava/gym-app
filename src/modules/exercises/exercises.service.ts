@@ -55,6 +55,7 @@ export class ExerciseService {
             mux_upload_id: exercise.mux_upload_id,
             mux_playback_id: exercise.mux_playback_id,
             mux_status: exercise.mux_status,
+            images_url: exercise.images_url,
         };
 
         // Solo agregar gym_id si existe y es un número válido (no UUID)

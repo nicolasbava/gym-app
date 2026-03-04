@@ -1,10 +1,10 @@
 'use client';
 
-import { getUser } from '@/src/app/actions/auth';
 import {
     createExercise,
     getEquipmentTypes,
     getMuscleGroups,
+    removeExerciseImage,
     removeExerciseVideo,
     updateExercise,
 } from '@/src/app/actions/exercises';
@@ -29,64 +29,69 @@ import {
     SelectValue,
 } from '@/src/components/ui/select';
 import { Textarea } from '@/src/components/ui/textarea';
+import { useApp } from '@/src/contexts/AppContext';
 import {
     createExerciseSchema,
     Exercise,
     type CreateExercise,
     type UpdateExercise,
 } from '@/src/modules/exercises/exercises.schema';
-import { uploadExerciseImage } from '@/src/modules/exercises/useUploadExImage';
+import { uploadImagesExercises } from '@/src/modules/exercises/useUploadExImage';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 interface CreateExerciseFormProps {
-    gymId: string;
     exercise?: Exercise;
     onSuccess?: () => void;
     onExerciseUpdated?: (exercise: Exercise) => void;
     setOpen?: (open: boolean) => void;
 }
 
-const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/jfif'];
 const MAX_IMAGE_SIZE_MB = 5;
+const MAX_IMAGES = 5;
 
 export default function CreateExerciseForm({
-    gymId,
     exercise,
     onSuccess,
     onExerciseUpdated,
     setOpen,
 }: CreateExerciseFormProps) {
+    const { userProfile } = useApp();
     const queryClient = useQueryClient();
     const isEditing = !!exercise;
     const [exerciseOverride, setExerciseOverride] = useState<Exercise | null>(null);
     const exerciseDisplay = exerciseOverride ?? exercise;
-    const [imageFile, setImageFile] = useState<File | null>(null);
-    const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
-    const pendingImageFileRef = useRef<File | null>(null);
+    const [imageFiles, setImageFiles] = useState<Array<{ file: File; previewUrl: string }>>([]);
+    const pendingImageFilesRef = useRef<File[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Preparar valores por defecto basados en si estamos editando o creando
+    // Prepare default values based on whether we are editing or creating
     const defaultValues = useMemo(() => {
         if (exercise) {
-            // Modo edición: prellenar con datos del ejercicio
+            // Editing mode: pre-fill with exercise data
             return {
                 name: exercise.name,
                 description: exercise.description || '',
                 muscle_group: exercise.muscle_group || '',
-                created_by: '',
+                created_by: exercise.created_by,
+                equipment: exercise.equipment || '',
+                images_url: exercise.images_url || [],
             };
         }
-        // Modo creación: valores por defecto
+        // Creation mode: default values
         return {
             name: '',
             description: '',
             muscle_group: '',
-            created_by: '',
+            created_by: userProfile?.id ?? '',
+            equipment: '',
+            images_url: [],
         };
-    }, [exercise]);
+    }, [exercise, userProfile]);
 
     const form = useForm<CreateExercise>({
         resolver: zodResolver(createExerciseSchema),
@@ -113,19 +118,6 @@ export default function CreateExerciseForm({
     });
 
     // Load user and set created_by field
-    useEffect(() => {
-        const loadUser = async () => {
-            try {
-                const user = await getUser();
-                if (user) {
-                    form.setValue('created_by', user.id);
-                }
-            } catch (err) {
-                console.error('Error loading user:', err);
-            }
-        };
-        loadUser();
-    }, [form]);
 
     // Reset form and override when exercise prop changes
     useEffect(() => {
@@ -135,48 +127,78 @@ export default function CreateExerciseForm({
         setExerciseOverride(null);
     }, [exercise?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    // Cleanup object URL on unmount or when image file changes
+    // Cleanup object URLs on unmount
     useEffect(() => {
         return () => {
-            if (imagePreviewUrl) {
-                URL.revokeObjectURL(imagePreviewUrl);
-            }
+            imageFiles.forEach((item) => URL.revokeObjectURL(item.previewUrl));
         };
-    }, [imagePreviewUrl]);
+    }, [imageFiles]);
 
-    const handleImageChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) {
-            setImageFile(null);
-            setImagePreviewUrl((prev) => {
-                if (prev) URL.revokeObjectURL(prev);
-                return null;
+    const existingImagesCount = Array.isArray(exerciseDisplay?.images_url)
+        ? exerciseDisplay.images_url.length
+        : 0;
+    const totalImagesCount = existingImagesCount + imageFiles.length;
+    const canAddMore = totalImagesCount < MAX_IMAGES;
+
+    const handleImageChange = useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            const files = e.target.files;
+            if (!files?.length) return;
+
+            const newItems: Array<{ file: File; previewUrl: string }> = [];
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) continue;
+                if (file.size > MAX_IMAGE_SIZE_MB * 1024 * 1024) continue;
+
+                newItems.push({
+                    file,
+                    previewUrl: URL.createObjectURL(file),
+                });
+            }
+
+            setImageFiles((prev) => {
+                const maxNew = MAX_IMAGES - existingImagesCount;
+                return [...prev, ...newItems].slice(0, maxNew);
             });
-            return;
-        }
-        if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
-            return;
-        }
-        if (file.size > MAX_IMAGE_SIZE_MB * 1024 * 1024) {
-            return;
-        }
-        setImagePreviewUrl((prev) => {
-            if (prev) URL.revokeObjectURL(prev);
-            return URL.createObjectURL(file);
+
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
+        },
+        [existingImagesCount],
+    );
+
+    const handleRemovePendingImage = useCallback((index: number) => {
+        setImageFiles((prev) => {
+            const item = prev[index];
+            if (item) URL.revokeObjectURL(item.previewUrl);
+            return prev.filter((_, i) => i !== index);
         });
-        setImageFile(file);
     }, []);
 
-    const handleClearImage = useCallback(() => {
-        setImageFile(null);
-        setImagePreviewUrl((prev) => {
-            if (prev) URL.revokeObjectURL(prev);
-            return null;
+    const handleClearAllImages = useCallback(() => {
+        setImageFiles((prev) => {
+            prev.forEach((p) => URL.revokeObjectURL(p.previewUrl));
+            return [];
         });
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
         }
     }, []);
+
+    const removeImageMutation = useMutation({
+        mutationFn: ({ exerciseId, imageUrl }: { exerciseId: string; imageUrl: string }) =>
+            removeExerciseImage(exerciseId, imageUrl),
+        onSuccess: async (result) => {
+            if (result?.success && result.data) {
+                setExerciseOverride(result.data as Exercise);
+                await queryClient.invalidateQueries({ queryKey: ['exercises'], exact: false });
+                onExerciseUpdated?.(result.data as Exercise);
+            }
+        },
+    });
 
     // Create or update exercise mutation
     const removeVideoMutation = useMutation({
@@ -193,16 +215,18 @@ export default function CreateExerciseForm({
     const exerciseMutation = useMutation({
         mutationFn: async (data: CreateExercise) => {
             if (isEditing && exercise) {
-                // Modo edición: actualizar ejercicio
+                // Editing mode: update exercise
+                const newImagesUrl = await uploadImagesExercises(pendingImageFilesRef.current);
                 const updateData: UpdateExercise = {
-                    id: exercise.id,
                     name: data.name,
                     description: data.description,
                     muscle_group: data.muscle_group,
                     created_by: data.created_by,
+                    equipment: data.equipment,
                     mux_upload_id: data.mux_upload_id,
                     mux_playback_id: data.mux_playback_id,
                     mux_status: data.mux_status,
+                    images_url: [...(data.images_url ?? []), ...(newImagesUrl ?? [])],
                 };
                 console.log('>>>> updateData', updateData);
                 const result = await updateExercise(exercise.id, updateData);
@@ -211,51 +235,51 @@ export default function CreateExerciseForm({
                 }
                 return result;
             } else {
-                // Modo creación: crear nuevo ejercicio
-                const result = await createExercise(data);
+                // Creation mode: create new exercise
+                const newImagesUrl = await uploadImagesExercises(pendingImageFilesRef.current);
+                const newData = {
+                    ...data,
+                    images_url: [...(data.images_url ?? []), ...(newImagesUrl ?? [])],
+                };
+                console.log('>>>> newData', newData);
+                const result = await createExercise(newData);
                 if (!result.success) {
                     throw new Error(result.error || 'Error al crear el ejercicio');
                 }
                 return result;
             }
         },
-        onSuccess: async (result) => {
-            if (!isEditing && result?.data?.id && pendingImageFileRef.current) {
-                try {
-                    await uploadExerciseImage(result.data.id, pendingImageFileRef.current);
-                } catch (err) {
-                    console.error('Error uploading exercise image:', err);
-                }
-                pendingImageFileRef.current = null;
-            }
-
-            await queryClient.invalidateQueries({
-                queryKey: ['exercises'],
-                exact: false,
-            });
-            await queryClient.refetchQueries({
-                queryKey: ['exercises'],
-                exact: false,
-            });
-
+        onSuccess: async () => {
             if (!isEditing) {
                 form.reset({
                     name: '',
                     description: '',
                     muscle_group: '',
                     created_by: form.getValues('created_by'),
+                    equipment: '',
+                    images_url: [],
                 });
-                handleClearImage();
+                handleClearAllImages();
             }
 
             if (onSuccess) {
                 onSuccess();
             }
+
+            await queryClient.invalidateQueries({
+                queryKey: ['exercises'],
+                exact: false,
+            });
+            // Force refetch to ensure immediate update
+            await queryClient.refetchQueries({
+                queryKey: ['exercises'],
+                exact: false,
+            });
         },
     });
 
     const onSubmit = async (data: CreateExercise) => {
-        pendingImageFileRef.current = imageFile ?? null;
+        pendingImageFilesRef.current = imageFiles.map((item) => item.file);
         exerciseMutation.mutate(data);
     };
 
@@ -264,9 +288,9 @@ export default function CreateExerciseForm({
             {(exerciseMutation.isError || removeVideoMutation.isError) && (
                 <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
                     {removeVideoMutation.isError
-                        ? (removeVideoMutation.error instanceof Error
-                              ? removeVideoMutation.error.message
-                              : 'Error al eliminar el vídeo')
+                        ? removeVideoMutation.error instanceof Error
+                            ? removeVideoMutation.error.message
+                            : 'Error al eliminar el vídeo'
                         : exerciseMutation.error instanceof Error
                           ? exerciseMutation.error.message
                           : `Error al ${isEditing ? 'actualizar' : 'crear'} el ejercicio`}
@@ -324,65 +348,109 @@ export default function CreateExerciseForm({
                         )}
                     />
 
-                    {!isEditing && (
-                        <div className="space-y-2">
-                            <Label className="text-sm font-medium text-gray-700">
-                                Foto (opcional)
-                            </Label>
-                            <p className="text-xs text-muted-foreground">
-                                Una sola imagen. JPG, PNG, WebP o GIF. Máx. {MAX_IMAGE_SIZE_MB} MB.
-                            </p>
-                            <input
-                                ref={fileInputRef}
-                                type="file"
-                                accept={ACCEPTED_IMAGE_TYPES.join(',')}
-                                onChange={handleImageChange}
-                                className="hidden"
-                                aria-label="Seleccionar imagen del ejercicio"
-                            />
-                            {imagePreviewUrl ? (
-                                <div className="flex items-start gap-3 rounded-lg border border-gray-300 bg-muted/30 p-3">
-                                    <img
-                                        src={imagePreviewUrl}
-                                        alt="Vista previa"
-                                        className="h-20 w-20 shrink-0 rounded-md object-cover"
-                                    />
-                                    <div className="flex flex-1 flex-col gap-2">
-                                        <p className="text-sm text-muted-foreground truncate">
-                                            {imageFile?.name}
-                                        </p>
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={handleClearImage}
-                                            disabled={exerciseMutation.isPending}
-                                            className="w-fit cursor-pointer"
-                                        >
-                                            Quitar foto
-                                        </Button>
+                    <div className="space-y-2">
+                        <Label className="text-sm font-medium text-gray-700">
+                            Fotos (opcional)
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
+                            Hasta {MAX_IMAGES} imágenes. JPG, PNG, WebP o GIF. Máx.{' '}
+                            {MAX_IMAGE_SIZE_MB} MB cada una.
+                        </p>
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept={ACCEPTED_IMAGE_TYPES.join(',')}
+                            multiple
+                            onChange={handleImageChange}
+                            disabled={!canAddMore || exerciseMutation.isPending}
+                            className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+                            aria-label="Seleccionar imágenes del ejercicio"
+                        />
+
+                        <div className="flex flex-wrap gap-3">
+                            {Array.isArray(exerciseDisplay?.images_url) &&
+                                exerciseDisplay.images_url.map((url) => (
+                                    <div
+                                        key={url}
+                                        className="relative group rounded-lg border border-gray-300 bg-muted/30 overflow-hidden"
+                                    >
+                                        <img
+                                            src={url}
+                                            alt="Ejercicio"
+                                            className="h-20 w-20 object-cover"
+                                        />
+                                        {exercise && (
+                                            <Button
+                                                type="button"
+                                                variant="destructive"
+                                                size="icon"
+                                                className="absolute top-1 right-1 h-6 w-6 cursor-pointer opacity-90 hover:opacity-100"
+                                                disabled={
+                                                    removeImageMutation.isPending ||
+                                                    exerciseMutation.isPending
+                                                }
+                                                onClick={() => {
+                                                    removeImageMutation.mutate({
+                                                        exerciseId: exercise.id,
+                                                        imageUrl: url,
+                                                    });
+                                                }}
+                                                aria-label="Eliminar imagen"
+                                            >
+                                                <X className="h-4 w-4" />
+                                            </Button>
+                                        )}
                                     </div>
+                                ))}
+
+                            {imageFiles.map((item, index) => (
+                                <div
+                                    key={item.previewUrl}
+                                    className="relative group rounded-lg border border-gray-300 bg-muted/30 overflow-hidden"
+                                >
+                                    <img
+                                        src={item.previewUrl}
+                                        alt={`Vista previa ${index + 1}`}
+                                        className="h-20 w-20 object-cover"
+                                    />
+                                    <Button
+                                        type="button"
+                                        variant="destructive"
+                                        size="icon"
+                                        className="absolute top-1 right-1 h-6 w-6 cursor-pointer opacity-90 hover:opacity-100"
+                                        disabled={exerciseMutation.isPending}
+                                        onClick={() => handleRemovePendingImage(index)}
+                                        aria-label="Quitar foto"
+                                    >
+                                        <X className="h-4 w-4" />
+                                    </Button>
                                 </div>
-                            ) : (
+                            ))}
+
+                            {canAddMore && (
                                 <Button
                                     type="button"
                                     variant="outline"
                                     onClick={() => fileInputRef.current?.click()}
                                     disabled={exerciseMutation.isPending}
-                                    className="w-full cursor-pointer"
+                                    className="h-20 w-20 shrink-0 cursor-pointer border-dashed"
+                                    aria-label="Añadir foto"
                                 >
-                                    Añadir foto
+                                    +
                                 </Button>
                             )}
                         </div>
-                    )}
 
-                    {exercise && (
-                        <div className="space-y-2">
-                            <Label className="text-sm font-medium text-gray-700">
-                                Vídeo del ejercicio (opcional)
-                            </Label>
-                            {(exerciseDisplay?.mux_playback_id || exerciseDisplay?.mux_upload_id) ? (
+                        {totalImagesCount > 0 && (
+                            <p className="text-xs text-muted-foreground">
+                                {totalImagesCount} de {MAX_IMAGES} fotos
+                            </p>
+                        )}
+                    </div>
+
+                    <div className="space-y-2">
+                        {exercise ? (
+                            exerciseDisplay?.mux_playback_id || exerciseDisplay?.mux_upload_id ? (
                                 <div className="space-y-2 rounded-lg border border-gray-300 bg-muted/30 p-3">
                                     {exerciseDisplay.mux_playback_id ? (
                                         <VideoPlayer
@@ -419,9 +487,13 @@ export default function CreateExerciseForm({
                                         }));
                                     }}
                                 />
-                            )}
-                        </div>
-                    )}
+                            )
+                        ) : (
+                            <p className="text-sm text-muted-foreground rounded-lg border border-dashed border-gray-300 bg-muted/20 px-4 py-6 text-center">
+                                Guarda el ejercicio primero para poder añadir un vídeo.
+                            </p>
+                        )}
+                    </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FormField
@@ -491,7 +563,7 @@ export default function CreateExerciseForm({
                                         muscle_group: '',
                                         created_by: form.getValues('created_by'),
                                     });
-                                    handleClearImage();
+                                    handleClearAllImages();
                                 }
                                 if (onSuccess) {
                                     onSuccess();

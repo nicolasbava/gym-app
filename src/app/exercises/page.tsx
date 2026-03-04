@@ -191,7 +191,6 @@ export default function ExercisesPage() {
                 </DialogHeader>
                 <DialogContent>
                     <CreateExerciseForm
-                        gymId={userProfile?.gym_id ?? ''}
                         exercise={editingExercise || undefined}
                         onSuccess={handleCloseModal}
                         onExerciseUpdated={setEditingExercise}

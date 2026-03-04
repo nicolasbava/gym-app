@@ -7,12 +7,12 @@ import {
     type UpdateExercise,
 } from '@/src/modules/exercises/exercises.schema';
 import { ExerciseService } from '@/src/modules/exercises/exercises.service';
+import { uploadImagesExercises } from '@/src/modules/exercises/useUploadExImage';
 import { createClient } from '@/src/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 
 export async function createExercise(formData: CreateExercise) {
-    // Validar datos del formulario
     const validationResult = createExerciseSchema.safeParse(formData);
 
     if (!validationResult.success) {
@@ -27,7 +27,6 @@ export async function createExercise(formData: CreateExercise) {
         const cookieStore = await cookies();
         const supabase = await createClient(cookieStore);
 
-        // Obtener usuario actual
         const {
             data: { user },
             error: userError,
@@ -43,32 +42,19 @@ export async function createExercise(formData: CreateExercise) {
 
         const exerciseService = new ExerciseService(supabase);
 
-        // Crear ejercicio usando el servicio
-        const exerciseData: any = {
+        const exerciseData: CreateExercise = {
             name: validationResult.data.name,
             description: validationResult.data.description,
             created_by: user.id,
-            // video_url: validationResult.data.video_url,
-            // muscle_group: validationResult.data.muscle_group,
-            // equipment_needed: validationResult.data.equipment_needed,
-            // is_global: validationResult.data.is_global,
+            muscle_group: validationResult.data.muscle_group,
+            equipment: validationResult.data.equipment,
+            images_url: validationResult.data.images_url,
         };
 
-        // // Solo agregar gym_id si existe y es un número válido (no UUID)
-        // if (validationResult.data.gym_id) {
-        //   const gymId = validationResult.data.gym_id
-        //   // Verificar si es un número (no UUID) - los UUIDs tienen guiones
-        //   if (!gymId.includes('-')) {
-        //     const numValue = parseInt(gymId, 10)
-        //     if (!isNaN(numValue) && gymId === String(numValue)) {
-        //       exerciseData.gym_id = gymId
-        //     }
-        //   }
-        //   // Si es UUID o no es número válido, no lo agregamos
-        // }
+        console.log('>>>> exerciseData', exerciseData);
 
+        
         const newExercise = await exerciseService.createExercise(exerciseData);
-
         revalidatePath('/trainer-dashboard');
 
         return {
@@ -78,6 +64,82 @@ export async function createExercise(formData: CreateExercise) {
         };
     } catch (error) {
         console.error('Error creating exercise:', error);
+        return {
+            error: error instanceof Error ? error.message : 'Error desconocido al crear ejercicio',
+            success: false,
+            data: null,
+        };
+    }
+}
+
+/** Creates an exercise and uploads image files from FormData. Use this when the form includes new image files. */
+export async function createExerciseWithImages(formData: FormData) {
+    const name = (formData.get('name') as string) ?? '';
+    const description = (formData.get('description') as string) ?? '';
+    const muscle_group = (formData.get('muscle_group') as string) ?? '';
+    const equipment = (formData.get('equipment') as string) ?? '';
+
+    try {
+        const cookieStore = await cookies();
+        const supabase = await createClient(cookieStore);
+
+        const {
+            data: { user },
+            error: userError,
+        } = await supabase.auth.getUser();
+
+        if (userError || !user) {
+            return {
+                error: 'No se pudo autenticar el usuario',
+                success: false,
+                data: null,
+            };
+        }
+
+        const payload: CreateExercise = {
+            name,
+            description,
+            muscle_group,
+            equipment,
+            created_by: user.id,
+        };
+
+        const validationResult = createExerciseSchema.safeParse(payload);
+
+        if (!validationResult.success) {
+            return {
+                error: validationResult.error.message || 'Error de validación',
+                success: false,
+                data: null,
+            };
+        }
+
+        const exerciseService = new ExerciseService(supabase);
+        const newExercise = await exerciseService.createExercise(validationResult.data);
+
+        const imageFiles = formData.getAll('images').filter((f): f is File => f instanceof File);
+        if (newExercise?.id && imageFiles.length > 0) {
+            await uploadImagesExercises(imageFiles);
+            const refetched = await exerciseService.getExerciseById(newExercise.id);
+            revalidatePath('/trainer-dashboard');
+            revalidatePath('/exercises');
+            return {
+                success: true,
+                data: refetched ?? newExercise,
+                error: null,
+            };
+        }
+
+        revalidatePath('/trainer-dashboard');
+        revalidatePath('/exercises');
+
+        return {
+            success: true,
+            data: newExercise,
+            error: null,
+        };
+    } catch (error) {
+        console.error('Error creating exercise with images:', error);
         return {
             error: error instanceof Error ? error.message : 'Error desconocido al crear ejercicio',
             success: false,
@@ -199,16 +261,15 @@ export async function updateExercise(exerciseId: string, formData: UpdateExercis
                 data: null,
             };
         }
-
         const exerciseService = new ExerciseService(supabase);
 
-        // Actualizar ejercicio usando el servicio
         const updatedExercise = await exerciseService.updateExercise(exerciseId, {
             name: validationResult.data.name,
             description: validationResult.data.description,
             muscle_group: validationResult.data.muscle_group,
+            equipment: validationResult.data.equipment,
             created_by: user.id,
-            id: exerciseId,
+            images_url: validationResult.data.images_url,
         });
 
         revalidatePath('/trainer-dashboard');
@@ -305,10 +366,62 @@ export async function removeExerciseVideo(exerciseId: string) {
         console.error('Error removing exercise video:', error);
         return {
             success: false,
-            error:
-                error instanceof Error
-                    ? error.message
-                    : 'Unknown error whilst removing video',
+            error: error instanceof Error ? error.message : 'Unknown error whilst removing video',
+            data: null,
+        };
+    }
+}
+
+export async function removeExerciseImage(exerciseId: string, imageUrl: string) {
+    try {
+        const cookieStore = await cookies();
+        const supabase = await createClient(cookieStore);
+
+        const { data: exercise, error: fetchError } = await supabase
+            .from('exercises')
+            .select('images_url')
+            .eq('id', exerciseId)
+            .single();
+
+        if (fetchError || !exercise) {
+            return {
+                success: false,
+                error: 'Exercise not found',
+                data: null,
+            };
+        }
+
+        const imagesUrl: string[] = Array.isArray(exercise.images_url) ? exercise.images_url : [];
+        const updatedUrls = imagesUrl.filter((url) => url !== imageUrl);
+
+        const { data: updatedExercise, error: updateError } = await supabase
+            .from('exercises')
+            .update({ images_url: updatedUrls })
+            .eq('id', exerciseId)
+            .select()
+            .single();
+
+        if (updateError) {
+            return {
+                success: false,
+                error: updateError.message,
+                data: null,
+            };
+        }
+
+        revalidatePath('/trainer-dashboard');
+        revalidatePath('/exercises');
+
+        return {
+            success: true,
+            data: updatedExercise,
+            error: null,
+        };
+    } catch (error) {
+        console.error('Error removing exercise image:', error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error whilst removing image',
             data: null,
         };
     }
