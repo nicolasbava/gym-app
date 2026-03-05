@@ -5,12 +5,10 @@ export default function ExerciseCard({
     exercise,
     handleOpenModal,
     handleOpenDeleteDialog,
-    deleteExerciseMutation,
 }: {
     exercise: Exercise;
     handleOpenModal: (exercise: Exercise) => void;
     handleOpenDeleteDialog: (id: string) => void;
-    deleteExerciseMutation: (id: string) => void;
 }) {
     return (
         <div

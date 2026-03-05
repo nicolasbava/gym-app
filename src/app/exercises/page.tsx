@@ -150,7 +150,6 @@ export default function ExercisesPage() {
                                         handleOpenModal(exercise as unknown as Exercise)
                                     }
                                     handleOpenDeleteDialog={handleOpenDeleteDialog}
-                                    deleteExerciseMutation={deleteExerciseMutation.mutateAsync}
                                 />
                             );
                         })}

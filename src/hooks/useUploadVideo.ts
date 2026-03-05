@@ -9,8 +9,6 @@ export const useUploadVideo = (
     return useMutation({
         mutationFn: async (file: File) => {
             const { url, uploadId } = await createUploadUrl();
-            console.log('>>>> url', url);
-            console.log('>>>> uploadId', uploadId);
             const response = await fetch(url, {
                 method: 'PUT',
                 body: file,

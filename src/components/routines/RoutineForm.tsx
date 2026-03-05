@@ -231,7 +231,6 @@ export default function CreateRoutineForm({
                         image_url: uploadedImageUrl ?? routine.image_url ?? undefined,
                     };
 
-                    console.log('>>>>1 updateData', JSON.stringify(updateData, null, 2));
                     const result = await updateRoutine(updateData);
                     if (!result.success) {
                         throw new Error(result.error || 'Error al actualizar la rutina');
@@ -249,14 +248,10 @@ export default function CreateRoutineForm({
                     let uploadedImageUrl: string | undefined;
                     if (pendingImageFileRef.current) {
                         const imageUrl = await uploadRoutineImage(pendingImageFileRef.current);
-                        console.log('DESPUES DE CREATE', imageUrl);
-
                         uploadedImageUrl = imageUrl;
                     }
 
                     const newData = { ...data, image_url: uploadedImageUrl };
-
-                    console.log('>>>> created data', JSON.stringify(newData, null, 2));
 
                     const result = await createRoutine(newData);
 

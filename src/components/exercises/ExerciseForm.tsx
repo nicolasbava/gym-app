@@ -87,7 +87,9 @@ export default function CreateExerciseForm({
         }
         // Otherwise resolve paths to signed URLs
         getImageUrls(paths)
-            .then((urls) => setDisplayUrls(urls.filter((u): u is string => u !== null)))
+            .then((urls) =>
+                setDisplayUrls(urls.filter((u): u is string => u !== null && isAlreadyUrl(u))),
+            )
             .catch(console.error);
     }, [exercise?.id, exercise?.images_url]);
 
@@ -185,6 +187,10 @@ export default function CreateExerciseForm({
                 return [...prev, ...newItems].slice(0, maxNew);
             });
 
+            setDisplayUrls((prev) => {
+                return [...prev, ...newItems.map((item) => item.previewUrl)];
+            });
+
             if (fileInputRef.current) {
                 fileInputRef.current.value = '';
             }
@@ -238,37 +244,47 @@ export default function CreateExerciseForm({
         mutationFn: async (data: CreateExercise) => {
             if (isEditing && exercise) {
                 // Editing mode: update exercise
-                const newImagesUrl = await uploadImagesExercises(pendingImageFilesRef.current);
-                const updateData: UpdateExercise = {
-                    name: data.name,
-                    description: data.description,
-                    muscle_group: data.muscle_group,
-                    created_by: data.created_by,
-                    equipment: data.equipment,
-                    mux_upload_id: data.mux_upload_id,
-                    mux_playback_id: data.mux_playback_id,
-                    mux_status: data.mux_status,
-                    images_url: [...(data.images_url ?? []), ...(newImagesUrl ?? [])],
-                };
-                console.log('>>>> updateData', updateData);
-                const result = await updateExercise(exercise.id, updateData);
-                if (!result.success) {
-                    throw new Error(result.error || 'Error al actualizar el ejercicio');
+                try {
+                    const newImagesUrl = await uploadImagesExercises(pendingImageFilesRef.current);
+                    const updateData: UpdateExercise = {
+                        name: data.name,
+                        description: data.description,
+                        muscle_group: data.muscle_group,
+                        created_by: data.created_by,
+                        equipment: data.equipment,
+                        mux_upload_id: data.mux_upload_id,
+                        mux_playback_id: data.mux_playback_id,
+                        mux_status: data.mux_status,
+                        images_url: [...(data.images_url ?? []), ...(newImagesUrl ?? [])],
+                    };
+
+                    const result = await updateExercise(exercise.id, updateData);
+
+                    if (!result.success) {
+                        throw new Error(result.error || 'Error al actualizar el ejercicio');
+                    }
+                    return result;
+                } catch (error) {
+                    console.error('Error updating exercise:', error);
+                    throw error;
                 }
-                return result;
             } else {
                 // Creation mode: create new exercise
-                const newImagesUrl = await uploadImagesExercises(pendingImageFilesRef.current);
-                const newData = {
-                    ...data,
-                    images_url: [...(data.images_url ?? []), ...(newImagesUrl ?? [])],
-                };
-                console.log('>>>> newData', newData);
-                const result = await createExercise(newData);
-                if (!result.success) {
-                    throw new Error(result.error || 'Error al crear el ejercicio');
+                try {
+                    const newImagesUrl = await uploadImagesExercises(pendingImageFilesRef.current);
+                    const newData = {
+                        ...data,
+                        images_url: [...(data.images_url ?? []), ...(newImagesUrl ?? [])],
+                    };
+                    const result = await createExercise(newData);
+                    if (!result.success) {
+                        throw new Error(result.error || 'Error al crear el ejercicio');
+                    }
+                    return result;
+                } catch (error) {
+                    console.error('Error creating exercise:', error);
+                    throw error;
                 }
-                return result;
             }
         },
         onSuccess: async () => {
@@ -390,48 +406,13 @@ export default function CreateExerciseForm({
                         />
 
                         <div className="flex flex-wrap gap-3">
-                            {Array.isArray(exerciseDisplay?.images_url) &&
-                                exerciseDisplay.images_url.map((url) => (
-                                    <div
-                                        key={url}
-                                        className="relative group rounded-lg border border-gray-300 bg-muted/30 overflow-hidden"
-                                    >
-                                        <img
-                                            src={url}
-                                            alt="Ejercicio"
-                                            className="h-20 w-20 object-cover"
-                                        />
-                                        {exercise && (
-                                            <Button
-                                                type="button"
-                                                variant="destructive"
-                                                size="icon"
-                                                className="absolute top-1 right-1 h-6 w-6 cursor-pointer opacity-90 hover:opacity-100"
-                                                disabled={
-                                                    removeImageMutation.isPending ||
-                                                    exerciseMutation.isPending
-                                                }
-                                                onClick={() => {
-                                                    removeImageMutation.mutate({
-                                                        exerciseId: exercise.id,
-                                                        imageUrl: url,
-                                                    });
-                                                }}
-                                                aria-label="Eliminar imagen"
-                                            >
-                                                <X className="h-4 w-4" />
-                                            </Button>
-                                        )}
-                                    </div>
-                                ))}
-
-                            {imageFiles.map((item, index) => (
+                            {displayUrls.map((item, index) => (
                                 <div
-                                    key={item.previewUrl}
+                                    key={item}
                                     className="relative group rounded-lg border border-gray-300 bg-muted/30 overflow-hidden"
                                 >
                                     <img
-                                        src={item.previewUrl}
+                                        src={item}
                                         alt={`Vista previa ${index + 1}`}
                                         className="h-20 w-20 object-cover"
                                     />

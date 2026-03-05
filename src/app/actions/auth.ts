@@ -42,14 +42,10 @@ export async function signInWithGoogle() {
 }
 
 export async function signOut() {
-    console.log('>>> signOut <<<<');
-
     const cookieStore = await cookies();
     const supabase = await createClient(cookieStore);
 
-    console.log('>>> error <<<<');
     const { error } = await supabase.auth.signOut();
-    console.log('>>> error <<<<', error);
     if (error) {
         console.error('Error signing out:', error);
         throw error;

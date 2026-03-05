@@ -214,6 +214,36 @@ export class RoutineService {
             );
         }
 
+        if (data?.routine_exercises) {
+            const bucketName = process.env.NEXT_PUBLIC_BUCKET_NAME_IMAGES ?? '';
+
+            data.routine_exercises = await Promise.all(
+                data.routine_exercises.map(async (re: any) => {
+                    const paths = re.exercise?.images_url ?? [];
+                    if (paths.length === 0) {
+                        return re;
+                    }
+
+                    const signedUrls = await Promise.all(
+                        paths.map(async (path: string) => {
+                            const { data: signed } = await this.supabase.storage
+                                .from(bucketName)
+                                .createSignedUrl(path, 3600);
+                            return signed?.signedUrl ?? null;
+                        }),
+                    );
+
+                    return {
+                        ...re,
+                        exercise: {
+                            ...re.exercise,
+                            images_url: signedUrls.filter((url: string | null) => url !== null),
+                        },
+                    };
+                }),
+            );
+        }
+
         return data;
     }
 

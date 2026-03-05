@@ -15,7 +15,7 @@ export async function getImageUrl(imagePath: string): Promise<string | null> {
     const cookieStore = await cookies();
     const supabase = await createClient(cookieStore);
 
-    const bucketName = process.env.NEXT_PUBLIC_BUCKET_NAME ?? '';
+    const bucketName = process.env.NEXT_PUBLIC_BUCKET_NAME_IMAGES ?? '';
     const EXPIRES_IN_ONE_HOUR = 3600;
 
     const { data, error } = await supabase.storage
@@ -31,13 +31,12 @@ export async function getImageUrl(imagePath: string): Promise<string | null> {
         return null;
     }
 
-    console.log('>>>> data', data?.signedUrl);
-
     return data.signedUrl;
 }
 
 export async function getImageUrls(imagePaths: string[]): Promise<(string | null)[]> {
     if (imagePaths.length === 0) return [];
     const urls = await Promise.all(imagePaths.map((path) => getImageUrl(path)));
+
     return urls;
 }

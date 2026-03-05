@@ -10,9 +10,8 @@ export class ExerciseService {
             .select('*')
             .eq('gym_id', gymId)
             .order('name', { ascending: true });
-        console.log('>>> data:', data);
+
         if (error) {
-            console.log('>>> error:', error);
             throw error;
         }
         return data;

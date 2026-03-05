@@ -17,7 +17,6 @@ export class ProfilesService {
             console.error(error);
             throw error;
         }
-        console.log('>>> data:', data);
         return data;
     }
 

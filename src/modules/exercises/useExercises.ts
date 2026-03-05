@@ -68,9 +68,7 @@ export function useExercises(gymId?: string) {
         try {
             const data = await exerciseService.getExercisesByGym(gymId);
             setExercises(data);
-            console.log('>>> data use:', data);
         } catch (err) {
-            console.log('>>> err:', err);
             setError(err as Error);
         }
     }

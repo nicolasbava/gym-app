@@ -21,8 +21,6 @@ export function DesktopHeader() {
         }
     };
 
-    console.log('isAdmin', isAdmin);
-
     return (
         <header className="hidden md:block bg-white shadow-sm border-b sticky top-0 z-10">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">

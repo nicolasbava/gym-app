@@ -51,9 +51,6 @@ export async function createExercise(formData: CreateExercise) {
             images_url: validationResult.data.images_url,
         };
 
-        console.log('>>>> exerciseData', exerciseData);
-
-        
         const newExercise = await exerciseService.createExercise(exerciseData);
         revalidatePath('/trainer-dashboard');
 
