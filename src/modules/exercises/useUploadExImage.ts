@@ -5,7 +5,7 @@ import { cookies } from 'next/headers';
 
 function getUniquePath(file: File, index: number): string {
     const extension = file.name.split('.').pop() ?? 'jpg';
-    const unique = `${Date.now()}-${index}`;
+    const unique = `exercises/${Date.now()}-${index}`;
     return `${unique}.${extension}`;
 }
 
@@ -18,7 +18,7 @@ export async function uploadImagesExercises(files: File[]): Promise<string[]> {
     const supabase = await createClient(cookieStore);
 
     const bucketName = process.env.NEXT_PUBLIC_BUCKET_NAME_IMAGES ?? '';
-    const newUrls: string[] = [];
+    const imagesPaths: string[] = [];
 
     for (let i = 0; i < files.length; i++) {
         const file = files[i];
@@ -33,12 +33,8 @@ export async function uploadImagesExercises(files: File[]): Promise<string[]> {
             throw error;
         }
 
-        const {
-            data: { publicUrl },
-        } = supabase.storage.from(bucketName).getPublicUrl(path);
-        newUrls.push(publicUrl);
+        imagesPaths.push(path);
     }
 
-    return newUrls;
+    return imagesPaths;
 }
-

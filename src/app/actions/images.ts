@@ -11,7 +11,7 @@ import { cookies } from 'next/headers';
  * @returns The image url
  */
 
-export async function getImageUrl(imagePath: string) {
+export async function getImageUrl(imagePath: string): Promise<string | null> {
     const cookieStore = await cookies();
     const supabase = await createClient(cookieStore);
 
@@ -23,9 +23,21 @@ export async function getImageUrl(imagePath: string) {
         .createSignedUrl(imagePath, EXPIRES_IN_ONE_HOUR);
 
     if (error) {
-        console.error('Error getting exercise image url:', error);
-        throw error;
+        // @ts-ignore
+        if (error.statusCode === 404) {
+            return null;
+        }
+        console.error('Error getting image signed url:', error);
+        return null;
     }
 
+    console.log('>>>> data', data?.signedUrl);
+
     return data.signedUrl;
+}
+
+export async function getImageUrls(imagePaths: string[]): Promise<(string | null)[]> {
+    if (imagePaths.length === 0) return [];
+    const urls = await Promise.all(imagePaths.map((path) => getImageUrl(path)));
+    return urls;
 }

@@ -74,6 +74,7 @@ export default function CreateRoutineForm({
                 name: routine.name,
                 description: routine.description || '',
                 created_by: routine.created_by,
+                image_url: routine.image_url,
                 exercises:
                     routine.routine_exercises.length > 0
                         ? routine.routine_exercises.map((ex, index) => ({
@@ -212,42 +213,64 @@ export default function CreateRoutineForm({
     const routineMutation = useMutation({
         mutationFn: async (data: CreateRoutineInput) => {
             if (isEditing && routine) {
-                const updateData: UpdateRoutine = {
-                    id: routine.id,
-                    name: data.name,
-                    description: data.description,
-                    exercises: data.exercises,
-                    updated_at: new Date().toISOString(),
-                    created_by: routine.created_by,
-                    created_at: routine.created_at ?? new Date().toISOString(),
-                    gym_id: data.gym_id,
-                    image_url: routine.image_url ?? undefined,
-                };
-                const result = await updateRoutine(updateData);
-                if (!result.success) {
-                    throw new Error(result.error || 'Error al actualizar la rutina');
+                // UPDATE METHOD
+                try {
+                    let uploadedImageUrl: string | undefined;
+                    if (pendingImageFileRef.current) {
+                        const imageUrl = await uploadRoutineImage(pendingImageFileRef.current);
+                        uploadedImageUrl = imageUrl;
+                    }
+
+                    const updateData: UpdateRoutine = {
+                        id: routine.id,
+                        name: data.name,
+                        description: data.description,
+                        exercises: data.exercises,
+                        updated_at: new Date().toISOString(),
+                        gym_id: data.gym_id,
+                        image_url: uploadedImageUrl ?? routine.image_url ?? undefined,
+                    };
+
+                    console.log('>>>>1 updateData', JSON.stringify(updateData, null, 2));
+                    const result = await updateRoutine(updateData);
+                    if (!result.success) {
+                        throw new Error(result.error || 'Error al actualizar la rutina');
+                    }
+                    return result;
+                } catch (err) {
+                    console.error('Error updating routine:', err);
+                    throw err;
+                } finally {
+                    pendingImageFileRef.current = null;
                 }
-                return result;
             } else {
                 // Modo creación: crear nueva rutina
-                const result = await createRoutine(data);
-                if (!result.success) {
-                    throw new Error(result.error || 'Error al crear la rutina');
-                }
-                return result;
-            }
-        },
-        onSuccess: async (result) => {
-            const routineId = result?.data?.id ?? routine?.id;
-            if (routineId && pendingImageFileRef.current) {
                 try {
-                    await uploadRoutineImage(routineId, pendingImageFileRef.current);
+                    let uploadedImageUrl: string | undefined;
+                    if (pendingImageFileRef.current) {
+                        const imageUrl = await uploadRoutineImage(pendingImageFileRef.current);
+                        console.log('DESPUES DE CREATE', imageUrl);
+
+                        uploadedImageUrl = imageUrl;
+                    }
+
+                    const newData = { ...data, image_url: uploadedImageUrl };
+
+                    console.log('>>>> created data', JSON.stringify(newData, null, 2));
+
+                    const result = await createRoutine(newData);
+
+                    if (!result.success) {
+                        throw new Error(result.error || 'Error al crear la rutina');
+                    }
+                    return result;
                 } catch (err) {
                     console.error('Error uploading routine image:', err);
                 }
                 pendingImageFileRef.current = null;
             }
-
+        },
+        onSuccess: async () => {
             await queryClient.invalidateQueries({
                 queryKey: ['routines'],
                 exact: false,
@@ -262,6 +285,7 @@ export default function CreateRoutineForm({
                     gym_id: gymId,
                     name: '',
                     description: '',
+                    image_url: undefined,
                     created_by: form.getValues('created_by'),
                     exercises: [
                         {
@@ -301,15 +325,9 @@ export default function CreateRoutineForm({
         });
     };
 
-    return (
-        // <Dialog open={open} onOpenChange={setOpen}>
-        //   <DialogTrigger asChild>
-        //     <Button className="bg-purple-600 hover:bg-purple-700">
-        //       <Plus className="h-4 w-4 mr-2" />
-        //       Crear Rutina
-        //     </Button>
-        //   </DialogTrigger>
+    console.log('routine', routine);
 
+    return (
         <>
             {routineMutation.isError && (
                 <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">

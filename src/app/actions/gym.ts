@@ -103,11 +103,10 @@ export async function getGymsNamePaginated(name: string = '', page: number = 0) 
             };
         }
 
-        // Get image url for each gym
-        let newData = [];
+        const newData = [];
         for (const gym of data) {
-            if (!gym.logo_url) continue;
-            const imageUrl = await getImageUrl(gym.logo_url ?? '');
+            if (!gym.logo_url) { continue; }
+            const imageUrl = await getImageUrl(gym.logo_url);
             newData.push({ ...gym, logo_url: imageUrl });
         }
 
@@ -138,7 +137,7 @@ export async function getGymById(gymId: string) {
 
         if (error) throw error;
 
-        const imageUrl = await getImageUrl(data.logo_url ?? '');
+        const imageUrl = data.logo_url ? await getImageUrl(data.logo_url) : null;
         const newData = { ...data, logo_url: imageUrl };
 
         return {

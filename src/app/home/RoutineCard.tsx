@@ -1,8 +1,9 @@
 import {
     AssignedRoutineWithDetails,
-    RoutineExerciseWithExercise,
+    RoutineWithExercise,
 } from '@/src/modules/routines/routines.schema';
 import { Dumbbell, Play } from 'lucide-react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
 export default function RoutineCard({ routine }: { routine: AssignedRoutineWithDetails }) {
@@ -12,6 +13,8 @@ export default function RoutineCard({ routine }: { routine: AssignedRoutineWithD
         router.push(`/workout/${routineId}`);
     };
 
+    console.log('>> render rutina front', routine);
+
     return (
         <div
             key={routine.id}
@@ -19,9 +22,11 @@ export default function RoutineCard({ routine }: { routine: AssignedRoutineWithD
         >
             {/* Routine Image/Video */}
             <div className="relative h-64 md:h-96 bg-gray-900">
-                <img
+                <Image
                     src={routine.routine.image_url ?? ''}
-                    alt={routine.exercises.name}
+                    width={100}
+                    height={100}
+                    alt={'routine.routine.name'}
                     className="w-full h-full object-cover opacity-90"
                 />
                 {/* <button
@@ -44,7 +49,7 @@ export default function RoutineCard({ routine }: { routine: AssignedRoutineWithD
 
                 <div className="space-y-2">
                     {routine.exercises.routine_exercises.map(
-                        (ex: RoutineExerciseWithExercise, index: number) => (
+                        (ex: RoutineWithExercise, index: number) => (
                             <div
                                 key={index}
                                 className="flex items-center justify-between text-sm bg-gray-50 p-3 rounded-lg"

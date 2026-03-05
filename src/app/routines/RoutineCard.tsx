@@ -1,9 +1,9 @@
+'use client';
+
 import ConfirmAction from '@/src/components/common/ConfirmAction';
-import {
-    RoutineExerciseWithExercise,
-    RoutineWithExercises,
-} from '@/src/modules/routines/routines.schema';
-import { Edit2, Trash2 } from 'lucide-react';
+import { RoutineWithExercise, RoutineWithExercises } from '@/src/modules/routines/routines.schema';
+import { Dumbbell, Edit2, Trash2 } from 'lucide-react';
+import Image from 'next/image';
 
 type RoutineCardProps = {
     routine: RoutineWithExercises;
@@ -22,13 +22,33 @@ export default function RoutineCard({
     openDeleteDialog,
     setOpenDeleteDialog,
 }: RoutineCardProps) {
+    const placeholder = (
+        <div
+            className="flex shrink-0 w-[100px] h-[100px] items-center justify-center rounded-lg bg-gray-100 text-gray-400"
+            aria-hidden
+        >
+            <Dumbbell className="w-10 h-10" />
+        </div>
+    );
+
     return (
         <div
             key={routine.id}
             className="bg-white rounded-lg shadow-sm border p-6 hover:shadow-md transition-shadow"
         >
             <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
+                {routine.image_url ? (
+                    <Image
+                        src={routine.image_url}
+                        alt={routine.name}
+                        width={100}
+                        height={100}
+                        className="shrink-0 rounded-lg object-cover hidden sm:block"
+                    />
+                ) : (
+                    placeholder
+                )}
+                <div className="flex-1 ml-2 mr-2">
                     <h3 className="font-semibold text-lg text-gray-900 mb-1">{routine.name}</h3>
                     <p className="text-gray-600 text-sm">{routine.description}</p>
                 </div>
@@ -53,7 +73,7 @@ export default function RoutineCard({
                     {routine.routine_exercises.length} Ejercicio
                     {routine.routine_exercises.length !== 1 ? 's' : ''}
                 </p>
-                {routine.routine_exercises.map((ex: RoutineExerciseWithExercise, index: number) => (
+                {routine.routine_exercises.map((ex: RoutineWithExercise, index: number) => (
                     <div
                         key={index}
                         className="flex items-center justify-between text-sm bg-gray-50 p-3 rounded-lg"

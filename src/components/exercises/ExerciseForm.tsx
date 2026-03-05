@@ -8,6 +8,7 @@ import {
     removeExerciseVideo,
     updateExercise,
 } from '@/src/app/actions/exercises';
+import { getImageUrls } from '@/src/app/actions/images';
 import { VideoPlayer } from '@/src/components/common/video-player';
 import { VideoUploader } from '@/src/components/common/video-uploader';
 import { Button } from '@/src/components/ui/button';
@@ -68,6 +69,27 @@ export default function CreateExerciseForm({
     const [imageFiles, setImageFiles] = useState<Array<{ file: File; previewUrl: string }>>([]);
     const pendingImageFilesRef = useRef<File[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [displayUrls, setDisplayUrls] = useState<string[]>([]);
+
+    // GET IMAGES URLS AND CHECK FOR URL OR PATH
+    useEffect(() => {
+        if (!exercise?.images_url?.length) {
+            setDisplayUrls([]);
+            return;
+        }
+        const paths = exercise.images_url;
+        // If they're already full URLs (e.g. public bucket), use as-is
+        const isAlreadyUrl = (s: string) => s.startsWith('http://') || s.startsWith('https://');
+        if (paths.every(isAlreadyUrl)) {
+            setDisplayUrls(paths);
+            setImageFiles(paths.map((url) => ({ file: new File([], ''), previewUrl: url })));
+            return;
+        }
+        // Otherwise resolve paths to signed URLs
+        getImageUrls(paths)
+            .then((urls) => setDisplayUrls(urls.filter((u): u is string => u !== null)))
+            .catch(console.error);
+    }, [exercise?.id, exercise?.images_url]);
 
     // Prepare default values based on whether we are editing or creating
     const defaultValues = useMemo(() => {

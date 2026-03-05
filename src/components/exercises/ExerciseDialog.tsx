@@ -53,7 +53,6 @@ export default function ExerciseDialog({ exercise, onSuccess }: ExerciseDialogPr
                     </DialogDescription>
                 </DialogHeader>
                 <CreateExerciseForm
-                    gymId={gymId ?? ''}
                     exercise={exercise}
                     onSuccess={handleSuccess}
                     setOpen={setOpenExerciseForm}

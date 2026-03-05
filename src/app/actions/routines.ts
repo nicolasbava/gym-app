@@ -47,6 +47,7 @@ export async function createRoutine(formData: CreateRoutineInput) {
             name: validationResult.data.name,
             description: validationResult.data.description,
             created_by: profile.id,
+            image_url: validationResult.data.image_url ?? undefined,
             exercises: validationResult.data.exercises.map((ex) => ({
                 exercise_id: ex.exercise_id,
                 order_index: ex.order_index,
@@ -116,6 +117,7 @@ export async function updateRoutine(formData: UpdateRoutine) {
                 notes: ex.notes,
                 weight: ex.weight,
             })),
+            image_url: validationResult.data.image_url ?? undefined,
         });
 
         revalidatePath('/trainer-dashboard');
@@ -175,7 +177,11 @@ export async function assignRoutine(formData: AssignRoutine) {
     }
 }
 
-export async function getRoutinesByGymNameAction(gymId: string, name: string = '', page: number = 0) {
+export async function getRoutinesByGymNameAction(
+    gymId: string,
+    name: string = '',
+    page: number = 0,
+) {
     if (!gymId) return { success: false, data: [], error: 'Gimnasio requerido' };
     try {
         const cookieStore = await cookies();
