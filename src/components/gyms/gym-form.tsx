@@ -1,7 +1,8 @@
 'use client';
 
-import { createGym, updateGym } from '@/src/app/actions/gym';
 import { getUser } from '@/src/app/actions/auth';
+import { createGym, updateGym } from '@/src/app/actions/gym';
+import { Button } from '@/src/components/ui/button';
 import {
     Form,
     FormControl,
@@ -18,12 +19,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/src/components/ui/select';
-import { Button } from '@/src/components/ui/button';
-import {
-    type CreateGym,
-    type Gym,
-    createGymSchema,
-} from '@/src/modules/gym/gym.schema';
+import { type CreateGym, type Gym, createGymSchema } from '@/src/modules/gym/gym.schema';
 import { uploadGymImage } from '@/src/modules/gym/useUploadGymImage';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -225,10 +221,7 @@ export default function GymForm({ gym, onSuccess, onCancel }: GymFormProps) {
             )}
 
             <Form {...form}>
-                <form
-                    onSubmit={form.handleSubmit(onSubmit)}
-                    className="p-6 space-y-6"
-                >
+                <form onSubmit={form.handleSubmit(onSubmit)} className="p-6 space-y-6">
                     <div className="space-y-4">
                         <FormField
                             control={form.control}
@@ -237,10 +230,7 @@ export default function GymForm({ gym, onSuccess, onCancel }: GymFormProps) {
                                 <FormItem>
                                     <FormLabel>Gym name</FormLabel>
                                     <FormControl>
-                                        <Input
-                                            {...field}
-                                            placeholder="e.g., FitPro Gym"
-                                        />
+                                        <Input {...field} placeholder="e.g., Power Gym" />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -253,10 +243,7 @@ export default function GymForm({ gym, onSuccess, onCancel }: GymFormProps) {
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Subscription status</FormLabel>
-                                    <Select
-                                        onValueChange={field.onChange}
-                                        value={field.value}
-                                    >
+                                    <Select onValueChange={field.onChange} value={field.value}>
                                         <FormControl>
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Select status" />
@@ -306,9 +293,7 @@ export default function GymForm({ gym, onSuccess, onCancel }: GymFormProps) {
                         </div>
 
                         <div className="space-y-1 text-xs text-gray-500">
-                            <p>
-                                El gimnasio se creará con el usuario actual como coach admin.
-                            </p>
+                            <p>El gimnasio se creará con el usuario actual como coach admin.</p>
                         </div>
                     </div>
 

@@ -116,7 +116,7 @@ export default function NavBar() {
     };
 
     return (
-        <nav className="flex gap-2 overflow-x-auto pb-2 mt-8">
+        <nav className="hidden md:flex gap-2 overflow-x-auto pb-2 mt-8">
             {filteredButtons.map((button) => (
                 <NavButton
                     key={button.link}

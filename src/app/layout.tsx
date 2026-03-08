@@ -9,14 +9,14 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-    title: 'Luxion - Fitness Profesional',
-    description: 'Plataforma profesional de fitness con entrenadores certificados',
+    title: 'Power Gym - Entrenamiento Funcional y Personalizado',
+    description: 'Entrenamiento Funcional y Personalizado',
     generator: 'v0.dev',
     manifest: '/manifest.webmanifest',
     appleWebApp: {
         capable: true,
         statusBarStyle: 'default',
-        title: 'Luxion',
+        title: 'Power Gym',
     },
 };
 

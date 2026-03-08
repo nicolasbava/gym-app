@@ -179,7 +179,7 @@ export default function ResetPasswordPage() {
                     <div className="bg-blue-600 p-3 rounded-lg">
                         <Dumbbell className="h-8 w-8 text-white" />
                     </div>
-                    <h1 className="text-3xl font-bold text-gray-900">Luxion</h1>
+                    <h1 className="text-3xl font-bold text-gray-900">Power Gym</h1>
                 </div>
 
                 <Suspense

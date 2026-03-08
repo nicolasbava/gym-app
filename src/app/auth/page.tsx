@@ -69,7 +69,7 @@ function AuthForm() {
                     {isLogin ? 'Iniciar Sesión' : 'Crear Cuenta'}
                 </CardTitle>
                 <CardDescription className="text-gray-600 text-sm">
-                    {isLogin ? 'Accede a tu cuenta de Luxion' : 'Únete a la comunidad Luxion'}
+                    {isLogin ? 'Accede a tu cuenta de Power Gym' : 'Únete a la comunidad Power Gym'}
                 </CardDescription>
             </CardHeader>
 
@@ -348,7 +348,7 @@ export default function AuthPage() {
                     <div className="bg-blue-600 p-3 rounded-lg">
                         <Dumbbell className="h-8 w-8 text-white" />
                     </div>
-                    <h1 className="text-3xl font-bold text-gray-900">Luxion</h1>
+                    <h1 className="text-3xl font-bold text-gray-900">Power Gym</h1>
                 </div>
 
                 <Suspense

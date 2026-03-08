@@ -2,9 +2,9 @@ import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
     return {
-        name: 'Luxion - Fitness Profesional',
-        short_name: 'Luxion',
-        description: 'Plataforma profesional de fitness con entrenadores certificados',
+        name: 'Power Gym - Entrenamiento Funcional y Personalizado',
+        short_name: 'Power Gym',
+        description: 'Entrenamiento Funcional y Personalizado',
         start_url: '/',
         display: 'standalone',
         background_color: '#ffffff',
