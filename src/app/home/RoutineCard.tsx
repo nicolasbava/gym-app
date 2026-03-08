@@ -13,8 +13,6 @@ export default function RoutineCard({ routine }: { routine: AssignedRoutineWithD
         router.push(`/workout/${routineId}`);
     };
 
-    console.log('>> render rutina front', routine);
-
     return (
         <div
             key={routine.id}

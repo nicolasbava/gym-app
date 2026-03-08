@@ -177,8 +177,6 @@ export class RoutineService {
             routine.routine.image_url = imageUrl;
         }
 
-        console.log('data getUserActiveRoutines', JSON.stringify(data, null, 2));
-
         return data;
     }
 

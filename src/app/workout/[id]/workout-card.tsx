@@ -14,6 +14,7 @@ import {
 } from '@/src/components/ui/carousel';
 import { Timer } from '@/src/lib/timer';
 import { RoutineWithExercise } from '@/src/modules/routines/routines.schema';
+import Image from 'next/image';
 
 interface WorkoutCardProps {
     currentRoutineExercise: RoutineWithExercise;
@@ -46,7 +47,7 @@ export default function WorkoutCard({
 
     return (
         <div className="bg-white rounded-lg shadow-sm border overflow-hidden mb-4">
-            <div className="relative h-64 md:h-96 bg-gray-900">
+            <div className="relative aspect-video bg-gray-900">
                 {showVideo && hasVideo ? (
                     <VideoPlayer
                         playbackId={currentRoutineExercise.exercise.mux_playback_id ?? ''}
@@ -56,11 +57,13 @@ export default function WorkoutCard({
                     <Carousel opts={{ loop: true }}>
                         <CarouselContent className="ml-0">
                             {currentRoutineExercise.exercise.images_url!.map((url, idx) => (
-                                <CarouselItem key={idx} className="pl-0">
-                                    <img
+                                <CarouselItem key={idx} className="pl-0 relative aspect-video">
+                                    <Image
                                         src={url}
                                         alt={`${currentRoutineExercise.exercise.name} ${idx + 1}`}
-                                        className="w-full h-64 md:h-96 object-cover opacity-90"
+                                        fill
+                                        className="object-contain"
+                                        sizes="(max-width: 768px) 100vw, 50vw"
                                     />
                                 </CarouselItem>
                             ))}

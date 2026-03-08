@@ -66,7 +66,7 @@ export function Timer({ duration, onComplete, onSkip }: TimerProps) {
             <div className="flex gap-3">
                 <button
                     onClick={handleToggleRunning}
-                    className="flex-1 flex items-center justify-center gap-2 py-3 bg-white bg-opacity-20 rounded-lg hover:bg-opacity-30 font-medium cursor-pointer"
+                    className="flex-1 text-black flex items-center justify-center gap-2 py-3 bg-white bg-opacity-20 rounded-lg hover:bg-opacity-30 font-medium cursor-pointer"
                 >
                     {isRunning ? (
                         <>

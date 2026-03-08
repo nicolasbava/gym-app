@@ -88,10 +88,6 @@ export async function getGymsNamePaginated(name: string = '', page: number = 0) 
 
         const { data, error, count } = await query;
 
-        console.log('data', data);
-        console.log('error', error);
-        console.log('count', count);
-
         if (error) {
             console.log('error', error);
             return {
@@ -105,7 +101,9 @@ export async function getGymsNamePaginated(name: string = '', page: number = 0) 
 
         const newData = [];
         for (const gym of data) {
-            if (!gym.logo_url) { continue; }
+            if (!gym.logo_url) {
+                continue;
+            }
             const imageUrl = await getImageUrl(gym.logo_url);
             newData.push({ ...gym, logo_url: imageUrl });
         }
