@@ -12,7 +12,7 @@ import {
 import { Input } from '@/src/components/ui/input';
 import { Label } from '@/src/components/ui/label';
 import { Separator } from '@/src/components/ui/separator';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui/tabs';
+import { Tabs, TabsContent } from '@/src/components/ui/tabs';
 import { navigationHelpers } from '@/src/lib/navigation';
 import { Dumbbell } from 'lucide-react';
 import { isRedirectError } from 'next/dist/client/components/redirect-error';
@@ -73,10 +73,10 @@ function AuthForm() {
                 </CardDescription>
             </CardHeader>
 
-            <CardContent className="pt-4">
+            <CardContent className="pt-0 gap-2">
                 {/* {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>} */}
-                <Tabs value={isLogin ? 'login' : 'register'} className="w-full">
-                    <TabsList className="grid w-full grid-cols-2 bg-gray-100 p-1 rounded-lg">
+                <Tabs value={isLogin ? 'login' : 'register'} className="w-auto">
+                    {/* <TabsList className="grid w-auto grid-cols-2 bg-gray-100 p-1 rounded-lg">
                         <TabsTrigger
                             value="login"
                             onClick={() => setIsLogin(true)}
@@ -91,9 +91,9 @@ function AuthForm() {
                         >
                             Registrarse
                         </TabsTrigger>
-                    </TabsList>
+                    </TabsList> */}
 
-                    <TabsContent value="login" className="space-y-4 mt-6">
+                    <TabsContent value="login" className="space-y-4 mt-2">
                         <Button
                             onClick={handleGoogleSignIn}
                             variant="outline"

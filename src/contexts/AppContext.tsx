@@ -116,14 +116,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
     }, []);
 
-    // refactor this to useQuery
     const {
         data: gymData,
         isLoading: gymLoading,
         error: gymError,
     } = useQuery({
         queryKey: ['gym', gymId],
-        queryFn: () => getGymById(gymId ?? ''),
+        queryFn: async () => {
+            const result = await getGymById(gymId ?? '');
+
+            if (!result.success) {
+                throw new Error(result.error.message);
+            }
+
+            return result.data;
+        },
         enabled: !!gymId,
     });
 
@@ -169,7 +176,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const value: AppContextValue = {
         // gym data
         gymId,
-        gymData: gymData?.data ?? null,
+        gymData: (gymData as Gym) ?? null,
         gymLoading,
         gymError: gymError?.message ?? null,
         // user profile data

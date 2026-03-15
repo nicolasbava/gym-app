@@ -19,6 +19,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/src/components/ui/select';
+import type { ActionError } from '@/src/lib/actions/action-result';
 import { type CreateGym, type Gym, createGymSchema } from '@/src/modules/gym/gym.schema';
 import { uploadGymImage } from '@/src/modules/gym/useUploadGymImage';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -28,6 +29,51 @@ import { useForm } from 'react-hook-form';
 
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const MAX_IMAGE_SIZE_MB = 5;
+
+const ERROR_MESSAGES: Record<string, string> = {
+    VALIDATION: 'Please check the form fields and try again.',
+    AUTH: 'You must be logged in to perform this action.',
+    DATABASE: 'A database error occurred. Please try again.',
+    NOT_FOUND: 'The requested gym was not found.',
+    EXTERNAL: 'An external service error occurred.',
+    UNKNOWN: 'An unexpected error occurred.',
+};
+
+function isActionError(error: unknown): error is ActionError {
+    return (
+        typeof error === 'object' &&
+        error !== null &&
+        'category' in error &&
+        'message' in error
+    );
+}
+
+function GymFormError({
+    error,
+    fallbackMessage,
+}: {
+    error: Error | ActionError | unknown;
+    fallbackMessage: string;
+}) {
+    if (isActionError(error)) {
+        return (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm space-y-1">
+                <p className="font-medium text-red-800">
+                    {ERROR_MESSAGES[error.category] ?? fallbackMessage}
+                </p>
+                {error.category !== 'AUTH' && (
+                    <p className="text-red-600">{error.message}</p>
+                )}
+            </div>
+        );
+    }
+
+    return (
+        <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+            {error instanceof Error ? error.message : fallbackMessage}
+        </div>
+    );
+}
 
 interface GymFormProps {
     gym?: Gym;
@@ -150,24 +196,25 @@ export default function GymForm({ gym, onSuccess, onCancel }: GymFormProps) {
     const gymMutation = useMutation({
         mutationFn: async (values: CreateGym) => {
             if (isEditing && gym) {
-                const result = await updateGym(gym.id, {
-                    ...values,
-                    id: gym.id,
-                });
+                const result = await updateGym({ ...values, id: gym.id });
+
                 if (!result.success) {
-                    throw new Error(result.error || 'Error al actualizar el gimnasio');
+                    throw result.error;
                 }
-                return result;
+
+                return result.data;
             }
 
             const result = await createGym(values);
+
             if (!result.success) {
-                throw new Error(result.error || 'Error al crear el gimnasio');
+                throw result.error;
             }
-            return result;
+
+            return result.data;
         },
-        onSuccess: async (result) => {
-            const createdGym = result.data as Gym | null;
+        onSuccess: async (data) => {
+            const createdGym = data as Gym | null;
             const gymId = createdGym?.id ?? gym?.id;
 
             if (gymId && pendingImageFileRef.current) {
@@ -213,11 +260,10 @@ export default function GymForm({ gym, onSuccess, onCancel }: GymFormProps) {
     return (
         <>
             {gymMutation.isError && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-                    {gymMutation.error instanceof Error
-                        ? gymMutation.error.message
-                        : `Error al ${isEditing ? 'actualizar' : 'crear'} el gimnasio`}
-                </div>
+                <GymFormError
+                    error={gymMutation.error}
+                    fallbackMessage={`Error al ${isEditing ? 'actualizar' : 'crear'} el gimnasio`}
+                />
             )}
 
             <Form {...form}>
